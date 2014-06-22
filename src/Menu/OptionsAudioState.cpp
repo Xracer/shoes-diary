@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2014 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -261,7 +261,7 @@ void OptionsAudioState::slrUiVolumeChange(Action *)
  */
 void OptionsAudioState::slrUiVolumeRelease(Action *)
 {
-	_game->getResourcePack()->getSound("GEO.CAT", 0)->play(0);
+	_game->getResourcePack()->getSound("GEO.CAT", 0)->play(Mix_GroupAvailable(0));
 }
 
 /**

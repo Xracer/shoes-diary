@@ -153,6 +153,8 @@ set ( battlescape_src
   Battlescape/AbortMissionState.h
   Battlescape/DebriefingState.cpp
   Battlescape/DebriefingState.h
+  Battlescape/DelayedSaveState.cpp
+  Battlescape/DelayedSaveState.h
   Battlescape/InfoboxState.cpp
   Battlescape/InfoboxState.h
   Battlescape/InfoboxOKState.cpp
@@ -216,6 +218,7 @@ set ( engine_src
   Engine/Surface.h
   Engine/Font.cpp
   Engine/Font.h
+  Engine/DosFont.h
   Engine/OpenGL.cpp
   Engine/OpenGL.h
   Engine/Options.cpp

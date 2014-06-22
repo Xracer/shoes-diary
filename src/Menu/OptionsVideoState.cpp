@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2014 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -78,9 +78,9 @@ OptionsVideoState::OptionsVideoState(Game *game, OptionsOrigin origin) : Options
 	_btnLetterbox = new ToggleTextButton(104, 16, 206, 92);
 	_btnLockMouse = new ToggleTextButton(104, 16, 206, 110);
 
-	/* Get available fullscreen modes */
+	// Get available fullscreen modes
 	_res = SDL_ListModes(NULL, SDL_FULLSCREEN);
-	if (_res != (SDL_Rect**)-1 && (SDL_Rect**)0)
+	if (_res != (SDL_Rect**)-1 && _res != (SDL_Rect**)0)
 	{
 		int i;
 		_resCurrent = -1;
@@ -213,7 +213,7 @@ OptionsVideoState::OptionsVideoState(Game *game, OptionsOrigin origin) : Options
 	_cbxLanguage->onMouseOut((ActionHandler)&OptionsVideoState::txtTooltipOut);
 
 	std::vector<std::wstring> filterNames;
-	filterNames.push_back(L"-");
+	filterNames.push_back(tr("STR_DISABLED"));
 	filterNames.push_back(L"Scale");
 	filterNames.push_back(L"HQX");
 	_filters.push_back("");
@@ -232,7 +232,7 @@ OptionsVideoState::OptionsVideoState(Game *game, OptionsOrigin origin) : Options
 	}
 #endif
 	
-	int selFilter = 0;
+	size_t selFilter = 0;
 	if (Screen::isOpenGLEnabled())
 	{
 #ifndef __NO_OPENGL
@@ -392,6 +392,20 @@ void OptionsVideoState::txtDisplayWidthChange(Action *)
 	ss << std::dec << _txtDisplayWidth->getText();
 	ss >> std::dec >> width;
 	Options::newDisplayWidth = width;
+	// Update resolution mode
+	if (_res != (SDL_Rect**)-1 && _res != (SDL_Rect**)0)
+	{
+		int i;
+		_resCurrent = -1;
+		for (i = 0; _res[i]; ++i)
+		{
+			if (_resCurrent == -1 &&
+				((_res[i]->w == Options::newDisplayWidth && _res[i]->h <= Options::newDisplayHeight) || _res[i]->w < Options::newDisplayWidth))
+			{
+				_resCurrent = i;
+			}
+		}
+	}
 }
 
 /**
@@ -405,6 +419,20 @@ void OptionsVideoState::txtDisplayHeightChange(Action *)
 	ss << std::dec << _txtDisplayHeight->getText();
 	ss >> std::dec >> height;
 	Options::newDisplayHeight = height;
+	// Update resolution mode
+	if (_res != (SDL_Rect**)-1 && _res != (SDL_Rect**)0)
+	{
+		int i;
+		_resCurrent = -1;
+		for (i = 0; _res[i]; ++i)
+		{
+			if (_resCurrent == -1 &&
+				((_res[i]->w == Options::newDisplayWidth && _res[i]->h <= Options::newDisplayHeight) || _res[i]->w < Options::newDisplayWidth))
+			{
+				_resCurrent = i;
+			}
+		}
+	}
 }
 
 /**
@@ -526,7 +554,7 @@ void OptionsVideoState::updateBattlescapeScale(Action *)
 void OptionsVideoState::resize(int &dX, int &dY)
 {
 	OptionsBaseState::resize(dX, dY);
-	std::wstringstream ss;
+	std::wostringstream ss;
 	ss << Options::displayWidth;
 	_txtDisplayWidth->setText(ss.str());
 	ss.str(L"");
