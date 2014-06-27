@@ -313,10 +313,10 @@ extraStrings:
 # The following criteria use a hardcoded noun for the name/description.
 # They are INCOMPATIBLE with eachother. If used together,
 # the commendation will be given out repeatedly.
-#   total_kills_with_a_weapon
-#   total_missions_in_a_region
-#   total_kills_by_race
-#   total_kills_by_rank
+#   totalKillsWithAWeapon
+#   totalMissionsInARegion
+#   totalKillsByRace
+#   totalKillsByRank
 # The following criteria allow more control over the kinds of kills that can be awarded.
 # To use, you must define a killCriteria.
 # The killCriteria can list any race, rank, weapon, ammo, 
@@ -327,9 +327,9 @@ extraStrings:
 # Use the strings from the ruleset to define them (mods can be used too). 
 # For example, look at "STR_MEDAL_BOLTS_CROSS_NAME". It is awarded if a soldier
 # stuns one hostile commander or stuns one hostile leader.
-#   kills_with_criteria_career 
-#   kills_with_criteria_mission
-#   kills_with_criteria_turn
+#   killsWithCriteriaCareer 
+#   killsWithCriteriaMission
+#   killsWithCriteriaTurn
 # It is possible to reduce the amount of awards a commendation gets, but still reaching
 # the triple gold star decoration. To do this, repeat the numbres in the criteria vector.
 # For example, [5, 10, 20, 20, 20, 20, 40, 40, 40, 40] will have one award for 5, will have a 
@@ -371,12 +371,12 @@ commendations:
     description: STR_MEDAL_HONOR_CROSS_DESCRIPTION
     sprite: 5
     criteria:
-      total_monthly_service: [1]
+      totalMonthlyService: [1]
   - type: STR_MEDAL_SERVICE_MEDAL_NAME
     description: STR_MEDAL_SERVICE_MEDAL_DESCRIPTION
     sprite: 6
     criteria:
-      total_monthly_service: [3, 6, 9, 12, 15, 18, 21, 24, 27, 30]
+      totalMonthlyService: [3, 6, 9, 12, 15, 18, 21, 24, 27, 30]
   - type: STR_MEDAL_WEAPON_PROFICIENCY_NAME
     description: STR_MEDAL_WEAPON_PROFICIENCY_DESCRIPTION
     sprite: 7
@@ -466,7 +466,7 @@ commendations:
     description: STR_MEDAL_ORDER_OF_EARTH_DESCRIPTION
     sprite: 20
     criteria:
-      total_important_missions: [3, 5, 10, 15, 20, 25, 30, 35, 40, 50]
+      totalImportantMissions: [3, 5, 10, 15, 20, 25, 30, 35, 40, 50]
   - type: STR_MEDAL_SNIPER_TMPNAME
     description: STR_MEDAL_SNIPER_TMPDESCRIPTION
     sprite: 21
@@ -499,7 +499,7 @@ commendations:
     description: STR_MEDAL_CRIMSON_HEART_DESCRIPTION
     sprite: 26
     criteria:
-      total_days_wounded: [30, 60, 90, 120, 150, 180, 210, 240, 270, 300]
+      totalDaysWounded: [30, 60, 90, 120, 150, 180, 210, 240, 270, 300]
   - type: STR_MEDAL_ORDER_OF_GLORY_NAME
     description: STR_MEDAL_ORDER_OF_GLORY_DESCRIPTION
     sprite: 27

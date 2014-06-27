@@ -266,21 +266,21 @@ bool SoldierDiary::manageCommendations(Ruleset *rules)
 			}
             // These criteria have no nouns, so only the nextCommendationLevel["noNoun"] will ever be used
 			else if( nextCommendationLevel.count("noNoun") == 1 &&
-					((*j).first == "total_kills" && _killList.size() < (*j).second.at(nextCommendationLevel["noNoun"])) ||
-					((*j).first == "total_missions" && _missionIdList.size() < (*j).second.at(nextCommendationLevel["noNoun"])) ||
-					((*j).first == "total_wins" && _winTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
-					((*j).first == "total_score" && _scoreTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
-					((*j).first == "total_stuns" && _stunTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
-					((*j).first == "total_days_wounded" && _daysWoundedTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
-					((*j).first == "total_base_defense_missions" && _baseDefenseMissionTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
-					((*j).first == "total_terror_missions" && _terrorMissionTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
-					((*j).first == "total_night_missions" && _nightMissionTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
-					((*j).first == "total_night_terror_missions" && _nightTerrorMissionTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
-					((*j).first == "total_monthly_service" && _monthsService < (*j).second.at(nextCommendationLevel["noNoun"])) ||
-					((*j).first == "total_fell_unconcious" && _unconciousTotal < (*j).second.at(nextCommendationLevel["noNoun"])) || 
-                    ((*j).first == "total_shot_at_10_times" && _shotAtCounter10in1Mission < (*j).second.at(nextCommendationLevel["noNoun"])) || 
-					((*j).first == "total_hit_5_times" && _hitCounter5in1Mission < (*j).second.at(nextCommendationLevel["noNoun"])) ||
-					((*j).first == "total_friendly_fired" && _totalShotByFriendlyCounter < (*j).second.at(nextCommendationLevel["noNoun"])) ||
+					((*j).first == "totalKills" && _killList.size() < (*j).second.at(nextCommendationLevel["noNoun"])) ||
+					((*j).first == "totalMissions" && _missionIdList.size() < (*j).second.at(nextCommendationLevel["noNoun"])) ||
+					((*j).first == "totalWins" && _winTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
+					((*j).first == "totalScore" && _scoreTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
+					((*j).first == "totalStuns" && _stunTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
+					((*j).first == "totalDaysWounded" && _daysWoundedTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
+					((*j).first == "totalBaseDefenseMissions" && _baseDefenseMissionTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
+					((*j).first == "totalTerrorMissions" && _terrorMissionTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
+					((*j).first == "totalNightMissions" && _nightMissionTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
+					((*j).first == "totalNightTerrorMissions" && _nightTerrorMissionTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
+					((*j).first == "totalMonthlyService" && _monthsService < (*j).second.at(nextCommendationLevel["noNoun"])) ||
+					((*j).first == "totalFellUnconcious" && _unconciousTotal < (*j).second.at(nextCommendationLevel["noNoun"])) || 
+                    ((*j).first == "totalShotAt10Times" && _shotAtCounter10in1Mission < (*j).second.at(nextCommendationLevel["noNoun"])) || 
+					((*j).first == "totalHit5Times" && _hitCounter5in1Mission < (*j).second.at(nextCommendationLevel["noNoun"])) ||
+					((*j).first == "totalFriendlyFired" && _totalShotByFriendlyCounter < (*j).second.at(nextCommendationLevel["noNoun"])) ||
 					((*j).first == "total_lone_survivor" && _loneSurvivorTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
 					((*j).first == "totalIronMan" && _ironManTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
 					((*j).first == "totalImportantMissions" && _importantMissionTotal < (*j).second.at(nextCommendationLevel["noNoun"])) || 
@@ -291,23 +291,23 @@ bool SoldierDiary::manageCommendations(Ruleset *rules)
                     ((*j).first == "totalDaysWounded" && _daysWoundedTotal < (*j).second.at(nextCommendationLevel["noNoun"])) ||
 					((*j).first == "totalValientCrux" && _valiantCruxTotal < (*j).second.at(nextCommendationLevel["noNoun"])) || 
 					((*j).first == "isDead" && _KIA < (*j).second.at(nextCommendationLevel["noNoun"])) ||
-					((*j).first == "totalTrapKills" && _trapKillTotal < (*j).second.at(nextCommendationLevel["noNoun"])) )					
+					((*j).first == "totalTrapKills" && _trapKillTotal < (*j).second.at(nextCommendationLevel["noNoun"])) )
 			{
 				awardCommendationBool = false;
 				break;
 			}
 			// Medals with the following criteria are unique because they need a noun
             // And because they loop over a map<> (this allows for maximum moddability)
-			else if ((*j).first == "total_kills_with_a_weapon" || (*j).first == "total_missions_in_a_region" || (*j).first == "total_kills_by_race" || (*j).first == "total_kills_by_rank")
+			else if ((*j).first == "totalKillsWithAWeapon" || (*j).first == "totalMissionsInARegion" || (*j).first == "totalKillsByRace" || (*j).first == "totalKillsByRank")
 			{
 				std::map<std::string, int> tempTotal;
-				if ((*j).first == "total_kills_with_a_weapon")
+				if ((*j).first == "totalKillsWithAWeapon")
 					tempTotal = getWeaponTotal();
-				else if ((*j).first == "total_missions_in_a_region")
+				else if ((*j).first == "totalMissionsInARegion")
 					tempTotal = _regionTotal;
-				else if ((*j).first == "total_kills_by_race")
+				else if ((*j).first == "totalKillsByRace")
 					tempTotal = getAlienRaceTotal();
-				else if ((*j).first == "total_kills_by_rank")
+				else if ((*j).first == "totalKillsByRank")
 					tempTotal = getAlienRankTotal();
 				// Loop over the temporary map
 				// Match nouns and decoration levels
@@ -335,7 +335,7 @@ bool SoldierDiary::manageCommendations(Ruleset *rules)
 					break;
 				}
 			}
-            else if ((*j).first == "kills_with_criteria_career" || (*j).first == "kills_with_criteria_mission" || (*j).first == "kills_with_criteria_turn")
+            else if ((*j).first == "killsWithCriteriaCareer" || (*j).first == "killsWithCriteriaMission" || (*j).first == "killsWithCriteriaTurn")
             {
                 // Fetch the kill criteria list
                 std::vector<std::map<int, std::vector<std::string> > > *_killCriteriaList = (*i).second->getKillCriteria();
@@ -347,7 +347,7 @@ bool SoldierDiary::manageCommendations(Ruleset *rules)
                     for (std::map<int, std::vector<std::string> >::const_iterator andCriteria = orCriteria->begin(); andCriteria != orCriteria->end(); ++andCriteria)
                     {
                         int count = 0; // How many AND vectors (list of DETAILs) have been successful
-						if ((*j).first == "kills_with_criteria_turn" || (*j).first == "kills_with_criteria_mission")
+						if ((*j).first == "killsWithCriteriaTurn" || (*j).first == "killsWithCriteriaMission")
 							count++; // Turns and missions start at 1 because of how thisTime and lastTime work.
                         int thisTime = -1; // Time being a turn or a mission
                         int lastTime = -1;
@@ -355,7 +355,7 @@ bool SoldierDiary::manageCommendations(Ruleset *rules)
                         // Loop over the KILLS
                         for (std::vector<BattleUnitKills*>::const_iterator singleKill = _killList.begin(); singleKill != _killList.end(); ++singleKill)
                         {
-                            if ((*j).first == "kills_with_criteria_mission")
+                            if ((*j).first == "killsWithCriteriaMission")
                             {
                                 thisTime = (*singleKill)->mission;
                                 if (singleKill != _killList.begin())
@@ -365,7 +365,7 @@ bool SoldierDiary::manageCommendations(Ruleset *rules)
                                     ++singleKill;
                                 }
                             }
-                            else if ((*j).first == "kills_with_criteria_turn")
+                            else if ((*j).first == "killsWithCriteriaTurn")
                             {
                                 thisTime = (*singleKill)->turn;
                                 if (singleKill != _killList.begin())
@@ -377,7 +377,7 @@ bool SoldierDiary::manageCommendations(Ruleset *rules)
                             }
                             // Skip kill-groups that we already got an award for
                             // Skip kills that are inbetween turns
-                            if ( thisTime == lastTime && goToNextTime && (*j).first != "kills_with_criteria_career")
+                            if ( thisTime == lastTime && goToNextTime && (*j).first != "killsWithCriteriaCareer")
                             {
                                 continue;
                             }
