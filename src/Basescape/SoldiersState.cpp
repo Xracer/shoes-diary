@@ -48,7 +48,7 @@ SoldiersState::SoldiersState(Base *base) : _base(base)
 	bool isPsiBtnVisible = Options::anytimePsiTraining && _base->getAvailablePsiLabs() > 0;
 
 	// Create objects
-	_window = new Window(this, 320, 200, 0, 0);
+	_window = new Window(this, 960, 600, 0, 0);
 	if (isPsiBtnVisible)
 	{
 		_btnOk = new TextButton(96, 16, 216, 176);
@@ -80,7 +80,7 @@ SoldiersState::SoldiersState(Base *base) : _base(base)
 	add(_txtCraft);
 	add(_lstSoldiers);
 
-	centerAllSurfaces();
+	//centerAllSurfaces();
 
 	// Set up objects
 	_window->setColor(Palette::blockOffset(15)+1);

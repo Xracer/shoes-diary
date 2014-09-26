@@ -58,7 +58,7 @@ BuildFacilitiesState::BuildFacilitiesState(Base *base, State *state) : _base(bas
 	add(_txtTitle);
 	add(_lstFacilities);
 
-	centerAllSurfaces();
+	//centerAllSurfaces();
 
 	// Set up objects
 	_window->setColor(Palette::blockOffset(13)+5);

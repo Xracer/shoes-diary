@@ -49,7 +49,7 @@ namespace OpenXcom
 BaseInfoState::BaseInfoState(Base *base, BasescapeState *state) : _base(base), _state(state)
 {
 	// Create objects
-	_bg = new Surface(320, 200, 0, 0);
+	_bg = new Surface(960, 600, 0, 0);
 	_mini = new MiniBaseView(128, 16, 182, 8);
 	_btnOk = new TextButton(30, 14, 10, 180);
 	_btnTransfers = new TextButton(80, 14, 46, 180);

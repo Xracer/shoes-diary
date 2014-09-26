@@ -1774,9 +1774,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="OpenXcom.rc" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="..\res\windows\openxcom.ico" />
   </ItemGroup>
 </Project>
