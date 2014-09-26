@@ -67,20 +67,20 @@ BasescapeState::BasescapeState(Base *base, Globe *globe) : _base(base), _globe(g
 	_txtFacility = new Text(192, 9, 25, 95);
 	_view = new BaseView(192, 192, 25, 105);
 	_mini = new MiniBaseView(128, 16, 13, 13);
-	_edtBase = new TextEdit(this, 127, 17, 16, 52);
-	_txtLocation = new Text(126, 9, 16, 65);
-	_txtFunds = new Text(126, 9, 16, 76);
+	_edtBase = new TextEdit(this, 127, 17, 13, 43);
+	_txtLocation = new Text(126, 9, 13, 65);
+	_txtFunds = new Text(126, 9, 13, 75);
 	_btnNewBase = new TextButton(128, 12, 192, 58);
-	_btnBaseInfo = new TextButton(80, 30, 65, 560);
-	_btnSoldiers = new TextButton(80, 30, 192, 560);
-	_btnCrafts = new TextButton(80, 30, 192, 560);
-	_btnFacilities = new TextButton(80, 30, 192, 560);
-	_btnResearch = new TextButton(80, 30, 192, 560);
-	_btnManufacture = new TextButton(80, 30, 192, 560);
-	_btnTransfer = new TextButton(80, 30, 192, 560);
-	_btnPurchase = new TextButton(80, 30, 192, 560);
-	_btnSell = new TextButton(80, 30, 192, 560);
-	_btnGeoscape = new TextButton(80, 30, 192, 560);
+	_btnBaseInfo = new TextButton(84, 30, 48, 560);
+	_btnSoldiers = new TextButton(84, 30, 136, 560);
+	_btnCrafts = new TextButton(84, 30, 224, 560);
+	_btnFacilities = new TextButton(84, 30, 312, 560);
+	_btnResearch = new TextButton(84, 30, 400, 560);
+	_btnManufacture = new TextButton(84, 30, 488, 560);
+	_btnTransfer = new TextButton(84, 30, 576, 560);
+	_btnPurchase = new TextButton(84, 30, 664, 560);
+	_btnSell = new TextButton(84, 30, 752, 560);
+	_btnGeoscape = new TextButton(84, 30, 840, 560);
 
 	// Set palette
 	setPalette("PAL_BASESCAPE");

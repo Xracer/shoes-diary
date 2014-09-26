@@ -9454,3 +9454,9 @@ extraSprites:
     subY: 48
     files:
       -4: Resources/Weapons/Terror.png
+  - type: ICONS.PCK
+    singleImage: true
+    width: 960
+    height: 600
+    files:
+      0: Resources/HD/UI/UI.png
