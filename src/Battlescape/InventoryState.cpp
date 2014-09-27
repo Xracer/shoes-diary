@@ -79,27 +79,35 @@ InventoryState::InventoryState(bool tu, BattlescapeState *parent) : _tu(tu), _pa
 	}
 
 	// Create objects
-	_bg = new Surface(320, 200, 0, 0);
-	_soldier = new Surface(320, 200, 0, 0);
-	_txtName = new Text(210, 17, 28, 6);
+	_bg = new Surface(960, 600, 0, 0);
+	_soldier = new Surface(121, 215, 83, 85);
+	_rank = new Surface(26, 23, 5, 5); //added for the rank icon
+	_txtName = new Text(200, 17, 40, 10);
 	_txtTus = new Text(40, 9, 245, Options::showMoreStatsInInventoryView ? 32 : 24);
-	_txtWeight = new Text(70, 9, 245, 24);
-	_txtFAcc = new Text(40, 9, 245, 32);
-	_txtReact = new Text(40, 9, 245, 40);
-	_txtPSkill = new Text(40, 9, 245, 48);
-	_txtPStr = new Text(40, 9, 245, 56);
-	_txtItem = new Text(160, 9, 128, 140);
-	_txtAmmo = new Text(66, 24, 254, 64);
-	_btnOk = new InteractiveSurface(35, 22, 237, 1);
-	_btnPrev = new InteractiveSurface(23, 22, 273, 1);
-	_btnNext = new InteractiveSurface(23, 22, 297, 1);
-	_btnUnload = new InteractiveSurface(32, 25, 288, 32);
-	_btnGround = new InteractiveSurface(32, 15, 289, 137);
+	_txtWeight = new Text(70, 9, 400, 52);
+	_txtFAcc = new Text(40, 9, 400, 60);
+	_txtReact = new Text(40, 9, 400, 68);
+	_txtPSkill = new Text(40, 9, 400, 76);
+	_txtPStr = new Text(40, 9, 400, 84);
+	_txtItem = new Text(160, 9, 8, 310);
+	_txtAmmo = new Text(80, 24, 8, 432);
+	_btnOk = new InteractiveSurface(35, 22, 890, 5);
+	_btnPrev = new InteractiveSurface(23, 22, 866, 5);
+	_btnNext = new InteractiveSurface(23, 22, 926, 5);
+	_btnUnload = new InteractiveSurface(32, 25, 8, 280);
+	_btnGround = new InteractiveSurface(32, 15, 924, 442);
 	_btnRank = new InteractiveSurface(26, 23, 0, 0);
 	_btnCreateTemplate = new InteractiveSurface(32, 22, _templateBtnX, _createTemplateBtnY);
 	_btnApplyTemplate = new InteractiveSurface(32, 22, _templateBtnX, _applyTemplateBtnY);
-	_selAmmo = new Surface(RuleInventory::HAND_W * RuleInventory::SLOT_W, RuleInventory::HAND_H * RuleInventory::SLOT_H, 272, 88);
-	_inv = new Inventory(_game, 320, 200, 0, 0, _parent == 0);
+	_selAmmo = new Surface(RuleInventory::HAND_W * RuleInventory::SLOT_W, RuleInventory::HAND_H * RuleInventory::SLOT_H, 8, 325);
+	_inv = new Inventory(_game, 960, 600, 0, 0, _parent == 0);
+	_txtRank = new Text(100, 10, 5, 38); // added
+	_txtCraft = new Text(100, 10, 110, 38); // added
+	_txtMissions = new Text(100, 10, 215, 38); // added
+	_txtKills = new Text(100, 10, 320, 38); // added
+	_txtStatus = new Text(100, 10, 425, 38); // added
+	_txtArmor = new Text(100, 10, 530, 38); // added
+
 
 	// Set palette
 	setPalette("PAL_BATTLESCAPE");
@@ -126,7 +134,7 @@ InventoryState::InventoryState(bool tu, BattlescapeState *parent) : _tu(tu), _pa
 	add(_selAmmo);
 	add(_inv);
 
-	centerAllSurfaces();
+	//centerAllSurfaces();
 
 	// Set up objects
 	_game->getResourcePack()->getSurface("TAC01.SCR")->blit(_bg);

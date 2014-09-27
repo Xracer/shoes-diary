@@ -35,6 +35,7 @@ class Inventory;
 class SavedBattleGame;
 class BattlescapeState;
 class BattleUnit;
+class Bar;
 
 /**
  * Screen which displays soldier's inventory.
@@ -42,10 +43,13 @@ class BattleUnit;
 class InventoryState : public State
 {
 private:
-	Surface *_bg, *_soldier;
+	Surface *_bg, *_soldier, *_rank;
 	Text *_txtName, *_txtItem, *_txtAmmo, *_txtWeight, *_txtTus, *_txtFAcc, *_txtReact, *_txtPSkill, *_txtPStr;
+	Text *_txtRank, *_txtRankName, *_txtCraft, *_txtCraftName, *_txtMissions, *_txtnumMissions, *_txtKills;
+	Text *_txtnumKills, *_txtStatus, *_txtStatusType, *_txtArmor, *_txtArmorType;
 	InteractiveSurface *_btnOk, *_btnPrev, *_btnNext, *_btnUnload, *_btnGround, *_btnRank;
 	InteractiveSurface *_btnCreateTemplate, *_btnApplyTemplate;
+	//InteractiveSurface *_btnStats, *_btnAwards;
 	Surface *_selAmmo;
 	Inventory *_inv;
 	std::vector<EquipmentLayoutItem*> _curInventoryTemplate;
@@ -53,6 +57,17 @@ private:
 	const bool _tu;
 	BattlescapeState *_parent;
 	std::string _currentTooltip;
+	Text *_txtTimeUnits, *_txtEnergy, *_txtHealth, *_txtFatalWounds, *_txtBravery, *_txtMorale, *_txtReactions, *_txtFiring, *_txtThrowing, *_txtStrength;
+	Text *_txtPsiStrength, *_txtPsiSkill;
+	Text *_numTimeUnits, *_numEnergy, *_numHealth, *_numFatalWounds, *_numBravery, *_numMorale, *_numReactions, *_numFiring, *_numThrowing, *_numStrength;
+	Text *_numPsiStrength, *_numPsiSkill;
+	Bar *_barTimeUnits, *_barEnergy, *_barHealth, *_barFatalWounds, *_barBravery, *_barMorale, *_barReactions, *_barFiring, *_barThrowing, *_barStrength;
+	Bar *_barPsiStrength, *_barPsiSkill;
+
+	Text *_txtFrontArmor, *_txtLeftArmor, *_txtRightArmor, *_txtRearArmor, *_txtUnderArmor;
+	Text *_numFrontArmor, *_numLeftArmor, *_numRightArmor, *_numRearArmor, *_numUnderArmor;
+	Bar *_barFrontArmor, *_barLeftArmor, *_barRightArmor, *_barRearArmor, *_barUnderArmor;
+
 public:
 	/// Creates the Inventory state.
 	InventoryState(bool tu, BattlescapeState *parent);
