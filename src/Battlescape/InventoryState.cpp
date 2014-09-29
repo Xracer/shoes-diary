@@ -721,7 +721,7 @@ void InventoryState::init()
 }
 
 /**
- * Updates the soldier stats (Weight, TU).
+ * Updates the soldier stas and bars when Stats button is selected (Weight, TU).
  */
 void InventoryState::updateStats()
 {
@@ -764,321 +764,88 @@ void InventoryState::updateStats()
 
 	//Addind text for all bars
 	std::wostringstream ss;
-	ss << _unit->getTimeUnits();
+	ss << unit->getTimeUnits();
 	_numTimeUnits->setText(ss.str());
-	_barTimeUnits->setMax(_unit->getStats()->tu);
-	_barTimeUnits->setValue(_unit->getTimeUnits());
+	_barTimeUnits->setMax(unit->getStats()->tu);
+	_barTimeUnits->setValue(unit->getTimeUnits());
 
 	ss.str(L"");
 	// aliens have their rank in their "name", soldiers don't
-	if (_unit->getType() == "SOLDIER")
+	if (unit->getType() == "SOLDIER")
 	{
-		ss << tr(_unit->getRankString());
+		ss << tr(unit->getRankString());
 		ss << " ";
 	}
-	ss << _unit->getName(_game->getLanguage(), BattlescapeGame::_debugPlay);
+	ss << unit->getName(_game->getLanguage(), BattlescapeGame::_debugPlay);
 	_txtName->setBig();
 	_txtName->setText(ss.str());
 
 	ss.str(L"");
-	ss << _unit->getEnergy();
+	ss << unit->getEnergy();
 	_numEnergy->setText(ss.str());
-	_barEnergy->setMax(_unit->getStats()->stamina);
-	_barEnergy->setValue(_unit->getEnergy());
-
-	ss.str(L"");
-	ss << _unit->getHealth();
-	_numHealth->setText(ss.str());
-	_barHealth->setMax(_unit->getStats()->health);
-	_barHealth->setValue(_unit->getHealth());
-	_barHealth->setValue2(_unit->getStunlevel());
-
-	ss.str(L"");
-	ss << _unit->getFatalWounds();
-	_numFatalWounds->setText(ss.str());
-	_barFatalWounds->setMax(_unit->getFatalWounds());
-	_barFatalWounds->setValue(_unit->getFatalWounds());
-
-	ss.str(L"");
-	ss << _unit->getStats()->bravery;
-	_numBravery->setText(ss.str());
-	_barBravery->setMax(_unit->getStats()->bravery);
-	_barBravery->setValue(_unit->getStats()->bravery);
-
-	ss.str(L"");
-	ss << _unit->getMorale();
-	_numMorale->setText(ss.str());
-	_barMorale->setMax(100);
-	_barMorale->setValue(_unit->getMorale());
-
-	ss.str(L"");
-	ss << _unit->getStats()->reactions;
-	_numReactions->setText(ss.str());
-	_barReactions->setMax(_unit->getStats()->reactions);
-	_barReactions->setValue(_unit->getStats()->reactions);
-
-	ss.str(L"");
-	ss << (int)((_unit->getStats()->firing * _unit->getHealth()) / _unit->getStats()->health);
-	_numFiring->setText(ss.str());
-	_barFiring->setMax(_unit->getStats()->firing);
-	_barFiring->setValue((_unit->getStats()->firing * _unit->getHealth()) / _unit->getStats()->health);
-
-	ss.str(L"");
-	ss << (int)((_unit->getStats()->throwing * _unit->getHealth()) / _unit->getStats()->health);
-	_numThrowing->setText(ss.str());
-	_barThrowing->setMax(_unit->getStats()->throwing);
-	_barThrowing->setValue((_unit->getStats()->throwing * _unit->getHealth()) / _unit->getStats()->health);
-
-	ss.str(L"");
-	ss << (int)((_unit->getStats()->melee * _unit->getHealth()) / _unit->getStats()->health);
-	_numMelee->setText(ss.str());
-	_barMelee->setMax(_unit->getStats()->melee);
-	_barMelee->setValue((_unit->getStats()->melee * _unit->getHealth()) / _unit->getStats()->health);
-
-	ss.str(L"");
-	ss << _unit->getStats()->strength;
-	_numStrength->setText(ss.str());
-	_barStrength->setMax(_unit->getStats()->strength);
-	_barStrength->setValue(_unit->getStats()->strength);
-
-	if (_unit->getStats()->psiSkill > 0 || (Options::psiStrengthEval && _game->getSavedGame()->isResearched(_game->getRuleset()->getPsiRequirements())))
-	{
-		ss.str(L"");
-		ss << _unit->getStats()->psiStrength;
-		_numPsiStrength->setText(ss.str());
-		_barPsiStrength->setMax(_unit->getStats()->psiStrength);
-		_barPsiStrength->setValue(_unit->getStats()->psiStrength);
-
-		_txtPsiStrength->setVisible(true);
-		_numPsiStrength->setVisible(true);
-		_barPsiStrength->setVisible(true);
-	}
-	else
-	{
-		_txtPsiStrength->setVisible(false);
-		_numPsiStrength->setVisible(false);
-		_barPsiStrength->setVisible(false);
-	}
-
-	if (_unit->getStats()->psiSkill > 0)
-	{
-		ss.str(L"");
-		ss << _unit->getStats()->psiSkill;
-		_numPsiSkill->setText(ss.str());
-		_barPsiSkill->setMax(_unit->getStats()->psiSkill);
-		_barPsiSkill->setValue(_unit->getStats()->psiSkill);
-
-		_txtPsiSkill->setVisible(true);
-		_numPsiSkill->setVisible(true);
-		_barPsiSkill->setVisible(true);
-	}
-	else
-	{
-		_txtPsiSkill->setVisible(false);
-		_numPsiSkill->setVisible(false);
-		_barPsiSkill->setVisible(false);
-	}
-
-	ss.str(L"");
-	ss << _unit->getArmor(SIDE_FRONT);
-	_numFrontArmor->setText(ss.str());
-	_barFrontArmor->setMax(_unit->getArmor()->getFrontArmor());
-	_barFrontArmor->setValue(_unit->getArmor(SIDE_FRONT));
-
-	ss.str(L"");
-	ss << _unit->getArmor(SIDE_LEFT);
-	_numLeftArmor->setText(ss.str());
-	_barLeftArmor->setMax(_unit->getArmor()->getSideArmor());
-	_barLeftArmor->setValue(_unit->getArmor(SIDE_LEFT));
-
-	ss.str(L"");
-	ss << _unit->getArmor(SIDE_RIGHT);
-	_numRightArmor->setText(ss.str());
-	_barRightArmor->setMax(_unit->getArmor()->getSideArmor());
-	_barRightArmor->setValue(_unit->getArmor(SIDE_RIGHT));
-
-	ss.str(L"");
-	ss << _unit->getArmor(SIDE_REAR);
-	_numRearArmor->setText(ss.str());
-	_barRearArmor->setMax(_unit->getArmor()->getRearArmor());
-	_barRearArmor->setValue(_unit->getArmor(SIDE_REAR));
-
-	ss.str(L"");
-	ss << _unit->getArmor(SIDE_UNDER);
-	_numUnderArmor->setText(ss.str());
-	_barUnderArmor->setMax(_unit->getArmor()->getUnderArmor());
-	_barUnderArmor->setValue(_unit->getArmor(SIDE_UNDER));
-
-	/*****/
-	//Setup the display of stats lables numbers and bars
-
-	_txtTimeUnits->setColor(Palette::blockOffset(3));
-	_txtTimeUnits->setHighContrast(true);
-	_txtTimeUnits->setText(tr("STR_TIME_UNITS"));
-
-	std::stringstream ss;
-	ss << unit->getTimeUnits();
-	_numTimeUnits->setText(Language::utf8ToWstr(ss.str()));
-	_numTimeUnits->setColor(Palette::blockOffset(9));
-	_numTimeUnits->setHighContrast(true);
-
-	_barTimeUnits->setMax(unit->getStats()->tu);
-	_barTimeUnits->setValue(unit->getTimeUnits());
-	_barTimeUnits->setColor(Palette::blockOffset(4));
-	_barTimeUnits->setScale(1.0);
-
-	_txtEnergy->setColor(Palette::blockOffset(3));
-	_txtEnergy->setHighContrast(true);
-	_txtEnergy->setText(tr("STR_ENERGY"));
-
-	std::stringstream ss3;
-	ss3 << unit->getEnergy();
-	_numEnergy->setColor(Palette::blockOffset(9));
-	_numEnergy->setHighContrast(true);
-	_numEnergy->setText(Language::utf8ToWstr(ss3.str()));
-
-	_barEnergy->setColor(Palette::blockOffset(9));
-	_barEnergy->setScale(1.0);
 	_barEnergy->setMax(unit->getStats()->stamina);
 	_barEnergy->setValue(unit->getEnergy());
 
-	_txtHealth->setColor(Palette::blockOffset(3));
-	_txtHealth->setHighContrast(true);
-	_txtHealth->setText(tr("STR_HEALTH"));
-
-	std::stringstream ss4;
-	ss4 << unit->getHealth();
-	_numHealth->setColor(Palette::blockOffset(9));
-	_numHealth->setHighContrast(true);
-	_numHealth->setText(Language::utf8ToWstr(ss4.str()));
-
-	_barHealth->setColor(Palette::blockOffset(2));
-	_barHealth->setColor2(Palette::blockOffset(5) + 2);
-	_barHealth->setScale(1.0);
+	ss.str(L"");
+	ss << unit->getHealth();
+	_numHealth->setText(ss.str());
 	_barHealth->setMax(unit->getStats()->health);
 	_barHealth->setValue(unit->getHealth());
 	_barHealth->setValue2(unit->getStunlevel());
 
-	_txtFatalWounds->setColor(Palette::blockOffset(3));
-	_txtFatalWounds->setHighContrast(true);
-	_txtFatalWounds->setText(tr("STR_FATAL_WOUNDS"));
-
-	std::stringstream ss5;
-	ss5 << unit->getFatalWounds();
-	_numFatalWounds->setColor(Palette::blockOffset(9));
-	_numFatalWounds->setHighContrast(true);
-	_numFatalWounds->setText(Language::utf8ToWstr(ss5.str()));
-
-	_barFatalWounds->setColor(Palette::blockOffset(2));
-	_barFatalWounds->setScale(1.0);
+	ss.str(L"");
+	ss << unit->getFatalWounds();
+	_numFatalWounds->setText(ss.str());
 	_barFatalWounds->setMax(unit->getFatalWounds());
 	_barFatalWounds->setValue(unit->getFatalWounds());
 
-	_txtBravery->setColor(Palette::blockOffset(3));
-	_txtBravery->setHighContrast(true);
-	_txtBravery->setText(tr("STR_BRAVERY"));
-
-	std::stringstream ss6;
-	ss6 << unit->getStats()->bravery;
-	_numBravery->setColor(Palette::blockOffset(9));
-	_numBravery->setHighContrast(true);
-	_numBravery->setText(Language::utf8ToWstr(ss6.str()));
-
-	_barBravery->setColor(Palette::blockOffset(12));
-	_barBravery->setScale(1.0);
+	ss.str(L"");
+	ss << unit->getStats()->bravery;
+	_numBravery->setText(ss.str());
 	_barBravery->setMax(unit->getStats()->bravery);
 	_barBravery->setValue(unit->getStats()->bravery);
 
-	_txtMorale->setColor(Palette::blockOffset(3));
-	_txtMorale->setHighContrast(true);
-	_txtMorale->setText(tr("STR_MORALE"));
-
-	std::stringstream ss7;
-	ss7 << unit->getMorale();
-	_numMorale->setColor(Palette::blockOffset(9));
-	_numMorale->setHighContrast(true);
-	_numMorale->setText(Language::utf8ToWstr(ss7.str()));
-
-	_barMorale->setColor(Palette::blockOffset(12));
-	_barMorale->setScale(1.0);
+	ss.str(L"");
+	ss << unit->getMorale();
+	_numMorale->setText(ss.str());
 	_barMorale->setMax(100);
 	_barMorale->setValue(unit->getMorale());
 
-	_txtReactions->setColor(Palette::blockOffset(3));
-	_txtReactions->setHighContrast(true);
-	_txtReactions->setText(tr("STR_REACTIONS"));
-
-	std::stringstream ss8;
-	ss8 << unit->getStats()->reactions;
-	_numReactions->setColor(Palette::blockOffset(9));
-	_numReactions->setHighContrast(true);
-	_numReactions->setText(Language::utf8ToWstr(ss8.str()));
-
-	_barReactions->setColor(Palette::blockOffset(9));
-	_barReactions->setScale(1.0);
+	ss.str(L"");
+	ss << unit->getStats()->reactions;
+	_numReactions->setText(ss.str());
 	_barReactions->setMax(unit->getStats()->reactions);
 	_barReactions->setValue(unit->getStats()->reactions);
 
-	_txtFiring->setColor(Palette::blockOffset(3));
-	_txtFiring->setHighContrast(true);
-	_txtFiring->setText(tr("STR_FIRING_ACCURACY"));
-
-	std::stringstream ss9;
-	ss9 << (int)(unit->getStats()->firing * unit->getAccuracyModifier());
-	_numFiring->setColor(Palette::blockOffset(9));
-	_numFiring->setHighContrast(true);
-	_numFiring->setText(Language::utf8ToWstr(ss9.str()));
-
-	_barFiring->setColor(Palette::blockOffset(8));
-	_barFiring->setScale(1.0);
+	ss.str(L"");
+	ss << (int)((unit->getStats()->firing * unit->getHealth()) / unit->getStats()->health);
+	_numFiring->setText(ss.str());
 	_barFiring->setMax(unit->getStats()->firing);
-	_barFiring->setValue(unit->getStats()->firing * unit->getAccuracyModifier());
+	_barFiring->setValue((unit->getStats()->firing * unit->getHealth()) / unit->getStats()->health);
 
-	_txtThrowing->setColor(Palette::blockOffset(3));
-	_txtThrowing->setHighContrast(true);
-	_txtThrowing->setText(tr("STR_THROWING_ACCURACY"));
-
-	std::stringstream ss10;
-	ss10 << (int)(unit->getStats()->throwing * unit->getAccuracyModifier());
-	_numThrowing->setColor(Palette::blockOffset(9));
-	_numThrowing->setHighContrast(true);
-	_numThrowing->setText(Language::utf8ToWstr(ss10.str()));
-
-	_barThrowing->setColor(Palette::blockOffset(6));
-	_barThrowing->setScale(1.0);
+	ss.str(L"");
+	ss << (int)((unit->getStats()->throwing * unit->getHealth()) / unit->getStats()->health);
+	_numThrowing->setText(ss.str());
 	_barThrowing->setMax(unit->getStats()->throwing);
-	_barThrowing->setValue(unit->getStats()->throwing * unit->getAccuracyModifier());
+	_barThrowing->setValue((unit->getStats()->throwing * unit->getHealth()) / unit->getStats()->health);
 
-	_txtStrength->setColor(Palette::blockOffset(3));
-	_txtStrength->setHighContrast(true);
-	_txtStrength->setText(tr("STR_STRENGTH"));
+	ss.str(L"");
+	ss << (int)((unit->getStats()->melee * unit->getHealth()) / unit->getStats()->health);
+	_numMelee->setText(ss.str());
+	_barMelee->setMax(unit->getStats()->melee);
+	_barMelee->setValue((unit->getStats()->melee * unit->getHealth()) / unit->getStats()->health);
 
-	std::stringstream ss11;
-	ss11 << unit->getStats()->strength;
-	_numStrength->setColor(Palette::blockOffset(9));
-	_numStrength->setHighContrast(true);
-	_numStrength->setText(Language::utf8ToWstr(ss11.str()));
-
-	_barStrength->setColor(Palette::blockOffset(3));
-	_barStrength->setScale(1.0);
+	ss.str(L"");
+	ss << unit->getStats()->strength;
+	_numStrength->setText(ss.str());
 	_barStrength->setMax(unit->getStats()->strength);
 	_barStrength->setValue(unit->getStats()->strength);
 
-	_txtPsiStrength->setColor(Palette::blockOffset(3));
-	_txtPsiStrength->setHighContrast(true);
-	_txtPsiStrength->setText(tr("STR_PSIONIC_STRENGTH"));
-
-	_numPsiStrength->setColor(Palette::blockOffset(9));
-	_numPsiStrength->setHighContrast(true);
-
-	_barPsiStrength->setColor(Palette::blockOffset(12));
-	_barPsiStrength->setScale(1.0);
-
-	if (unit->getStats()->psiSkill > 0 || (Options::getBool("psiStrengthEval") && _game->getSavedGame()->isResearched(_game->getRuleset()->getPsiRequirements())))
+	if (unit->getStats()->psiSkill > 0 || (Options::psiStrengthEval && _game->getSavedGame()->isResearched(_game->getRuleset()->getPsiRequirements())))
 	{
-		std::stringstream ss12;
-		ss12 << unit->getStats()->psiStrength;
-		_numPsiStrength->setText(Language::utf8ToWstr(ss12.str()));
+		ss.str(L"");
+		ss << unit->getStats()->psiStrength;
+		_numPsiStrength->setText(ss.str());
 		_barPsiStrength->setMax(unit->getStats()->psiStrength);
 		_barPsiStrength->setValue(unit->getStats()->psiStrength);
 
@@ -1093,21 +860,11 @@ void InventoryState::updateStats()
 		_barPsiStrength->setVisible(false);
 	}
 
-	_txtPsiSkill->setColor(Palette::blockOffset(3));
-	_txtPsiSkill->setHighContrast(true);
-	_txtPsiSkill->setText(tr("STR_PSIONIC_SKILL"));
-
-	_numPsiSkill->setColor(Palette::blockOffset(9));
-	_numPsiSkill->setHighContrast(true);
-
-	_barPsiSkill->setColor(Palette::blockOffset(12));
-	_barPsiSkill->setScale(1.0);
-
 	if (unit->getStats()->psiSkill > 0)
 	{
-		std::stringstream ss13;
-		ss13 << unit->getStats()->psiSkill;
-		_numPsiSkill->setText(Language::utf8ToWstr(ss13.str()));
+		ss.str(L"");
+		ss << unit->getStats()->psiSkill;
+		_numPsiSkill->setText(ss.str());
 		_barPsiSkill->setMax(unit->getStats()->psiSkill);
 		_barPsiSkill->setValue(unit->getStats()->psiSkill);
 
@@ -1122,85 +879,37 @@ void InventoryState::updateStats()
 		_barPsiSkill->setVisible(false);
 	}
 
-	_txtFrontArmor->setColor(Palette::blockOffset(3));
-	_txtFrontArmor->setHighContrast(true);
-	_txtFrontArmor->setText(tr("STR_FRONT_ARMOR_UC"));
-
-	std::stringstream ss14;
-	ss14 << unit->getArmor(SIDE_FRONT);
-	_numFrontArmor->setColor(Palette::blockOffset(9));
-	_numFrontArmor->setHighContrast(true);
-	_numFrontArmor->setText(Language::utf8ToWstr(ss14.str()));
-
-	_barFrontArmor->setColor(Palette::blockOffset(5));
-	_barFrontArmor->setScale(1.0);
+	ss.str(L"");
+	ss << unit->getArmor(SIDE_FRONT);
+	_numFrontArmor->setText(ss.str());
 	_barFrontArmor->setMax(unit->getArmor()->getFrontArmor());
 	_barFrontArmor->setValue(unit->getArmor(SIDE_FRONT));
 
-	_txtLeftArmor->setColor(Palette::blockOffset(3));
-	_txtLeftArmor->setHighContrast(true);
-	_txtLeftArmor->setText(tr("STR_LEFT_ARMOR_UC"));
-
-	std::stringstream ss15;
-	ss15 << unit->getArmor(SIDE_LEFT);
-	_numLeftArmor->setColor(Palette::blockOffset(9));
-	_numLeftArmor->setHighContrast(true);
-	_numLeftArmor->setText(Language::utf8ToWstr(ss15.str()));
-
-	_barLeftArmor->setColor(Palette::blockOffset(5));
-	_barLeftArmor->setScale(1.0);
+	ss.str(L"");
+	ss << unit->getArmor(SIDE_LEFT);
+	_numLeftArmor->setText(ss.str());
 	_barLeftArmor->setMax(unit->getArmor()->getSideArmor());
 	_barLeftArmor->setValue(unit->getArmor(SIDE_LEFT));
 
-	_txtRightArmor->setColor(Palette::blockOffset(3));
-	_txtRightArmor->setHighContrast(true);
-	_txtRightArmor->setText(tr("STR_RIGHT_ARMOR_UC"));
-
-	std::stringstream ss16;
-	ss16 << unit->getArmor(SIDE_RIGHT);
-	_numRightArmor->setColor(Palette::blockOffset(9));
-	_numRightArmor->setHighContrast(true);
-	_numRightArmor->setText(Language::utf8ToWstr(ss16.str()));
-
-	_barRightArmor->setColor(Palette::blockOffset(5));
-	_barRightArmor->setScale(1.0);
+	ss.str(L"");
+	ss << unit->getArmor(SIDE_RIGHT);
+	_numRightArmor->setText(ss.str());
 	_barRightArmor->setMax(unit->getArmor()->getSideArmor());
 	_barRightArmor->setValue(unit->getArmor(SIDE_RIGHT));
 
-	_txtRearArmor->setColor(Palette::blockOffset(3));
-	_txtRearArmor->setHighContrast(true);
-	_txtRearArmor->setText(tr("STR_REAR_ARMOR_UC"));
-
-	std::stringstream ss17;
-	ss17 << unit->getArmor(SIDE_REAR);
-	_numRearArmor->setColor(Palette::blockOffset(9));
-	_numRearArmor->setHighContrast(true);
-	_numRearArmor->setText(Language::utf8ToWstr(ss17.str()));
-
-	_barRearArmor->setColor(Palette::blockOffset(5));
-	_barRearArmor->setScale(1.0);
+	ss.str(L"");
+	ss << unit->getArmor(SIDE_REAR);
+	_numRearArmor->setText(ss.str());
 	_barRearArmor->setMax(unit->getArmor()->getRearArmor());
 	_barRearArmor->setValue(unit->getArmor(SIDE_REAR));
 
-	_txtUnderArmor->setColor(Palette::blockOffset(3));
-	_txtUnderArmor->setHighContrast(true);
-	_txtUnderArmor->setText(tr("STR_UNDER_ARMOR_UC"));
-
-	std::stringstream ss18;
-	ss18 << unit->getArmor(SIDE_UNDER);
-	_numUnderArmor->setColor(Palette::blockOffset(9));
-	_numUnderArmor->setHighContrast(true);
-	_numUnderArmor->setText(Language::utf8ToWstr(ss18.str()));
-
-	_barUnderArmor->setColor(Palette::blockOffset(5));
-	_barUnderArmor->setScale(1.0);
+	ss.str(L"");
+	ss << unit->getArmor(SIDE_UNDER);
+	_numUnderArmor->setText(ss.str());
 	_barUnderArmor->setMax(unit->getArmor()->getUnderArmor());
 	_barUnderArmor->setValue(unit->getArmor(SIDE_UNDER));
-}
 
-/**
-* Updates the soldier stas and bars when Stats button is selected (Weight, TU).
-*/
+}
 
 /**
  * Saves the soldiers' equipment-layout.
