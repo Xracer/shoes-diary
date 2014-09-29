@@ -145,9 +145,9 @@ InventoryState::InventoryState(bool tu, BattlescapeState *parent) : _tu(tu), _pa
 	_numThrowing = new Text(18, 9, 662, 204);
 	_barThrowing = new Bar(200, 8, 680, 204);
 
-	_txtMelee = new Text(120, 9, 8, 217);
-	_numMelee = new Text(18, 9, 150, 217);
-	_barMelee = new Bar(200, 8, 170, 217);
+	_txtMelee = new Text(120, 9, 546, 217);
+	_numMelee = new Text(18, 9, 662, 217);
+	_barMelee = new Bar(200, 8, 680, 217);
 
 	_txtStrength = new Text(120, 9, 546, 230);
 	_numStrength = new Text(18, 9, 662, 230);

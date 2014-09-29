@@ -9460,3 +9460,267 @@ extraSprites:
     height: 600
     files:
       0: Resources/HD/UI/UI.png
+  - type: BIGOBS.PCK
+    width: 1408
+    height: 588
+    subX: 64
+    subY: 98
+    files:
+      57: Resources/HD/BigObs/bigobs.png
+  - type: FLOOROB.PCK
+    files:
+      73: Resources/HD/FloorObs/CombatKnife.gif
+  - type: HANDOB.PCK
+    width: 256
+    height: 40
+    subX: 32
+    subY: 40
+    files:
+      128: Resources/HD/HandObs/CombatKnife.png
+  - type: HDTAC01.PNG
+    singleImage: true
+    width: 960
+    height: 600
+    files:
+      0: Resources/HD/BG/HDTAC01.PNG
+  - type: GEOBORD.SCR
+    singleImage: true
+    width: 960
+    height: 600
+    files:
+      0: Resources/HD/BG/GEOBORD.PNG
+  - type: STARFIELD.PNG
+    singleImage: true
+    width: 960
+    height: 600
+    files:
+      0: Resources/HD/BG/STARFIELD.PNG
+  - type: HDBACK01.PNG
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/BG/HDBACK01.PNG
+  - type: HDBACK02.PNG
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/BG/HDBACK02.PNG
+  - type: HDBACK03.PNG
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/BG/HDBACK03.PNG
+  - type: HDBACK04.PNG
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/BG/HDBACK04.PNG
+  - type: HDBACK05.PNG
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/BG/HDBACK05.PNG
+  - type: HDBACK06.PNG
+    singleImage: true
+    width: 960
+    height: 600
+    files:
+      0: Resources/HD/BG/HDBACK06.PNG
+  - type: HDBACK07.PNG
+    singleImage: true
+    width: 960
+    height: 600
+    files:
+      0: Resources/HD/BG/HDBACK07.PNG
+  - type: HDBACK08.PNG
+    singleImage: true
+    width: 960
+    height: 600
+    files:
+      0: Resources/HD/BG/HDBACK08.PNG
+    singleImage: true
+  - type: HDBACK09.PNG
+    singleImage: true
+    width: 960
+    height: 600
+    files:
+      0: Resources/HD/BG/HDBACK09.PNG
+  - type: HDBACK10.PNG
+    singleImage: true
+    width: 960
+    height: 600
+    files:
+      0: Resources/HD/BG/HDBACK10.PNG
+  - type: HDBACK11.PNG
+    singleImage: true
+    width: 960
+    height: 600
+    files:
+      0: Resources/HD/BG/HDBACK11.PNG
+  - type: HDBACK12.PNG
+    singleImage: true
+    width: 960
+    height: 600
+    files:
+      0: Resources/HD/BG/HDBACK12.PNG
+  - type: HDBACK13.PNG
+    singleImage: true
+    width: 960
+    height: 600
+    files:
+      0: Resources/HD/BG/HDBACK13.PNG
+  - type: HDBACK14.PNG
+    singleImage: true
+    width: 960
+    height: 600
+    files:
+      0: Resources/HD/BG/HDBACK14.PNG
+  - type: HDBACK15.PNG
+    singleImage: true
+    width: 960
+    height: 600
+    files:
+      0: Resources/HD/BG/HDBACK15.PNG
+  - type: HDBACK16.PNG
+    singleImage: true
+    width: 960
+    height: 600
+    files:
+      0: Resources/HD/BG/HDBACK16.PNG
+  - type: HDBACK17.PNG
+    singleImage: true
+    width: 960
+    height: 600
+    files:
+      0: Resources/HD/BG/HDBACK17.PNG
+  - type: HDBACK18.PNG
+    singleImage: true
+    width: 960
+    height: 600
+    files:
+      0: Resources/HD/BG/HDBACK18.PNG
+  - type: HDBACK19.PNG
+    singleImage: true
+    width: 960
+    height: 600
+    files:
+      0: Resources/HD/BG/HDBACK19.PNG
+  - type: STATSBG.PNG
+    singleImage: true
+    width: 338
+    height: 295
+    files:
+      0: Resources/HD/BG/STATSBG.PNG	  
+  - type: COMMENDATIONSBG.PNG
+    singleImage: true
+    width: 381
+    height: 287
+    files:
+      0: Resources/HD/BG/COMMENDATIONSBG.PNG
+  - type: RECORDSBG.PNG
+    singleImage: true
+    width: 381
+    height: 287
+    files:
+      0: Resources/HD/BG/RECORDSBG.PNG		  
+  - type: MAN_0F0.SPK
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/PD/MAN_0F0.PNG
+  - type: MAN_0F1.SPK
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/PD/MAN_0F1.PNG
+  - type: MAN_0F2.SPK
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/PD/MAN_0F2.PNG
+  - type: MAN_0F3.SPK
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/PD/MAN_0F3.PNG
+  - type: MAN_0M0.SPK
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/PD/MAN_0M0.PNG
+  - type: MAN_0M1.SPK
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/PD/MAN_0M1.PNG
+  - type: MAN_0M2.SPK
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/PD/MAN_0M2.PNG
+  - type: MAN_0M3.SPK
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/PD/MAN_0M3.PNG
+  - type: MAN_1F0.SPK
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/PD/MAN_1F0.PNG
+  - type: MAN_1F1.SPK
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/PD/MAN_1F1.PNG
+  - type: MAN_1F2.SPK
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/PD/MAN_1F2.PNG
+  - type: MAN_1F3.SPK
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/PD/MAN_1F3.PNG
+  - type: MAN_1M0.SPK
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/PD/MAN_1M0.PNG
+  - type: MAN_1F1.SPK
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/PD/MAN_1M1.PNG
+  - type: MAN_1F2.SPK
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/PD/MAN_1M2.PNG
+  - type: MAN_1F3.SPK
+    singleImage: true
+    width: 121
+    height: 215
+    files:
+      0: Resources/HD/PD/MAN_1M3.PNG
