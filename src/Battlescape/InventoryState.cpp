@@ -83,8 +83,7 @@ InventoryState::InventoryState(bool tu, BattlescapeState *parent) : _tu(tu), _pa
 	_bg = new Surface(960, 600, 0, 0);
 	_soldier = new Surface(121, 215, 83, 85);
 	_rank = new Surface(26, 23, 5, 5); //added for the rank icon
-	_txtName = new Text(200, 17, 40, 10);
-//	_txtTus = new Text(40, 9, 245, Options::showMoreStatsInInventoryView ? 32 : 24);
+	_txtName = new Text(400, 17, 40, 10);
 	_txtWeight = new Text(70, 9, 400, 52);
 	_txtFAcc = new Text(40, 9, 400, 60);
 	_txtReact = new Text(40, 9, 400, 68);
@@ -192,13 +191,8 @@ InventoryState::InventoryState(bool tu, BattlescapeState *parent) : _tu(tu), _pa
 
 	add(_bg);
 	add(_soldier);
+	add(_rank);
 	add(_txtName);
-//	add(_txtTus);
-//	add(_txtWeight);
-//	add(_txtFAcc);
-//	add(_txtReact);
-//	add(_txtPSkill);
-//	add(_txtPStr);
 	add(_txtItem);
 	add(_txtAmmo);
 	add(_btnOk);
@@ -206,7 +200,6 @@ InventoryState::InventoryState(bool tu, BattlescapeState *parent) : _tu(tu), _pa
 	add(_btnNext);
 	add(_btnUnload);
 	add(_btnGround);
-//	add(_btnRank);
 	add(_btnCreateTemplate);
 	add(_btnApplyTemplate);
 	add(_selAmmo);
@@ -307,30 +300,6 @@ InventoryState::InventoryState(bool tu, BattlescapeState *parent) : _tu(tu), _pa
 	_txtName->setBig();
 	_txtName->setHighContrast(true);
 
-/**	_txtTus->setColor(Palette::blockOffset(4));
-	_txtTus->setSecondaryColor(Palette::blockOffset(1));
-	_txtTus->setHighContrast(true);
-
-	_txtWeight->setColor(Palette::blockOffset(4));
-	_txtWeight->setSecondaryColor(Palette::blockOffset(1));
-	_txtWeight->setHighContrast(true);
-
-	_txtFAcc->setColor(Palette::blockOffset(4));
-	_txtFAcc->setSecondaryColor(Palette::blockOffset(1));
-	_txtFAcc->setHighContrast(true);
-
-	_txtReact->setColor(Palette::blockOffset(4));
-	_txtReact->setSecondaryColor(Palette::blockOffset(1));
-	_txtReact->setHighContrast(true);
-
-	_txtPSkill->setColor(Palette::blockOffset(4));
-	_txtPSkill->setSecondaryColor(Palette::blockOffset(1));
-	_txtPSkill->setHighContrast(true);
-
-	_txtPStr->setColor(Palette::blockOffset(4));
-	_txtPStr->setSecondaryColor(Palette::blockOffset(1));
-	_txtPStr->setHighContrast(true);
-*/
 	_txtItem->setColor(Palette::blockOffset(3));
 	_txtItem->setHighContrast(true);
 
@@ -367,11 +336,6 @@ InventoryState::InventoryState(bool tu, BattlescapeState *parent) : _tu(tu), _pa
 	_btnGround->setTooltip("STR_SCROLL_RIGHT");
 	_btnGround->onMouseIn((ActionHandler)&InventoryState::txtTooltipIn);
 	_btnGround->onMouseOut((ActionHandler)&InventoryState::txtTooltipOut);
-
-//	_btnRank->onMouseClick((ActionHandler)&InventoryState::btnRankClick);
-//	_btnRank->setTooltip("STR_UNIT_STATS");
-//	_btnRank->onMouseIn((ActionHandler)&InventoryState::txtTooltipIn);
-//	_btnRank->onMouseOut((ActionHandler)&InventoryState::txtTooltipOut);
 
 	_btnCreateTemplate->onMouseClick((ActionHandler)&InventoryState::btnCreateTemplateClick);
 	_btnCreateTemplate->onKeyboardPress((ActionHandler)&InventoryState::btnCreateTemplateClick, Options::keyInvCreateTemplate);
@@ -591,13 +555,6 @@ InventoryState::InventoryState(bool tu, BattlescapeState *parent) : _tu(tu), _pa
 	_inv->onMouseOver((ActionHandler)&InventoryState::invMouseOver);
 	_inv->onMouseOut((ActionHandler)&InventoryState::invMouseOut);
 
-/**	_txtTus->setVisible(_tu);
-	_txtWeight->setVisible(Options::showMoreStatsInInventoryView);
-	_txtFAcc->setVisible(Options::showMoreStatsInInventoryView && !_tu);
-	_txtReact->setVisible(Options::showMoreStatsInInventoryView && !_tu);
-	_txtPSkill->setVisible(Options::showMoreStatsInInventoryView && !_tu);
-	_txtPStr->setVisible(Options::showMoreStatsInInventoryView && !_tu);
-*/
 	_currentTooltip = "";
 
 	//Setup object for the top row labels of stats
@@ -705,7 +662,6 @@ void InventoryState::init()
 
 	unit->setCache(0);
 	_soldier->clear();
-//	_btnRank->clear();
 
 	_txtName->setBig();
 	_txtName->setText(unit->getName(_game->getLanguage()));
@@ -716,7 +672,7 @@ void InventoryState::init()
 		SurfaceSet *texture = _game->getResourcePack()->getSurfaceSet("BASEBITS.PCK");
 		texture->getFrame(s->getRankSprite())->setX(0);
 		texture->getFrame(s->getRankSprite())->setY(0);
-//		texture->getFrame(s->getRankSprite())->blit(_btnRank);
+		texture->getFrame(s->getRankSprite())->blit(_rank);
 
 		std::string look = s->getArmor()->getSpriteInventory();
 		if (s->getGender() == GENDER_MALE)
@@ -758,42 +714,13 @@ void InventoryState::updateStats()
 {
 	BattleUnit *unit = _battleGame->getSelectedUnit();
 
-/**	_txtTus->setText(tr("STR_TIME_UNITS_SHORT").arg(unit->getTimeUnits()));
+	// Adding info menu  
+	_txtRank->setText(tr("STR_RANK_").arg(tr(unit->getRankString())));
+	_txtCraft->setText(tr("STR_CRAFT_").arg(unit->getGeoscapeSoldier()->getCraftString(_game->getLanguage())));
+	_txtMissions->setText(tr("STR_MISSIONS").arg(unit->getGeoscapeSoldier()->getMissions()));
+	_txtKills->setText(tr("STR_KILLS").arg(unit->getGeoscapeSoldier()->getKills()));
 
-	int weight = unit->getCarriedWeight(_inv->getSelectedItem());
-	_txtWeight->setText(tr("STR_WEIGHT").arg(weight).arg(unit->getStats()->strength));
-	if (weight > unit->getStats()->strength)
-	{
-		_txtWeight->setSecondaryColor(Palette::blockOffset(2));
-	}
-	else
-	{
-		_txtWeight->setSecondaryColor(Palette::blockOffset(1));
-	}
-
-	_txtFAcc->setText(tr("STR_ACCURACY_SHORT").arg((int)(unit->getStats()->firing * unit->getHealth()) / unit->getStats()->health));
-
-	_txtReact->setText(tr("STR_REACTIONS_SHORT").arg(unit->getStats()->reactions));
-
-	if (unit->getStats()->psiSkill > 0)
-	{
-		_txtPSkill->setText(tr("STR_PSIONIC_SKILL_SHORT").arg(unit->getStats()->psiSkill));
-	}
-	else
-	{
-		_txtPSkill->setText(L"");
-	}
-
-	if (unit->getStats()->psiSkill > 0 || (Options::psiStrengthEval && _game->getSavedGame()->isResearched(_game->getRuleset()->getPsiRequirements())))
-	{
-		_txtPStr->setText(tr("STR_PSIONIC_STRENGTH_SHORT").arg(unit->getStats()->psiStrength));
-	}
-	else
-	{
-		_txtPStr->setText(L"");
-	}
-*/
-	//Addind text for all bars
+	// Adding text for all bars
 	std::wostringstream ss;
 	ss << unit->getTimeUnits();
 	_numTimeUnits->setText(ss.str());
