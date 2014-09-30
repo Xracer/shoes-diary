@@ -153,7 +153,7 @@ bool RuleInventory::checkSlotInPosition(int *x, int *y) const
 	}
 	else if (_type == INV_GROUND)
 	{
-		if (mouseX >= _x && mouseX < 320 && mouseY >= _y && mouseY < 200)
+		if (mouseX >= _x && mouseX < 960 && mouseY >= _y && mouseY < 600)
 		{
 			*x = (int)floor(double(mouseX - _x) / SLOT_W);
 			*y = (int)floor(double(mouseY - _y) / SLOT_H);
@@ -192,8 +192,8 @@ bool RuleInventory::fitItemInSlot(RuleItem *item, int x, int y) const
 	}
 	else if (_type == INV_GROUND)
 	{
-		int width = (320 - _x) / SLOT_W;
-		int height = (200 - _y) / SLOT_H;
+		int width = (960 - _x) / SLOT_W;
+		int height = (600 - _y) / SLOT_H;
 		int xOffset = 0;
 		while (x >= xOffset + width)
 			xOffset += width;

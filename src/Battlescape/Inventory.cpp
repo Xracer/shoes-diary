@@ -180,9 +180,9 @@ void Inventory::drawGrid()
 		}
 		else if (i->second->getType() == INV_GROUND)
 		{
-			for (int x = i->second->getX(); x <= 320; x += RuleInventory::SLOT_W)
+			for (int x = i->second->getX(); x <= 960; x += RuleInventory::SLOT_W)
 			{
-				for (int y = i->second->getY(); y <= 200; y += RuleInventory::SLOT_H)
+				for (int y = i->second->getY(); y <= 600; y += RuleInventory::SLOT_H)
 				{
 					SDL_Rect r;
 					r.x = x;
@@ -851,8 +851,8 @@ void Inventory::arrangeGround(bool alterOffset)
 {
 	RuleInventory *ground = _game->getRuleset()->getInventory("STR_GROUND");
 
-	int slotsX = (320 - ground->getX()) / RuleInventory::SLOT_W;
-	int slotsY = (200 - ground->getY()) / RuleInventory::SLOT_H;
+	int slotsX = (960 - ground->getX()) / RuleInventory::SLOT_W;
+	int slotsY = (600 - ground->getY()) / RuleInventory::SLOT_H;
 	int x = 0;
 	int y = 0;
 	bool ok = false;

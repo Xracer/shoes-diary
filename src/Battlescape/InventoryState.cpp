@@ -54,8 +54,8 @@ namespace OpenXcom
 {
 
 static const int _templateBtnX = 924;
-static const int _createTemplateBtnY = 396;
-static const int _applyTemplateBtnY  = 418;
+static const int _createTemplateBtnY = 392;
+static const int _applyTemplateBtnY  = 417;
 
 /**
  * Initializes all the elements in the Inventory screen.
@@ -305,7 +305,7 @@ InventoryState::InventoryState(bool tu, BattlescapeState *parent) : _tu(tu), _pa
 
 	_txtAmmo->setColor(Palette::blockOffset(4));
 	_txtAmmo->setSecondaryColor(Palette::blockOffset(1));
-	_txtAmmo->setAlign(ALIGN_CENTER);
+	_txtAmmo->setAlign(ALIGN_LEFT);
 	_txtAmmo->setHighContrast(true);
 
 	_btnOk->onMouseClick((ActionHandler)&InventoryState::btnOkClick);

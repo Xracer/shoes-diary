@@ -3000,7 +3000,7 @@ ufos:
 invs:
   - id: STR_GROUND
     x: 1
-    y: 461
+    y: 471
     type: 2
     costs:
       STR_BACK_PACK: 20
@@ -3012,7 +3012,7 @@ invs:
       STR_RIGHT_LEG: 10
       STR_RIGHT_SHOULDER: 12
   - id: STR_RIGHT_HAND
-    x: 01
+    x: 1
     y: 125
     type: 1
     costs:
