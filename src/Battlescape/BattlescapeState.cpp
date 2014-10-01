@@ -84,6 +84,7 @@
 #include "../Menu/LoadGameState.h"
 #include "../Menu/SaveGameState.h"
 #include "../fmath.h"
+#include "../Ruleset/RuleInventory.h"
 
 namespace OpenXcom
 {
@@ -1405,8 +1406,11 @@ void BattlescapeState::handleItemClick(BattleItem *item)
 	{
 		if (_game->getSavedGame()->isResearched(item->getRules()->getRequirements()) || _save->getSelectedUnit()->getOriginalFaction() == FACTION_HOSTILE)
 		{
+			// Let's hardcode this instead of doing math like we should for moving the shot selection state.
+			const int offset = item->getSlot()->getId() == "STR_RIGHT_HAND" ? 600 : 60; 
+		
 			_battleGame->getCurrentAction()->weapon = item;
-			popup(new ActionMenuState(_battleGame->getCurrentAction(), _icons->getX(), _icons->getY()+16));
+			popup(new ActionMenuState(_battleGame->getCurrentAction(), _icons->getX() - 15 + offset, _icons->getY() + 20));
 		}
 		else
 		{

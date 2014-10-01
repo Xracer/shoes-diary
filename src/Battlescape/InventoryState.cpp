@@ -81,7 +81,7 @@ InventoryState::InventoryState(bool tu, BattlescapeState *parent) : _tu(tu), _pa
 
 	// Create objects
 	_bg = new Surface(960, 600, 0, 0);
-	_soldier = new Surface(121, 215, 83, 85);
+	_soldier = new Surface(121, 215, 103, 85);
 	_rank = new Surface(26, 23, 5, 5); //added for the rank icon
 	_txtName = new Text(400, 17, 40, 10);
 	_txtWeight = new Text(70, 9, 400, 52);
@@ -101,12 +101,12 @@ InventoryState::InventoryState(bool tu, BattlescapeState *parent) : _tu(tu), _pa
 	_btnApplyTemplate = new InteractiveSurface(32, 22, _templateBtnX, _applyTemplateBtnY);
 	_selAmmo = new Surface(RuleInventory::HAND_W * RuleInventory::SLOT_W, RuleInventory::HAND_H * RuleInventory::SLOT_H, 8, 325);
 	_inv = new Inventory(_game, 960, 600, 0, 0, _parent == 0);
-	_txtRank = new Text(100, 10, 5, 38); // added
-	_txtCraft = new Text(100, 10, 110, 38); // added
-	_txtMissions = new Text(100, 10, 215, 38); // added
-	_txtKills = new Text(100, 10, 320, 38); // added
-	_txtStatus = new Text(100, 10, 425, 38); // added
-	_txtArmor = new Text(100, 10, 530, 38); // added
+	_txtRank = new Text(100, 10, 40, 38); // added
+	_txtMissions = new Text(100, 10, 145, 38); // added
+	_txtKills = new Text(100, 10, 250, 38); // added
+	_txtStatus = new Text(100, 10, 355, 38); // added
+	_txtCraft = new Text(150, 10, 460, 38); // added
+	_txtArmor = new Text(150, 10, 565, 38); // added
 
 	_txtTimeUnits = new Text(120, 9, 546, 100);
 	_numTimeUnits = new Text(18, 9, 662, 100);

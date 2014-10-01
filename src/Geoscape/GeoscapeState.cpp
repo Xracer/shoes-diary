@@ -124,8 +124,8 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 	// Create objects
 	Surface *hd = _game->getResourcePack()->getSurface("ALTGEOBORD.SCR");
 	_bg = new Surface(hd->getWidth(), hd->getHeight(), 0, 0);
-	_sideLine = new Surface(64, screenHeight, screenWidth - 64, 0);
-	_sidebar = new Surface(64, 200, screenWidth - 64, screenHeight / 2 - 100);
+//	_sideLine = new Surface(64, screenHeight, screenWidth - 64, 0);
+//	_sidebar = new Surface(64, 200, screenWidth - 64, screenHeight / 2 - 100);
 
 	_globe = new Globe(_game, (screenWidth-64)/2, screenHeight/2, screenWidth-64, screenHeight, 0, 0);
 	_bg->setX((_globe->getWidth() - _bg->getWidth()) / 2);
@@ -138,34 +138,34 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 	_btnOptions = new TextButton(63, 11, screenWidth-63, screenHeight/2-52);
 	_btnFunding = new TextButton(63, 11, screenWidth-63, screenHeight/2-40);
 
-	_btn5Secs = new TextButton(31, 13, screenWidth-63, screenHeight/2+12);
-	_btn1Min = new TextButton(31, 13, screenWidth-31, screenHeight/2+12);
-	_btn5Mins = new TextButton(31, 13, screenWidth-63, screenHeight/2+26);
-	_btn30Mins = new TextButton(31, 13, screenWidth-31, screenHeight/2+26);
-	_btn1Hour = new TextButton(31, 13, screenWidth-63, screenHeight/2+40);
-	_btn1Day = new TextButton(31, 13, screenWidth-31, screenHeight/2+40);
+	_btn5Secs = new TextButton(31, 13, 5, 46);
+	_btn1Min = new TextButton(31, 13, 38, 46);
+	_btn5Mins = new TextButton(31, 13, 71, 46);
+	_btn30Mins = new TextButton(31, 13, 104, 46);
+	_btn1Hour = new TextButton(31, 13, 137, 46);
+	_btn1Day = new TextButton(31, 13, 170, 46);
 
-	_btnRotateLeft = new InteractiveSurface(12, 10, screenWidth-61, screenHeight/2+76);
-	_btnRotateRight = new InteractiveSurface(12, 10, screenWidth-37, screenHeight/2+76);
-	_btnRotateUp = new InteractiveSurface(13, 12, screenWidth-49, screenHeight/2+62);
-	_btnRotateDown = new InteractiveSurface(13, 12, screenWidth-49, screenHeight/2+87);
-	_btnZoomIn = new InteractiveSurface(23, 23, screenWidth-25, screenHeight/2+56);
-	_btnZoomOut = new InteractiveSurface(13, 17, screenWidth-20, screenHeight/2+82);
+	_btnRotateLeft = new InteractiveSurface(17, 50, 837, 511);
+	_btnRotateRight = new InteractiveSurface(17, 50, 935, 512);
+	_btnRotateUp = new InteractiveSurface(50, 17, 869, 479);
+	_btnRotateDown = new InteractiveSurface(50, 17, 869, 577);
+	_btnZoomIn = new InteractiveSurface(31, 31, 855, 544);
+	_btnZoomOut = new InteractiveSurface(31, 31, 902, 499);
 
-	int height = (screenHeight - Screen::ORIGINAL_HEIGHT) / 2 + 10;
+/**	int height = (screenHeight - Screen::ORIGINAL_HEIGHT) / 2 + 10;
 	_sideTop = new TextButton(63, height, screenWidth-63, _sidebar->getY() - height - 1);
 	_sideBottom = new TextButton(63, height, screenWidth-63, _sidebar->getY() + _sidebar->getHeight() + 1);
-
-	_txtHour = new Text(20, 16, screenWidth-61, screenHeight/2-26);
-	_txtHourSep = new Text(4, 16, screenWidth-41, screenHeight/2-26);
-	_txtMin = new Text(20, 16, screenWidth-37, screenHeight/2-26);
-	_txtMinSep = new Text(4, 16, screenWidth-17, screenHeight/2-26);
-	_txtSec = new Text(11, 8, screenWidth-13, screenHeight/2-20);
-	_txtWeekday = new Text(59, 8, screenWidth-61, screenHeight/2-13);
-	_txtDay = new Text(29, 8, screenWidth-61, screenHeight/2-6);
-	_txtMonth = new Text(29, 8, screenWidth-32, screenHeight/2-6);
-	_txtYear = new Text(59, 8, screenWidth-61, screenHeight/2+1);
-	_txtFunds = new Text(59, 8, screenWidth-61, screenHeight/2-27);
+*/
+	_txtHour = new Text(20, 16, 54, 25);
+	_txtHourSep = new Text(4, 16, 74, 25);
+	_txtMin = new Text(20, 16, 78, 25);
+	_txtMinSep = new Text(4, 16, 98, 25);
+	_txtSec = new Text(11, 8, 102, 25);
+	_txtWeekday = new Text(59, 8, 9, 8);
+	_txtDay = new Text(29, 8, 68, 8);
+	_txtMonth = new Text(29, 8, 97, 8);
+	_txtYear = new Text(59, 8, 136, 8);
+	_txtFunds = new Text(59, 16, 800, 12);
 
 	_timeSpeed = _btn5Secs;
 	_gameTimer = new Timer(Options::geoClockSpeed);
@@ -174,7 +174,7 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 	_zoomOutEffectTimer = new Timer(Options::dogfightSpeed+10);
 	_dogfightStartTimer = new Timer(Options::dogfightSpeed+10);
 
-	_txtDebug = new Text(200, 18, 0, 0);
+	_txtDebug = new Text(350, 18, 0, 0);
 
 	// Set palette
 	setPalette("PAL_GEOSCAPE");
@@ -184,8 +184,8 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 	_game->getFpsCounter()->setColor(Palette::blockOffset(15)+12);
 
 	add(_bg);
-	add(_sideLine);
-	add(_sidebar);
+//	add(_sideLine);
+//	add(_sidebar);
 	add(_globe);
 
 	add(_btnIntercept);
@@ -227,12 +227,12 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 
 	// Set up objects
 	Surface *geobord = _game->getResourcePack()->getSurface("GEOBORD.SCR");
-	geobord->setX(_sidebar->getX() - geobord->getWidth() + _sidebar->getWidth());
-	geobord->setY(_sidebar->getY());
-	_sidebar->copy(geobord);
+//	geobord->setX(_sidebar->getX() - geobord->getWidth() + _sidebar->getWidth());
+//	geobord->setY(_sidebar->getY());
+//	_sidebar->copy(geobord);
 	_game->getResourcePack()->getSurface("ALTGEOBORD.SCR")->blit(_bg);
 
-	_sideLine->drawRect(0, 0, _sideLine->getWidth(), _sideLine->getHeight(), 15);
+//	_sideLine->drawRect(0, 0, _sideLine->getWidth(), _sideLine->getHeight(), 15);
 
 	_btnIntercept->initText(_game->getResourcePack()->getFont("FONT_GEO_BIG"), _game->getResourcePack()->getFont("FONT_GEO_SMALL"), _game->getLanguage());
 	_btnIntercept->setColor(Palette::blockOffset(15)+6);
@@ -2294,13 +2294,13 @@ void GeoscapeState::resize(int &dX, int &dY)
 
 	int height = (Options::baseYResolution - Screen::ORIGINAL_HEIGHT) / 2 + 10;
 	_sideTop->setHeight(height);
-	_sideTop->setY(_sidebar->getY() - height - 1);
-	_sideBottom->setHeight(height);
-	_sideBottom->setY(_sidebar->getY() + _sidebar->getHeight() + 1);
+//	_sideTop->setY(_sidebar->getY() - height - 1);
+//	_sideBottom->setHeight(height);
+//	_sideBottom->setY(_sidebar->getY() + _sidebar->getHeight() + 1);
 
-	_sideLine->setHeight(Options::baseYResolution);
-	_sideLine->setY(0);
-	_sideLine->drawRect(0, 0, _sideLine->getWidth(), _sideLine->getHeight(), 15);
+//	_sideLine->setHeight(Options::baseYResolution);
+//	_sideLine->setY(0);
+//	_sideLine->drawRect(0, 0, _sideLine->getWidth(), _sideLine->getHeight(), 15);
 }
 
 }
