@@ -124,8 +124,8 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 	// Create objects
 	Surface *hd = _game->getResourcePack()->getSurface("ALTGEOBORD.SCR");
 	_bg = new Surface(hd->getWidth(), hd->getHeight(), 0, 0);
-//	_sideLine = new Surface(64, screenHeight, screenWidth - 64, 0);
-//	_sidebar = new Surface(64, 200, screenWidth - 64, screenHeight / 2 - 100);
+	_sideLine = new Surface(64, screenHeight, screenWidth - 64, 0);
+	_sidebar = new Surface(64, 200, screenWidth - 64, screenHeight / 2 - 100);
 
 	_globe = new Globe(_game, (screenWidth-64)/2, screenHeight/2, screenWidth-64, screenHeight, 0, 0);
 	_bg->setX((_globe->getWidth() - _bg->getWidth()) / 2);
@@ -152,10 +152,10 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 	_btnZoomIn = new InteractiveSurface(31, 31, 855, 544);
 	_btnZoomOut = new InteractiveSurface(31, 31, 902, 499);
 
-/**	int height = (screenHeight - Screen::ORIGINAL_HEIGHT) / 2 + 10;
+	int height = (screenHeight - Screen::ORIGINAL_HEIGHT) / 2 + 10;
 	_sideTop = new TextButton(63, height, screenWidth-63, _sidebar->getY() - height - 1);
 	_sideBottom = new TextButton(63, height, screenWidth-63, _sidebar->getY() + _sidebar->getHeight() + 1);
-*/
+
 	_txtHour = new Text(20, 16, 54, 25);
 	_txtHourSep = new Text(4, 16, 74, 25);
 	_txtMin = new Text(20, 16, 78, 25);

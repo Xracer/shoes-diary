@@ -95,6 +95,13 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _noContainment(fal
 	_lstRecovery = new TextList(290, 80, 16, 32);
 	_lstTotal = new TextList(290, 9, 16, 12);
 
+	//promotions variables 
+	_txtTitlepro = new Text(300, 17, 16, 218);	
+	_txtName = new Text(114, 9, 16, 242);
+	_txtRank = new Text(90, 9, 130, 242);
+	_txtBase = new Text(80, 9, 220, 242);
+	_lstSoldiers = new TextList(288, 128, 8, 250);	
+	
 	// Set palette
 	setPalette("PAL_GEOSCAPE", 0);
 
@@ -109,7 +116,12 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _noContainment(fal
 	add(_lstStats);
 	add(_lstRecovery);
 	add(_lstTotal);
-
+	add(_txtTitlepro);
+	add(_txtName);
+	add(_txtRank);
+	add(_txtBase);
+	add(_lstSoldiers);
+	
 	// centerAllSurfaces();
 
 	// Set up objects
@@ -153,6 +165,26 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _noContainment(fal
 	_lstTotal->setColor(Palette::blockOffset(8)+5);
 	_lstTotal->setColumns(2, 254, 64);
 	_lstTotal->setDot(true);
+
+	_txtTitlepro->setColor(Palette::blockOffset(8)+5);
+	_txtTitlepro->setText(tr("STR_PROMOTIONS"));
+	_txtTitlepro->setAlign(ALIGN_LEFT);
+	_txtTitlepro->setBig();
+
+	_txtName->setColor(Palette::blockOffset(15)-1);
+	_txtName->setText(tr("STR_NAME"));
+
+	_txtRank->setColor(Palette::blockOffset(15)-1);
+	_txtRank->setText(tr("STR_NEW_RANK"));
+
+	_txtBase->setColor(Palette::blockOffset(15)-1);
+	_txtBase->setText(tr("STR_BASE"));
+
+	_lstSoldiers->setColor(Palette::blockOffset(8)+10);
+	_lstSoldiers->setColumns(3, 114, 90, 84);
+	_lstSoldiers->setSelectable(true);
+	_lstSoldiers->setBackground(_window);
+	_lstSoldiers->setMargin(8);
 
 	prepareDebriefing();
 
@@ -227,6 +259,30 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _noContainment(fal
 	}
 	_txtRating->setText(tr("STR_RATING").arg(rating));
 
+	// Set list for promotions
+	std::vector<Soldier*> participants;
+	for (std::vector<BattleUnit*>::const_iterator i = _game->getSavedGame()->getSavedBattle()->getUnits()->begin();
+		i != _game->getSavedGame()->getSavedBattle()->getUnits()->end(); ++i)
+	{
+		if ((*i)->getGeoscapeSoldier())
+		{
+			participants.push_back((*i)->getGeoscapeSoldier());
+		}
+	}
+	if (_game->getSavedGame()->handlePromotions(participants))
+	{
+		for (std::vector<Base*>::iterator i = _game->getSavedGame()->getBases()->begin(); i != _game->getSavedGame()->getBases()->end(); ++i)
+		{
+			for (std::vector<Soldier*>::iterator j = (*i)->getSoldiers()->begin(); j != (*i)->getSoldiers()->end(); ++j)
+			{
+				if ((*j)->isPromoted())
+				{
+					_lstSoldiers->addRow(3, (*j)->getName().c_str(), tr((*j)->getRankString()).c_str(), (*i)->getName().c_str());
+				}
+			}
+		}
+	}
+
 	// Set music
 	_game->getResourcePack()->playMusic("GMMARS");
 
@@ -257,7 +313,7 @@ DebriefingState::~DebriefingState()
  */
 void DebriefingState::btnOkClick(Action *)
 {
-	std::vector<Soldier*> participants;
+/**	std::vector<Soldier*> participants;
 	for (std::vector<BattleUnit*>::const_iterator i = _game->getSavedGame()->getSavedBattle()->getUnits()->begin();
 		i != _game->getSavedGame()->getSavedBattle()->getUnits()->end(); ++i)
 	{
@@ -265,7 +321,7 @@ void DebriefingState::btnOkClick(Action *)
 		{
 			participants.push_back((*i)->getGeoscapeSoldier());
 		}
-	}
+	} */
 	_game->getSavedGame()->setBattleGame(0);
 	_game->popState();
 	if (_game->getSavedGame()->getMonthsPassed() == -1)
@@ -276,10 +332,10 @@ void DebriefingState::btnOkClick(Action *)
 	{
 		if (!_destroyBase)
 		{
-			if (_game->getSavedGame()->handlePromotions(participants))
+			/**if (_game->getSavedGame()->handlePromotions(participants))
 			{
 				_game->pushState(new PromotionsState);
-			}
+			}*/
 			if (!_missingItems.empty())
 			{
 				_game->pushState(new CannotReequipState(_missingItems));

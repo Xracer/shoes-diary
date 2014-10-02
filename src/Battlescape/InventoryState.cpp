@@ -81,7 +81,7 @@ InventoryState::InventoryState(bool tu, BattlescapeState *parent) : _tu(tu), _pa
 
 	// Create objects
 	_bg = new Surface(960, 600, 0, 0);
-	_soldier = new Surface(121, 215, 103, 85);
+	_soldier = new Surface(121, 215, 109, 85);
 	_rank = new Surface(26, 23, 5, 5); //added for the rank icon
 	_txtName = new Text(400, 17, 40, 10);
 	_txtWeight = new Text(70, 9, 400, 52);

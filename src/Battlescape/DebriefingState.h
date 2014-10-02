@@ -55,9 +55,9 @@ private:
 	std::vector<DebriefingStat*> _stats;
 	TextButton *_btnOk;
 	Window *_window;
-	Text *_txtTitle, *_txtItem, *_txtQuantity, *_txtScore, *_txtRecovery, *_txtRating;
-	TextList *_lstStats, *_lstRecovery, *_lstTotal;
-	std::vector<ReequipStat> _missingItems;
+	Text *_txtTitle, *_txtItem, *_txtQuantity, *_txtScore, *_txtRecovery, *_txtRating, *_txtTitlepro, *_txtName, *_txtRank, *_txtBase;
+	TextList *_lstStats, *_lstRecovery, *_lstTotal, *_lstSoldiers;
+	std::vector<ReequipStat> _missingItems;	
 	std::map<RuleItem*, int> _rounds;
 	/// Adds to the debriefing stats.
 	void addStat(const std::string &name, int quantity, int score);

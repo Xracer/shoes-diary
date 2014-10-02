@@ -51,12 +51,12 @@ BriefingState::BriefingState(Craft *craft, Base *base)
 {
 	_screen = true;
 	// Create objects
-	_window = new Window(this, 320, 200, 0, 0);
-	_btnOk = new TextButton(120, 18, 100, 164);
-	_txtTitle = new Text(300, 17, 16, 24);
-	_txtTarget = new Text(300, 17, 16, 40);
-	_txtCraft = new Text(300, 17, 16, 56);
-	_txtBriefing = new Text(274, 64, 16, 72);
+	_window = new Window(this, 960, 600, 0, 0);
+	_btnOk = new TextButton(120, 18, 420, 364);
+	_txtTitle = new Text(300, 17, 336, 224);
+	_txtTarget = new Text(300, 17, 336, 240);
+	_txtCraft = new Text(300, 17, 336, 256);
+	_txtBriefing = new Text(274, 64, 336, 272);
 
 	std::string mission = _game->getSavedGame()->getSavedBattle()->getMissionType();
 
@@ -135,11 +135,11 @@ BriefingState::BriefingState(Craft *craft, Base *base)
 	// Show respective mission briefing
 	if (mission == "STR_ALIEN_BASE_ASSAULT" || mission == "STR_MARS_THE_FINAL_ASSAULT")
 	{
-		_window->setBackground(_game->getResourcePack()->getSurface("BACK01.SCR"));
+		_window->setBackground(_game->getResourcePack()->getSurface("HDBACK01.PNG"));
 	}
 	else
 	{
-		_window->setBackground(_game->getResourcePack()->getSurface("BACK16.SCR"));
+		_window->setBackground(_game->getResourcePack()->getSurface("HDBACK16.PNG"));
 	}
 
 	_txtTitle->setText(tr(mission));
