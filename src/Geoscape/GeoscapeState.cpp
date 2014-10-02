@@ -210,7 +210,7 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 	add(_btnZoomOut);
 
 	add(_sideTop);
-	add(_sideBottom);
+//	add(_sideBottom);
 
 	add(_txtFunds);
 	add(_txtHour);

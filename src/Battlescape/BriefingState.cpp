@@ -94,7 +94,7 @@ BriefingState::BriefingState(Craft *craft, Base *base)
 	add(_txtCraft);
 	add(_txtBriefing);
 
-	centerAllSurfaces();
+	// centerAllSurfaces();
 
 	// Set up objects
 	_window->setColor(Palette::blockOffset(15)-1);

@@ -83,14 +83,14 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _noContainment(fal
 	_limitsEnforced = Options::storageLimitsEnforced ? 1 : 0;
 
 	// Create objects
-	_window = new Window(this, 320, 200, 0, 0);
-	_btnOk = new TextButton(40, 12, 16, 180);
+	_window = new Window(this, 960, 600, 0, 0);
+	_btnOk = new TextButton(40, 12, 16, 580);
 	_txtTitle = new Text(300, 17, 16, 8);
 	_txtItem = new Text(180, 9, 16, 24);
 	_txtQuantity = new Text(60, 9, 200, 24);
 	_txtScore = new Text(55, 9, 270, 24);
 	_txtRecovery = new Text(180, 9, 16, 60);
-	_txtRating = new Text(200, 9, 64, 180);
+	_txtRating = new Text(200, 9, 64, 580);
 	_lstStats = new TextList(290, 80, 16, 32);
 	_lstRecovery = new TextList(290, 80, 16, 32);
 	_lstTotal = new TextList(290, 9, 16, 12);
@@ -110,11 +110,11 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _noContainment(fal
 	add(_lstRecovery);
 	add(_lstTotal);
 
-	centerAllSurfaces();
+	// centerAllSurfaces();
 
 	// Set up objects
 	_window->setColor(Palette::blockOffset(15)-1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK01.SCR"));
+	_window->setBackground(_game->getResourcePack()->getSurface("HDBACK01.PNG"));
 
 	_btnOk->setColor(Palette::blockOffset(15)-1);
 	_btnOk->setText(tr("STR_OK"));
