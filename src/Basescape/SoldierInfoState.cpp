@@ -21,27 +21,40 @@
 #include "../Engine/Game.h"
 #include "../Engine/Action.h"
 #include "../Resource/ResourcePack.h"
+#include "../Engine/CrossPlatform.h"
 #include "../Engine/Language.h"
 #include "../Engine/Palette.h"
 #include "../Engine/Options.h"
+#include "../Engine/InteractiveSurface.h"
 #include "../Interface/Bar.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextEdit.h"
 #include "../Engine/Surface.h"
+#include "../Interface/Window.h"
 #include "../Savegame/SavedGame.h"
+#include "../Savegame/SavedBattleGame.h"
 #include "../Ruleset/Ruleset.h"
 #include "../Savegame/Base.h"
+#include "../Savegame/BattleItem.h"
+#include "../Savegame/BattleUnit.h"
 #include "../Savegame/Craft.h"
 #include "../Ruleset/RuleCraft.h"
+#include "../Savegame/EquipmentLayoutItem.h"
 #include "../Savegame/Soldier.h"
 #include "../Savegame/ItemContainer.h"
 #include "../Engine/SurfaceSet.h"
+#include "../Battlescape/Inventory.h"
+#include "../Ruleset/Ruleset.h"
+#include "../Ruleset/RuleItem.h"
+#include "../Ruleset/RuleInventory.h"
 #include "../Ruleset/Armor.h"
+#include "../Ruleset/RuleCraft.h"
 #include "../Menu/ErrorMessageState.h"
 #include "SellState.h"
 #include "SoldierArmorState.h"
 #include "SackSoldierState.h"
+#include "CraftEquipmentState.h"
 
 namespace OpenXcom
 {
@@ -72,81 +85,104 @@ SoldierInfoState::SoldierInfoState(Base *base, size_t soldierId) : _base(base), 
 	}
 
 	// Create objects
-	_bg = new Surface(320, 200, 0, 0);
+	_bg = new Surface(960, 600, 0, 0);
 	_rank = new Surface(26, 23, 4, 4);
-	_btnPrev = new TextButton(28, 14, 0, 33);
-	_btnOk = new TextButton(48, 14, 30, 33);
-	_btnNext = new TextButton(28, 14, 80, 33);
-	_btnArmor = new TextButton(110, 14, 130, 33);
-	_edtSoldier = new TextEdit(this, 210, 16, 40, 9);
-	_btnSack = new TextButton(60, 14, 260, 33);
-	_txtRank = new Text(130, 9, 0, 48);
-	_txtMissions = new Text(100, 9, 130, 48);
-	_txtKills = new Text(100, 9, 230, 48);
-	_txtCraft = new Text(130, 9, 0, 56);
+	_btnPrev = new TextButton(28, 16, 859, 8);
+	_btnOk = new TextButton(36, 16, 887, 8);
+	_btnNext = new TextButton(28, 16, 923, 8);
+	_btnArmor = new TextButton(100, 14, 425, 38);	// (60, 14, 130, 33);
+	_edtSoldier = new TextEdit(this, 200, 16, 40, 9);
+	_btnSack = new TextButton(60, 14, 600, 38); 	// (60, 14, 248, 10);
+	_txtRank = new Text(100, 9, 5, 38);
+	_txtMissions = new Text(100, 9, 215, 38);
+	_txtKills = new Text(100, 9, 320, 38);
+	_txtCraft = new Text(100, 9, 110, 38);
 	_txtRecovery = new Text(180, 9, 130, 56);
 	_txtPsionic = new Text(150, 9, 0, 66);
+	
+	//Variables for the Inventory screen
+	_txtItem = new Text(160, 9, 8, 310);
+	_txtAmmo = new Text(80, 24, 8, 432);
+	_btnUnload = new TextButton(32, 25, 8, 280);
+	_btnGround = new TextButton(32, 15, 924, 442);
+	_selAmmo = new Surface(RuleInventory::HAND_W * RuleInventory::SLOT_W, RuleInventory::HAND_H * RuleInventory::SLOT_H, 8, 325);	
 
-	int yPos = 80;
-	int step = 11;
+	//Variables for the selection of subscreens
+	_btnStats = new TextButton(60, 15, 540, 70); // add control for stats screen
+	_btnCommendations = new TextButton(60, 15, 601, 70); // add control for Awards screen
+	_btnRecords = new TextButton(60, 15, 662, 70); // add control for stats screen	
+	
+	//variables for stats window
+	_statsbg = new Surface(338, 295, 541, 89);	
+	
+	int yPos = 100;
+	int xPos = 540;
+	int step = 13;
 
-	_txtTimeUnits = new Text(120, 9, 6, yPos);
-	_numTimeUnits = new Text(18, 9, 131, yPos);
-	_barTimeUnits = new Bar(170, 7, 150, yPos);
+	_txtTimeUnits = new Text(120, 9, xPos + 6, yPos);
+	_numTimeUnits = new Text(18, 9, xPos + 131, yPos);
+	_barTimeUnits = new Bar(200, 7, xPos + 150, yPos);
 	yPos += step;
 
-	_txtStamina = new Text(120, 9, 6, yPos);
-	_numStamina = new Text(18, 9, 131, yPos);
-	_barStamina = new Bar(170, 7, 150, yPos);
+	_txtStamina = new Text(120, 9, xPos + 6, yPos);
+	_numStamina = new Text(18, 9, xPos + 131, yPos);
+	_barStamina = new Bar(200, 7, xPos + 150, yPos);
 	yPos += step;
 
-	_txtHealth = new Text(120, 9, 6, yPos);
-	_numHealth = new Text(18, 9, 131, yPos);
-	_barHealth = new Bar(170, 7, 150, yPos);
+	_txtHealth = new Text(120, 9, xPos + 6, yPos);
+	_numHealth = new Text(18, 9, xPos + 131, yPos);
+	_barHealth = new Bar(200, 7, xPos + 150, yPos);
 	yPos += step;
 
-	_txtBravery = new Text(120, 9, 6, yPos);
-	_numBravery = new Text(18, 9, 131, yPos);
-	_barBravery = new Bar(170, 7, 150, yPos);
+	_txtBravery = new Text(120, 9, xPos + 6, yPos);
+	_numBravery = new Text(18, 9, xPos + 131, yPos);
+	_barBravery = new Bar(200, 7, xPos + 150, yPos);
 	yPos += step;
 
-	_txtReactions = new Text(120, 9, 6, yPos);
-	_numReactions = new Text(18, 9, 131, yPos);
-	_barReactions = new Bar(170, 7, 150, yPos);
+	_txtReactions = new Text(120, 9, xPos + 6, yPos);
+	_numReactions = new Text(18, 9, xPos + 131, yPos);
+	_barReactions = new Bar(200, 7, xPos + 150, yPos);
 	yPos += step;
 
-	_txtFiring = new Text(120, 9, 6, yPos);
-	_numFiring = new Text(18, 9, 131, yPos);
-	_barFiring = new Bar(170, 7, 150, yPos);
+	_txtFiring = new Text(120, 9, xPos + 6, yPos);
+	_numFiring = new Text(18, 9, xPos + 131, yPos);
+	_barFiring = new Bar(200, 7, xPos + 150, yPos);
 	yPos += step;
 
-	_txtThrowing = new Text(120, 9, 6, yPos);
-	_numThrowing = new Text(18, 9, 131, yPos);
-	_barThrowing = new Bar(170, 7, 150, yPos);
+	_txtThrowing = new Text(120, 9, xPos + 6, yPos);
+	_numThrowing = new Text(18, 9, xPos + 131, yPos);
+	_barThrowing = new Bar(200, 7, xPos + 150, yPos);
 	yPos += step;
 
-	_txtMelee = new Text(120, 9, 6, yPos);
-	_numMelee = new Text(18, 9, 131, yPos);
-	_barMelee = new Bar(170, 7, 150, yPos);
+	_txtMelee = new Text(120, 9, xPos + 6, yPos);
+	_numMelee = new Text(18, 9, xPos + 131, yPos);
+	_barMelee = new Bar(200, 7, xPos + 150, yPos);
 	yPos += step;
 
-	_txtStrength = new Text(120, 9, 6, yPos);
-	_numStrength = new Text(18, 9, 131, yPos);
-	_barStrength = new Bar(170, 7, 150, yPos);
+	_txtStrength = new Text(120, 9, xPos + 6, yPos);
+	_numStrength = new Text(18, 9, xPos + 131, yPos);
+	_barStrength = new Bar(200, 7, xPos + 150, yPos);
 	yPos += step;
 
-	_txtPsiStrength = new Text(120, 9, 6, yPos);
-	_numPsiStrength = new Text(18, 9, 131, yPos);
-	_barPsiStrength = new Bar(170, 7, 150, yPos);
+	_txtPsiStrength = new Text(120, 9, xPos + 6, yPos);
+	_numPsiStrength = new Text(18, 9, xPos + 131, yPos);
+	_barPsiStrength = new Bar(200, 7, xPos + 150, yPos);
 	yPos += step;
 
-	_txtPsiSkill = new Text(120, 9, 6, yPos);
-	_numPsiSkill = new Text(18, 9, 131, yPos);
-	_barPsiSkill = new Bar(170, 7, 150, yPos);
+	_txtPsiSkill = new Text(120, 9, xPos + 6, yPos);
+	_numPsiSkill = new Text(18, 9, xPos + 131, yPos);
+	_barPsiSkill = new Bar(200, 7, xPos + 150, yPos);
+	
+	//variables for commendations window
+	_commendationsbg = new Surface(381, 287, 541, 89);
+	
+	//variables for records window
+	_recordsbg = new Surface(300, 200, 541, 89);	
 
 	// Set palette
 	setPalette("PAL_BASESCAPE");
 
+	//add items to the screen	
 	add(_bg);
 	add(_rank);
 	add(_btnOk);
@@ -162,6 +198,21 @@ SoldierInfoState::SoldierInfoState(Base *base, size_t soldierId) : _base(base), 
 	add(_txtRecovery);
 	add(_txtPsionic);
 
+	//add interface items for Inventory control
+	add(_txtItem);
+	add(_txtAmmo);
+	add(_btnUnload);
+	add(_btnGround);
+
+	//add interface items for multiwindow control
+	add(_btnStats);
+	add(_btnCommendations);
+	add(_btnRecords);
+
+	add(_selAmmo);
+	//add(_inv);
+	
+	//add text, num and bar for the stats screen
 	add(_txtTimeUnits);
 	add(_numTimeUnits);
 	add(_barTimeUnits);
@@ -206,10 +257,67 @@ SoldierInfoState::SoldierInfoState(Base *base, size_t soldierId) : _base(base), 
 	add(_numPsiSkill);
 	add(_barPsiSkill);
 
-	centerAllSurfaces();
+	// push all the elements of the "stats tab" into this vector
+	// do not put the buttons to switch tabs in these vectors
+	_statScreenElements.push_back(_statsbg);
+	_statScreenElements.push_back(_txtTimeUnits);
+	_statScreenElements.push_back(_numTimeUnits);
+	_statScreenElements.push_back(_barTimeUnits);
+
+	_statScreenElements.push_back(_txtStamina);
+	_statScreenElements.push_back(_numStamina);
+	_statScreenElements.push_back(_barStamina);
+
+	_statScreenElements.push_back(_txtHealth);
+	_statScreenElements.push_back(_numHealth);
+	_statScreenElements.push_back(_barHealth);
+
+	_statScreenElements.push_back(_txtBravery);
+	_statScreenElements.push_back(_numBravery);
+	_statScreenElements.push_back(_barBravery);
+
+	_statScreenElements.push_back(_txtReactions);
+	_statScreenElements.push_back(_numReactions);
+	_statScreenElements.push_back(_barReactions);
+
+	_statScreenElements.push_back(_txtFiring);
+	_statScreenElements.push_back(_numFiring);
+	_statScreenElements.push_back(_barFiring);
+
+	_statScreenElements.push_back(_txtThrowing);
+	_statScreenElements.push_back(_numThrowing);
+	_statScreenElements.push_back(_barThrowing);
+
+	_statScreenElements.push_back(_txtStrength);
+	_statScreenElements.push_back(_numStrength);
+	_statScreenElements.push_back(_barStrength);
+
+	_statScreenElements.push_back(_txtPsiStrength);
+	_statScreenElements.push_back(_numPsiStrength);
+	_statScreenElements.push_back(_barPsiStrength);
+
+	_statScreenElements.push_back(_txtPsiSkill);
+	_statScreenElements.push_back(_numPsiSkill);
+	_statScreenElements.push_back(_barPsiSkill);
+
+	// push all the elements of the "commendations tab" into this vector
+	//_commScreenElements.push_back();
+	_commScreenElements.push_back(_commendationsbg);
+
+	// push all the elements of the "records tab" into this vector
+	//_recScreenElements.push_back();
+	_recScreenElements.push_back(_recordsbg);
+
+	// centerAllSurfaces();   Xracer removed for higher res
 
 	// Set up objects
-	_game->getResourcePack()->getSurface("BACK06.SCR")->blit(_bg);
+	_game->getResourcePack()->getSurface("HDBACK06.PNG")->blit(_bg);
+	_game->getResourcePack()->getSurface("STATSBG.PNG")->blit(_statsbg);
+	_game->getResourcePack()->getSurface("COMMENDATIONSBG.PNG")->blit(_commendationsbg);
+	_game->getResourcePack()->getSurface("RECORDSBG.PNG")->blit(_recordsbg);
+
+	//_statsWindow;
+	//_statsbg;
 
 	_btnOk->setColor(Palette::blockOffset(15)+6);
 	_btnOk->setText(tr("STR_OK"));
@@ -272,7 +380,6 @@ SoldierInfoState::SoldierInfoState(Base *base, size_t soldierId) : _base(base), 
 
 	_txtPsionic->setColor(Palette::blockOffset(15)+1);
 	_txtPsionic->setText(tr("STR_IN_PSIONIC_TRAINING"));
-
 
 	_txtTimeUnits->setColor(Palette::blockOffset(15)+1);
 	_txtTimeUnits->setText(tr("STR_TIME_UNITS"));
@@ -400,6 +507,97 @@ SoldierInfoState::~SoldierInfoState()
 void SoldierInfoState::init()
 {
 	State::init();
+	
+/* Need to create if statement for selecting option
+	 * Need to move all stats into UnitStats()
+	 * Need to setup independent bg for UnitStats() to display stats grid
+	 * Need to setup independent bg for UnitAwards() to display awards grid
+	if 
+		award button is clicked then go to UnitAwards()
+		else
+		display UnitStats()
+	
+	
+	*/
+
+/*
+BattleUnit *unit = _battleGame->getSelectedUnit();
+
+	// no selected unit, close inventory
+	if (unit == 0)
+	{
+		btnOkClick(0);
+		return;
+	}
+	// skip to the first unit with inventory
+	if (!unit->hasInventory())
+	{
+		if (_parent)
+		{
+			_parent->selectNextPlayerUnit(false, false, true);
+		}
+		else
+		{
+			_battleGame->selectNextPlayerUnit(false, false, true);
+		}
+		// no available unit, close inventory
+		if (_battleGame->getSelectedUnit() == 0 || !_battleGame->getSelectedUnit()->hasInventory())
+		{
+			// starting a mission with just vehicles
+			btnOkClick(0);
+			return;
+		}
+		else
+		{
+			unit = _battleGame->getSelectedUnit();
+		}
+	}
+
+	if (_parent)
+		_parent->getMap()->getCamera()->centerOnPosition(unit->getPosition(), false);
+
+	unit->setCache(0);
+	_soldier->clear();
+
+	_inv->setSelectedUnit(unit);
+	Soldier *s = _game->getSavedGame()->getSoldier(unit->getId());
+	if (s)
+	{
+		SurfaceSet *texture = _game->getResourcePack()->getSurfaceSet("BASEBITS.PCK");
+		texture->getFrame(s->getRankSprite())->setX(0);
+		texture->getFrame(s->getRankSprite())->setY(0);
+		texture->getFrame(s->getRankSprite())->blit(_rank);
+
+		std::string look = s->getArmor()->getSpriteInventory();
+		if (s->getGender() == GENDER_MALE)
+			look += "M";
+		else
+			look += "F";
+		if (s->getLook() == LOOK_BLONDE)
+			look += "0";
+		if (s->getLook() == LOOK_BROWNHAIR)
+			look += "1";
+		if (s->getLook() == LOOK_ORIENTAL)
+			look += "2";
+		if (s->getLook() == LOOK_AFRICAN)
+			look += "3";
+		look += ".SPK";
+		if (!CrossPlatform::fileExists(CrossPlatform::getDataFile("UFOGRAPH/" + look)) && !_game->getResourcePack()->getSurface(look))
+		{
+			look = s->getArmor()->getSpriteInventory() + ".SPK";
+		}
+		_game->getResourcePack()->getSurface(look)->blit(_soldier);
+	}
+	else
+	{
+		Surface *armorSurface = _game->getResourcePack()->getSurface(unit->getArmor()->getSpriteInventory());
+		if (armorSurface)
+		{
+			armorSurface->blit(_soldier);
+		}
+	}
+	*/
+	
 	if (_list->empty())
 	{
 		_game->popState();
@@ -580,6 +778,10 @@ void SoldierInfoState::init()
 	{
 		_btnSack->setVisible(_game->getSavedGame()->getMonthsPassed() > -1);
 	}
+	
+	//Needs to call the two new functions in case 
+	//btnStats();
+	//btnAwardsSelect();
 }
 
 /**
@@ -663,4 +865,82 @@ void SoldierInfoState::btnSackClick(Action *)
 	_game->pushState(new SackSoldierState(_base, _soldierId));
 }
 
+/**
+* Shows the Soldier Stats window within the main window.
+* @param action Pointer to an action.
+ */
+void SoldierInfoState::btnStatsClick(Action *)
+{
+	_statsOn = true;
+	_commOn = false;
+	_recOn = false;
+	switchTabs();
+}
+
+/**
+ * Shows the Soldier Award window within the main window.
+ * @param action Pointer to an action.
+ */
+void SoldierInfoState::btnCommendationsClick(Action *)
+{
+	_statsOn = false;
+	_commOn = true;
+	_recOn = false;
+	switchTabs();
+}
+
+/**
+ * Shows the Soldier Records window within the main window.
+ * @param action Pointer to an action.
+ */
+void SoldierInfoState::btnRecordsClick(Action *)
+{
+	_statsOn = false;
+	_commOn = false;
+	_recOn = true;
+	switchTabs();
+}
+
+void SoldierInfoState::switchTabs()
+{
+	// switch visiblity of all elements of each "tab" based on the three bools (_statsOn, _commOn, _recOn)
+	for (std::vector<Surface*>::iterator i = _statScreenElements.begin(); i != _statScreenElements.end(); ++i)
+	{
+		(*i)->setVisible(_statsOn);
+	}
+	for (std::vector<Surface*>::iterator i = _commScreenElements.begin(); i != _commScreenElements.end(); ++i)
+	{
+		(*i)->setVisible(_commOn);
+	}
+	for (std::vector<Surface*>::iterator i = _recScreenElements.begin(); i != _recScreenElements.end(); ++i)
+	{
+		(*i)->setVisible(_recOn);
+	}
+}
+
+/**
+ * Unloads the selected weapon.
+ * @param action Pointer to an action.
+ 
+void SoldierInfoState::btnUnloadClick(Action *action)
+{
+	if (_inv->getSelectedItem() != 0 && _inv->getSelectedItem()->getAmmoItem() != 0 && _inv->getSelectedItem()->needsAmmo())
+	{
+		_inv->unload();
+		_txtItem->setText(L"");
+		_txtAmmo->setText(L"");
+		_selAmmo->clear();
+		btnStatsClick(action);
+	}
+}
+
+/**
+ * Shows more ground items / rearranges them.
+ * @param action Pointer to an action.
+ 
+void SoldierInfoState::btnGroundClick(Action *)
+{
+	_inv->arrangeGround();
+}
+*/
 }

@@ -124,7 +124,7 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 	// Create objects
 	Surface *hd = _game->getResourcePack()->getSurface("ALTGEOBORD.SCR");
 	_bg = new Surface(hd->getWidth(), hd->getHeight(), 0, 0);
-	_sideLine = new Surface(64, screenHeight, screenWidth - 64, 0);
+//	_sideLine = new Surface(64, screenHeight, screenWidth - 64, 0);
 	_sidebar = new Surface(64, 200, screenWidth - 64, screenHeight / 2 - 100);
 
 	_globe = new Globe(_game, (screenWidth-64)/2, screenHeight/2, screenWidth-64, screenHeight, 0, 0);
@@ -2292,8 +2292,8 @@ void GeoscapeState::resize(int &dX, int &dY)
 	_bg->setX((_globe->getWidth() - _bg->getWidth()) / 2);
 	_bg->setY((_globe->getHeight() - _bg->getHeight()) / 2);
 
-	int height = (Options::baseYResolution - Screen::ORIGINAL_HEIGHT) / 2 + 10;
-	_sideTop->setHeight(height);
+//	int height = (Options::baseYResolution - Screen::ORIGINAL_HEIGHT) / 2 + 10;
+//	_sideTop->setHeight(height);
 //	_sideTop->setY(_sidebar->getY() - height - 1);
 //	_sideBottom->setHeight(height);
 //	_sideBottom->setY(_sidebar->getY() + _sidebar->getHeight() + 1);
