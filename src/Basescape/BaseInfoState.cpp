@@ -49,13 +49,13 @@ namespace OpenXcom
 BaseInfoState::BaseInfoState(Base *base, BasescapeState *state) : _base(base), _state(state)
 {
 	// Create objects
-	_bg = new Surface(960, 600, 0, 0);
-	_mini = new MiniBaseView(128, 16, 182, 8);
-	_btnOk = new TextButton(30, 14, 10, 180);
-	_btnTransfers = new TextButton(80, 14, 46, 180);
-	_btnStores = new TextButton(80, 14, 132, 180);
-	_btnMonthlyCosts = new TextButton(92, 14, 218, 180);
-	_edtBase = new TextEdit(this, 127, 16, 8, 8);
+//	_bg = new Surface(960, 600, 0, 0);
+//	_mini = new MiniBaseView(128, 16, 182, 8);
+//	_btnOk = new TextButton(30, 14, 10, 180);
+//	_btnTransfers = new TextButton(80, 14, 46, 180);
+//	_btnStores = new TextButton(80, 14, 132, 180);
+//	_btnMonthlyCosts = new TextButton(92, 14, 218, 180);
+//	_edtBase = new TextEdit(this, 127, 16, 8, 8);
 
 	_txtPersonnel = new Text(300, 9, 8, 30);
 	_txtSoldiers = new Text(114, 9, 8, 41);
@@ -104,13 +104,13 @@ BaseInfoState::BaseInfoState(Base *base, BasescapeState *state) : _base(base), _
 	// Set palette
 	setPalette("PAL_BASESCAPE");
 
-	add(_bg);
-	add(_mini);
-	add(_btnOk);
-	add(_btnTransfers);
-	add(_btnStores);
-	add(_btnMonthlyCosts);
-	add(_edtBase);
+//	add(_bg);
+//	add(_mini);
+//	add(_btnOk);
+//	add(_btnTransfers);
+//	add(_btnStores);
+//	add(_btnMonthlyCosts);
+//	add(_edtBase);
 
 	add(_txtPersonnel);
 	add(_txtSoldiers);
@@ -156,7 +156,7 @@ BaseInfoState::BaseInfoState(Base *base, BasescapeState *state) : _base(base), _
 	add(_numLongRange);
 	add(_barLongRange);
 
-	centerAllSurfaces();
+//	centerAllSurfaces();
 
 	// Set up objects
 	std::ostringstream ss;
@@ -165,8 +165,8 @@ BaseInfoState::BaseInfoState(Base *base, BasescapeState *state) : _base(base), _
 		ss << "ALT";
 	}
 	ss << "BACK07.SCR";
-	_game->getResourcePack()->getSurface(ss.str())->blit(_bg);
-
+//	_game->getResourcePack()->getSurface(ss.str())->blit(_bg);
+	/*
 	_mini->setTexture(_game->getResourcePack()->getSurfaceSet("BASEBITS.PCK"));
 	_mini->setBases(_game->getSavedGame()->getBases());
 	for (size_t i = 0; i < _game->getSavedGame()->getBases()->size(); ++i)
@@ -179,7 +179,7 @@ BaseInfoState::BaseInfoState(Base *base, BasescapeState *state) : _base(base), _
 	}
 	_mini->onMouseClick((ActionHandler)&BaseInfoState::miniClick);
 	_mini->onKeyboardPress((ActionHandler)&BaseInfoState::handleKeyPress);
-
+	
 	_btnOk->setColor(Palette::blockOffset(15)+6);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&BaseInfoState::btnOkClick);
@@ -196,11 +196,11 @@ BaseInfoState::BaseInfoState(Base *base, BasescapeState *state) : _base(base), _
 	_btnMonthlyCosts->setColor(Palette::blockOffset(15)+6);
 	_btnMonthlyCosts->setText(tr("STR_MONTHLY_COSTS"));
 	_btnMonthlyCosts->onMouseClick((ActionHandler)&BaseInfoState::btnMonthlyCostsClick);
-
+	
 	_edtBase->setColor(Palette::blockOffset(15)+1);
 	_edtBase->setBig();
 	_edtBase->onChange((ActionHandler)&BaseInfoState::edtBaseChange);
-	
+	*/
 	_txtPersonnel->setColor(Palette::blockOffset(15)+1);
 	_txtPersonnel->setText(tr("STR_PERSONNEL_AVAILABLE_PERSONNEL_TOTAL"));
 
@@ -323,7 +323,7 @@ BaseInfoState::~BaseInfoState()
 void BaseInfoState::init()
 {
 	State::init();
-	_edtBase->setText(_base->getName());
+//	_edtBase->setText(_base->getName());
 
 	std::wostringstream ss;
 	ss << _base->getAvailableSoldiers() << ":" << _base->getTotalSoldiers();
@@ -418,7 +418,7 @@ void BaseInfoState::init()
 /**
  * Changes the base name.
  * @param action Pointer to an action.
- */
+ 
 void BaseInfoState::edtBaseChange(Action *action)
 {
 	_base->setName(_edtBase->getText());
@@ -427,7 +427,7 @@ void BaseInfoState::edtBaseChange(Action *action)
 /**
  * Selects a new base to display.
  * @param action Pointer to an action.
- */
+ 
 void BaseInfoState::miniClick(Action *)
 {
 	size_t base = _mini->getHoveredBase();
@@ -443,7 +443,7 @@ void BaseInfoState::miniClick(Action *)
 /**
  * Selects a new base to display.
  * @param action Pointer to an action.
- */
+ 
 void BaseInfoState::handleKeyPress(Action *action)
 {
 	if (action->getDetails()->type == SDL_KEYDOWN)
@@ -474,7 +474,7 @@ void BaseInfoState::handleKeyPress(Action *action)
 /**
  * Returns to the previous screen.
  * @param action Pointer to an action.
- */
+ 
 void BaseInfoState::btnOkClick(Action *)
 {
 	_game->popState();
@@ -483,7 +483,7 @@ void BaseInfoState::btnOkClick(Action *)
 /**
  * Goes to the Transfers window.
  * @param action Pointer to an action.
- */
+ 
 void BaseInfoState::btnTransfersClick(Action *)
 {
 	_game->pushState(new TransfersState(_base));
@@ -492,7 +492,7 @@ void BaseInfoState::btnTransfersClick(Action *)
 /**
  * Goes to the Stores screen.
  * @param action Pointer to an action.
- */
+ 
 void BaseInfoState::btnStoresClick(Action *)
 {
 	_game->pushState(new StoresState(_base));
@@ -501,10 +501,10 @@ void BaseInfoState::btnStoresClick(Action *)
 /**
  * Goes to the Monthly Costs screen.
  * @param action Pointer to an action.
- */
+ 
 void BaseInfoState::btnMonthlyCostsClick(Action *)
 {
 	_game->pushState(new MonthlyCostsState(_base));
 }
-
+*/
 }
