@@ -101,6 +101,19 @@ BaseInfoState::BaseInfoState(Base *base, BasescapeState *state) : _base(base), _
 	_numLongRange = new Text(40, 9, 126, Options::storageLimitsEnforced ? 167 : 163);
 	_barLongRange = new Bar(150, 5, 166, Options::storageLimitsEnforced ? 169 : 165);
 
+	// Create objects object for monthly cost
+	_txtTitleCost = new Text(310, 17, 5, 12);
+	_txtCost = new Text(80, 9, 115, 32);
+	_txtQuantity = new Text(55, 9, 195, 32);
+	_txtTotal = new Text(60, 9, 249, 32);
+	_txtRental = new Text(150, 9, 10, 48);
+	_txtSalaries = new Text(150, 9, 10, 80);
+	_txtIncome = new Text(150, 9, 10, 136);
+	_lstCrafts = new TextList(288, 24, 10, 56);
+	_lstSalaries = new TextList(300, 30, 10, 88);
+	_lstMaintenance = new TextList(300, 9, 10, 120);
+	_lstTotal = new TextList(100, 9, 205, 136);
+
 	// Set palette
 	setPalette("PAL_BASESCAPE");
 
