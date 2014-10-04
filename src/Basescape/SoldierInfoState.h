@@ -50,7 +50,7 @@ private:
 
 	Surface *_bg, *_rank;
 	Surface *_selAmmo, *_statsbg, *_commendationsbg, *_recordsbg;	
-	TextButton *_btnOk, *_btnPrev, *_btnNext, *_btnArmor, *_btnSack;
+	TextButton *_btnOk, *_btnPrev, *_btnNext, *_btnArmor, *_btnSack, *_btnDiary;
 	TextButton *_btnUnload, *_btnGround, *_btnStats, *_btnCommendations, *_btnRecords;
 	Text *_txtRank, *_txtMissions, *_txtKills, *_txtCraft, *_txtRecovery, *_txtPsionic;
 	TextEdit *_edtSoldier;
@@ -71,6 +71,8 @@ public:
 	~SoldierInfoState();
 	/// Updates the soldier info.
 	void init();
+	/// Set the soldier Id.
+	void setSoldierId(size_t soldier);
 	/// Handler for pressing on the Name edit.
 	void edtSoldierPress(Action *action);
 	/// Handler for changing text on the Name edit.
@@ -100,6 +102,8 @@ public:
 	/// Saves the soldiers' equipment-layout.
 	void saveEquipmentLayout();
 	void switchTabs();	
+	/// Handler for clicking the Diary button.
+	void btnDiaryClick(Action *action);
 };
 
 }
