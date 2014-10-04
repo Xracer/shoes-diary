@@ -110,33 +110,33 @@ BaseInfoState::BaseInfoState(Base *base, BasescapeState *state) : _base(base), _
 	_barLongRange = new Bar(150, 5, 166, Options::storageLimitsEnforced ? 149 : 145);
 
 	// Create objects for monthly cost y + 150
-	_txtTitleCost = new Text(310, 17, 5, 162);
-	_txtCost = new Text(80, 9, 115, 182);
-	_txtQuantity = new Text(55, 9, 195, 182);
-	_txtTotal = new Text(60, 9, 249, 182);
-	_txtRental = new Text(150, 9, 10, 198);
-	_txtSalaries = new Text(150, 9, 10, 230);
-	_txtIncome = new Text(150, 9, 10, 286); 
-	_lstCrafts = new TextList(288, 24, 10, 206);
-	_lstSalaries = new TextList(300, 30, 10, 238);
-	_lstMaintenance = new TextList(300, 9, 10, 270);
-	_lstTotal = new TextList(100, 9, 205, 286);
+	_txtTitleCost = new Text(310, 10, 8, 162);
+	_txtCost = new Text(80, 9, 115, 172);
+	_txtQuantity = new Text(55, 9, 195, 172);
+	_txtTotal = new Text(60, 9, 249, 172);
+	_txtRental = new Text(150, 9, 8, 172);
+	_txtSalaries = new Text(150, 9, 8, 204);
+	_txtIncome = new Text(150, 9, 8, 255); 
+	_lstCrafts = new TextList(288, 24, 8, 182);
+	_lstSalaries = new TextList(300, 30, 8, 214);
+	_lstMaintenance = new TextList(300, 9, 8, 245);
+	_lstTotal = new TextList(100, 9, 205, 255);
 	
 	// Create objects for stores y + 352
-	_windowStores = new Window(this, 288, 128, 8, 342);
-	_txtTitleStores = new Text(310, 17, 5, 300);
-	_txtItemStores = new Text(142, 9, 10, 324);
-	_txtQuantityStores = new Text(88, 9, 152, 324);
-	_txtSpaceUsed = new Text(74, 9, 240, 324);
-	_lstStores = new TextList(288, 128, 8, 342);
+	_windowStores = new Window(this, 288, 128, 8, 270);
+	_txtTitleStores = new Text(310, 10, 8, 270);
+	_txtItemStores = new Text(142, 9, 8, 280);
+	_txtQuantityStores = new Text(88, 9, 152, 280);
+	_txtSpaceUsed = new Text(74, 9, 240, 280);
+	_lstStores = new TextList(288, 130, 8, 290);
 
 	// Create objects for transfer y + 55
-	_windowTransfer = new Window(this, 273, 112, 14, 534);
-	_txtTitleTransfer = new Text(278, 17, 21, 500);
-	_txtItem = new Text(114, 9, 16, 518); //+18
-	_txtQuantityTranfer = new Text(54, 9, 152, 518);
-	_txtArrivalTime = new Text(112, 9, 212, 518);
-	_lstTransfers = new TextList(273, 112, 14, 534);//+ 34
+	_windowTransfer = new Window(this, 273, 112, 8, 534);
+	_txtTitleTransfer = new Text(278, 10, 8, 430);
+	_txtItem = new Text(114, 9, 8, 441); 
+	_txtQuantityTranfer = new Text(54, 9, 152, 441);
+	_txtArrivalTime = new Text(112, 9, 212, 441);
+	_lstTransfers = new TextList(273, 112, 8, 451);
 
 	// Set palette
 	setPalette("PAL_BASESCAPE");
@@ -444,18 +444,18 @@ BaseInfoState::BaseInfoState(Base *base, BasescapeState *state) : _base(base), _
 	_lstTotal->addRow(2, tr("STR_TOTAL").c_str(), Text::formatFunding(_base->getMonthlyMaintenace()).c_str());
 
 	// Setup all objects for transfer
-	_txtTitleTransfer->setColor(Palette::blockOffset(15) + 6);
+	_txtTitleTransfer->setColor(Palette::blockOffset(15) + 1);
 //	_txtTitleTransfer->setBig();
 	_txtTitleTransfer->setAlign(ALIGN_LEFT);
 	_txtTitleTransfer->setText(tr("STR_TRANSFERS"));
 
-	_txtItem->setColor(Palette::blockOffset(15) + 6);
+	_txtItem->setColor(Palette::blockOffset(15) + 1);
 	_txtItem->setText(tr("STR_ITEM"));
 
-	_txtQuantityTranfer->setColor(Palette::blockOffset(15) + 6);
+	_txtQuantityTranfer->setColor(Palette::blockOffset(15) + 1);
 	_txtQuantityTranfer->setText(tr("STR_QUANTITY_UC"));
 
-	_txtArrivalTime->setColor(Palette::blockOffset(15) + 6);
+	_txtArrivalTime->setColor(Palette::blockOffset(15) + 1);
 	_txtArrivalTime->setText(tr("STR_ARRIVAL_TIME_HOURS"));
 
 	_lstTransfers->setColor(Palette::blockOffset(13) + 10);
@@ -474,18 +474,18 @@ BaseInfoState::BaseInfoState(Base *base, BasescapeState *state) : _base(base), _
 	}
 
 	//Setup all objects for stores
-	_txtTitleStores->setColor(Palette::blockOffset(13) + 10);
+	_txtTitleStores->setColor(Palette::blockOffset(15) + 1);
 //	_txtTitleStores->setBig();
 	_txtTitleStores->setAlign(ALIGN_LEFT);
 	_txtTitleStores->setText(tr("STR_STORES"));
 
-	_txtItemStores->setColor(Palette::blockOffset(13) + 10);
+	_txtItemStores->setColor(Palette::blockOffset(15) + 1);
 	_txtItemStores->setText(tr("STR_ITEM"));
 
-	_txtQuantityStores->setColor(Palette::blockOffset(13) + 10);
+	_txtQuantityStores->setColor(Palette::blockOffset(15) + 1);
 	_txtQuantityStores->setText(tr("STR_QUANTITY_UC"));
 
-	_txtSpaceUsed->setColor(Palette::blockOffset(13) + 10);
+	_txtSpaceUsed->setColor(Palette::blockOffset(15) + 1);
 	_txtSpaceUsed->setText(tr("STR_SPACE_USED_UC"));
 
 	_lstStores->setColor(Palette::blockOffset(13) + 10);

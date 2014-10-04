@@ -51,15 +51,15 @@ SoldiersState::SoldiersState(Base *base) : _base(base)
 	_window = new Window(this, 960, 600, 0, 0);
 	if (isPsiBtnVisible)
 	{
-		_btnOk = new TextButton(96, 16, 216, 176);
+//		_btnOk = new TextButton(96, 16, 216, 176);
 		_btnPsiTraining = new TextButton(96, 16, 112, 176);
-		_btnMemorial = new TextButton(96, 16, 8, 176);
+//		_btnMemorial = new TextButton(96, 16, 8, 176);
 	}
 	else
 	{
-		_btnOk = new TextButton(148, 16, 164, 176);
+//		_btnOk = new TextButton(148, 16, 164, 176);
 		_btnPsiTraining = new TextButton(148, 16, 164, 176);
-		_btnMemorial = new TextButton(148, 16, 8, 176);
+//		_btnMemorial = new TextButton(148, 16, 8, 176);
 	}
 	_txtTitle = new Text(310, 17, 5, 8);
 	_txtName = new Text(114, 9, 16, 32);
@@ -71,9 +71,9 @@ SoldiersState::SoldiersState(Base *base) : _base(base)
 	setPalette("PAL_BASESCAPE", 2);
 
 	add(_window);
-	add(_btnOk);
+//	add(_btnOk);
 	add(_btnPsiTraining);
-	add(_btnMemorial);
+//	add(_btnMemorial);
 	add(_txtTitle);
 	add(_txtName);
 	add(_txtRank);
@@ -86,20 +86,20 @@ SoldiersState::SoldiersState(Base *base) : _base(base)
 	_window->setColor(Palette::blockOffset(15)+1);
 	_window->setBackground(_game->getResourcePack()->getSurface("BACK02.SCR"));
 
-	_btnOk->setColor(Palette::blockOffset(13)+10);
+/*	_btnOk->setColor(Palette::blockOffset(13)+10);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&SoldiersState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&SoldiersState::btnOkClick, Options::keyCancel);
-
+*/
 	_btnPsiTraining->setColor(Palette::blockOffset(13)+10);
 	_btnPsiTraining->setText(tr("STR_PSIONIC_TRAINING"));
 	_btnPsiTraining->onMouseClick((ActionHandler)&SoldiersState::btnPsiTrainingClick);
 	_btnPsiTraining->setVisible(isPsiBtnVisible);
 
-	_btnMemorial->setColor(Palette::blockOffset(13)+10);
+/*	_btnMemorial->setColor(Palette::blockOffset(13)+10);
 	_btnMemorial->setText(tr("STR_MEMORIAL"));
 	_btnMemorial->onMouseClick((ActionHandler)&SoldiersState::btnMemorialClick);
-
+*/
 	_txtTitle->setColor(Palette::blockOffset(13)+10);
 	_txtTitle->setBig();
 	_txtTitle->setAlign(ALIGN_CENTER);
@@ -158,11 +158,11 @@ void SoldiersState::init()
 /**
  * Returns to the previous screen.
  * @param action Pointer to an action.
- */
+ 
 void SoldiersState::btnOkClick(Action *)
 {
 	_game->popState();
-}
+}*/
 
 /**
  * Opens the Psionic Training screen.
@@ -176,11 +176,11 @@ void SoldiersState::btnPsiTrainingClick(Action *)
 /**
  * Opens the Memorial screen.
  * @param action Pointer to an action.
- */
+ 
 void SoldiersState::btnMemorialClick(Action *)
 {
 	_game->pushState(new SoldierMemorialState);
-}
+}*/
 
 /**
  * Shows the selected soldier's info.
