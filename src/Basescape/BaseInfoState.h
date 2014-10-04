@@ -32,6 +32,8 @@ class TextButton;
 class TextEdit;
 class Text;
 class Bar;
+class TextList;
+class Window;
 
 /**
  * Base Info screen that shows all the
@@ -59,6 +61,20 @@ private:
 	Text *_txtDefense, *_txtShortRange, *_txtLongRange;
 	Text *_numDefense, *_numShortRange, *_numLongRange;
 	Bar *_barDefense, *_barShortRange, *_barLongRange;
+
+	// variables for monthly cost
+	Text *_txtTitleCost, *_txtCost, *_txtQuantity, *_txtTotal, *_txtRental, *_txtSalaries, *_txtIncome;
+	TextList *_lstCrafts, *_lstSalaries, *_lstMaintenance, *_lstTotal;
+
+	// variables for transfer
+	Window *_windowTransfer;
+	Text *_txtTitleTransfer, *_txtItem, *_txtQuantityTranfer, *_txtArrivalTime;
+	TextList *_lstTransfers;
+
+	// variables for stores
+	Window *_windowStores;
+	Text *_txtTitleStores, *_txtItemStores, *_txtQuantityStores, *_txtSpaceUsed;
+	TextList *_lstStores;
 public:
 	/// Creates the Base Info state.
 	BaseInfoState(Base *base, BasescapeState *state);

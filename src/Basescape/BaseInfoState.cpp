@@ -28,7 +28,12 @@
 #include "../Interface/TextButton.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextEdit.h"
+#include "../Interface/TextList.h"
+#include "../Interface/Window.h"
 #include "../Engine/Surface.h"
+#include "../Ruleset/RuleItem.h"
+#include "../Ruleset/Ruleset.h"
+#include "../Ruleset/RuleCraft.h"
 #include "MiniBaseView.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Base.h"
@@ -36,6 +41,8 @@
 #include "TransfersState.h"
 #include "StoresState.h"
 #include "BasescapeState.h"
+#include "../Savegame/Transfer.h"
+#include "../Savegame/ItemContainer.h"
 
 namespace OpenXcom
 {
@@ -48,7 +55,8 @@ namespace OpenXcom
  */
 BaseInfoState::BaseInfoState(Base *base, BasescapeState *state) : _base(base), _state(state)
 {
-	// Create objects
+	// Create objects for Base Info
+//	_window = new Window(this, 320, 200, 0, 0);
 //	_bg = new Surface(960, 600, 0, 0);
 //	_mini = new MiniBaseView(128, 16, 182, 8);
 //	_btnOk = new TextButton(30, 14, 10, 180);
@@ -57,62 +65,78 @@ BaseInfoState::BaseInfoState(Base *base, BasescapeState *state) : _base(base), _
 //	_btnMonthlyCosts = new TextButton(92, 14, 218, 180);
 //	_edtBase = new TextEdit(this, 127, 16, 8, 8);
 
-	_txtPersonnel = new Text(300, 9, 8, 30);
-	_txtSoldiers = new Text(114, 9, 8, 41);
-	_numSoldiers = new Text(40, 9, 126, 41);
-	_barSoldiers = new Bar(150, 5, 166, 43);
-	_txtEngineers = new Text(114, 9, 8, 51);
-	_numEngineers = new Text(40, 9, 126, 51);
-	_barEngineers = new Bar(150, 5, 166, 53);
-	_txtScientists = new Text(114, 9, 8, 61);
-	_numScientists = new Text(40, 9, 126, 61);
-	_barScientists = new Bar(150, 5, 166, 63);
+	_txtPersonnel = new Text(300, 9, 8, 10);
+	_txtSoldiers = new Text(114, 9, 8, 21);
+	_numSoldiers = new Text(40, 9, 126, 21);
+	_barSoldiers = new Bar(150, 5, 166, 23);
+	_txtEngineers = new Text(114, 9, 8, 31);
+	_numEngineers = new Text(40, 9, 126, 31);
+	_barEngineers = new Bar(150, 5, 166, 33);
+	_txtScientists = new Text(114, 9, 8, 41);
+	_numScientists = new Text(40, 9, 126, 41);
+	_barScientists = new Bar(150, 5, 166, 43);
 
-	_txtSpace = new Text(300, 9, 8, 72);
-	_txtQuarters = new Text(114, 9, 8, 83);
-	_numQuarters = new Text(40, 9, 126, 83);
-	_barQuarters = new Bar(150, 5, 166, 85);
-	_txtStores = new Text(114, 9, 8, 93);
-	_numStores = new Text(40, 9, 126, 93);
-	_barStores = new Bar(150, 5, 166, 95);
-	_txtLaboratories = new Text(114, 9, 8, 103);
-	_numLaboratories = new Text(40, 9, 126, 103);
-	_barLaboratories = new Bar(150, 5, 166, 105);
-	_txtWorkshops = new Text(114, 9, 8, 113);
-	_numWorkshops = new Text(40, 9, 126, 113);
-	_barWorkshops = new Bar(150, 5, 166, 115);
+	_txtSpace = new Text(300, 9, 8, 52);
+	_txtQuarters = new Text(114, 9, 8, 63);
+	_numQuarters = new Text(40, 9, 126, 63);
+	_barQuarters = new Bar(150, 5, 166, 65);
+	_txtStores = new Text(114, 9, 8, 73);
+	_numStores = new Text(40, 9, 126, 73);
+	_barStores = new Bar(150, 5, 166, 75);
+	_txtLaboratories = new Text(114, 9, 8, 83);
+	_numLaboratories = new Text(40, 9, 126, 83);
+	_barLaboratories = new Bar(150, 5, 166, 85);
+	_txtWorkshops = new Text(114, 9, 8, 83);
+	_numWorkshops = new Text(40, 9, 126, 83);
+	_barWorkshops = new Bar(150, 5, 166, 85);
 	if (Options::storageLimitsEnforced)
 	{
-		_txtContainment = new Text(114, 9, 8, 123);
-		_numContainment = new Text(40, 9, 126, 123);
-		_barContainment = new Bar(150, 5, 166, 125);
+		_txtContainment = new Text(114, 9, 8, 103);
+		_numContainment = new Text(40, 9, 126, 103);
+		_barContainment = new Bar(150, 5, 166, 105);
 	}
-	_txtHangars = new Text(114, 9, 8, Options::storageLimitsEnforced ? 133 : 123);
-	_numHangars = new Text(40, 9, 126, Options::storageLimitsEnforced ? 133 : 123);
-	_barHangars = new Bar(150, 5, 166, Options::storageLimitsEnforced ? 135 : 125);
+	_txtHangars = new Text(114, 9, 8, Options::storageLimitsEnforced ? 113 : 103);
+	_numHangars = new Text(40, 9, 126, Options::storageLimitsEnforced ? 113 : 103);
+	_barHangars = new Bar(150, 5, 166, Options::storageLimitsEnforced ? 115 : 105);
 
-	_txtDefense = new Text(114, 9, 8, Options::storageLimitsEnforced ? 147 : 138);
-	_numDefense = new Text(40, 9, 126, Options::storageLimitsEnforced ? 147 : 138);
-	_barDefense = new Bar(150, 5, 166, Options::storageLimitsEnforced ? 149 : 140);
-	_txtShortRange = new Text(114, 9, 8, Options::storageLimitsEnforced ? 157 : 153);
-	_numShortRange = new Text(40, 9, 126, Options::storageLimitsEnforced ? 157 : 153);
-	_barShortRange = new Bar(150, 5, 166, Options::storageLimitsEnforced ? 159 : 155);
-	_txtLongRange = new Text(114, 9, 8, Options::storageLimitsEnforced ? 167 : 163);
-	_numLongRange = new Text(40, 9, 126, Options::storageLimitsEnforced ? 167 : 163);
-	_barLongRange = new Bar(150, 5, 166, Options::storageLimitsEnforced ? 169 : 165);
+	_txtDefense = new Text(114, 9, 8, Options::storageLimitsEnforced ? 127 : 118);
+	_numDefense = new Text(40, 9, 126, Options::storageLimitsEnforced ? 127 : 118);
+	_barDefense = new Bar(150, 5, 166, Options::storageLimitsEnforced ? 129 : 120);
+	_txtShortRange = new Text(114, 9, 8, Options::storageLimitsEnforced ? 137 : 133);
+	_numShortRange = new Text(40, 9, 126, Options::storageLimitsEnforced ? 137 : 133);
+	_barShortRange = new Bar(150, 5, 166, Options::storageLimitsEnforced ? 139 : 135);
+	_txtLongRange = new Text(114, 9, 8, Options::storageLimitsEnforced ? 147 : 143);
+	_numLongRange = new Text(40, 9, 126, Options::storageLimitsEnforced ? 147 : 143);
+	_barLongRange = new Bar(150, 5, 166, Options::storageLimitsEnforced ? 149 : 145);
 
-	// Create objects object for monthly cost
-	_txtTitleCost = new Text(310, 17, 5, 12);
-	_txtCost = new Text(80, 9, 115, 32);
-	_txtQuantity = new Text(55, 9, 195, 32);
-	_txtTotal = new Text(60, 9, 249, 32);
-	_txtRental = new Text(150, 9, 10, 48);
-	_txtSalaries = new Text(150, 9, 10, 80);
-	_txtIncome = new Text(150, 9, 10, 136);
-	_lstCrafts = new TextList(288, 24, 10, 56);
-	_lstSalaries = new TextList(300, 30, 10, 88);
-	_lstMaintenance = new TextList(300, 9, 10, 120);
-	_lstTotal = new TextList(100, 9, 205, 136);
+	// Create objects for monthly cost y + 150
+	_txtTitleCost = new Text(310, 17, 5, 162);
+	_txtCost = new Text(80, 9, 115, 182);
+	_txtQuantity = new Text(55, 9, 195, 182);
+	_txtTotal = new Text(60, 9, 249, 182);
+	_txtRental = new Text(150, 9, 10, 198);
+	_txtSalaries = new Text(150, 9, 10, 230);
+	_txtIncome = new Text(150, 9, 10, 286); 
+	_lstCrafts = new TextList(288, 24, 10, 206);
+	_lstSalaries = new TextList(300, 30, 10, 238);
+	_lstMaintenance = new TextList(300, 9, 10, 270);
+	_lstTotal = new TextList(100, 9, 205, 286);
+	
+	// Create objects for stores y + 352
+	_windowStores = new Window(this, 288, 128, 8, 342);
+	_txtTitleStores = new Text(310, 17, 5, 300);
+	_txtItemStores = new Text(142, 9, 10, 324);
+	_txtQuantityStores = new Text(88, 9, 152, 324);
+	_txtSpaceUsed = new Text(74, 9, 240, 324);
+	_lstStores = new TextList(288, 128, 8, 342);
+
+	// Create objects for transfer y + 55
+	_windowTransfer = new Window(this, 273, 112, 14, 534);
+	_txtTitleTransfer = new Text(278, 17, 21, 500);
+	_txtItem = new Text(114, 9, 16, 518); //+18
+	_txtQuantityTranfer = new Text(54, 9, 152, 518);
+	_txtArrivalTime = new Text(112, 9, 212, 518);
+	_lstTransfers = new TextList(273, 112, 14, 534);//+ 34
 
 	// Set palette
 	setPalette("PAL_BASESCAPE");
@@ -169,16 +193,46 @@ BaseInfoState::BaseInfoState(Base *base, BasescapeState *state) : _base(base), _
 	add(_numLongRange);
 	add(_barLongRange);
 
+	//add items for Monthly Cost
+	add(_txtTitleCost);
+	add(_txtCost);
+	add(_txtQuantity);
+	add(_txtTotal);
+	add(_txtRental);
+	add(_txtSalaries);
+	add(_txtIncome);
+	add(_lstCrafts);
+	add(_lstSalaries);
+	add(_lstMaintenance);
+	add(_lstTotal);
+
+	//add items for stores
+	add(_windowStores);
+	add(_txtTitleStores);
+	add(_txtItemStores);
+	add(_txtQuantityStores);
+	add(_txtSpaceUsed);
+	add(_lstStores);
+
+	//add items for transfer
+	add(_windowTransfer);
+	add(_txtTitleTransfer);
+	add(_txtItem);
+	add(_txtQuantityTranfer);
+	add(_txtArrivalTime);
+	add(_lstTransfers);
+
 //	centerAllSurfaces();
 
 	// Set up objects
-	std::ostringstream ss;
+/*	std::ostringstream ss;
 	if (Options::storageLimitsEnforced)
 	{
 		ss << "ALT";
 	}
 	ss << "BACK07.SCR";
-//	_game->getResourcePack()->getSurface(ss.str())->blit(_bg);
+	_game->getResourcePack()->getSurface(ss.str())->blit(_bg);
+	*/
 	/*
 	_mini->setTexture(_game->getResourcePack()->getSurfaceSet("BASEBITS.PCK"));
 	_mini->setBases(_game->getSavedGame()->getBases());
@@ -214,6 +268,7 @@ BaseInfoState::BaseInfoState(Base *base, BasescapeState *state) : _base(base), _
 	_edtBase->setBig();
 	_edtBase->onChange((ActionHandler)&BaseInfoState::edtBaseChange);
 	*/
+	// Setup all objects for monthly cost
 	_txtPersonnel->setColor(Palette::blockOffset(15)+1);
 	_txtPersonnel->setText(tr("STR_PERSONNEL_AVAILABLE_PERSONNEL_TOTAL"));
 
@@ -320,6 +375,138 @@ BaseInfoState::BaseInfoState(Base *base, BasescapeState *state) : _base(base), _
 
 	_barLongRange->setColor(Palette::blockOffset(8));
 	_barLongRange->setScale(25.0);
+
+	// Setup all objects for monthly cost
+	_txtTitleCost->setColor(Palette::blockOffset(15) + 1);
+//	_txtTitleCost->setBig();
+	_txtTitleCost->setAlign(ALIGN_LEFT);
+	_txtTitleCost->setText(tr("STR_MONTHLY_COSTS"));
+
+	_txtCost->setColor(Palette::blockOffset(15) + 1);
+	_txtCost->setText(tr("STR_COST_PER_UNIT"));
+
+	_txtQuantity->setColor(Palette::blockOffset(15) + 1);
+	_txtQuantity->setText(tr("STR_QUANTITY"));
+
+	_txtTotal->setColor(Palette::blockOffset(15) + 1);
+	_txtTotal->setText(tr("STR_TOTAL"));
+
+	_txtRental->setColor(Palette::blockOffset(15) + 1);
+	_txtRental->setText(tr("STR_CRAFT_RENTAL"));
+
+	_txtSalaries->setColor(Palette::blockOffset(15) + 1);
+	_txtSalaries->setText(tr("STR_SALARIES"));
+
+	_txtIncome->setColor(Palette::blockOffset(13) + 10);
+	std::wostringstream ss1;
+	ss1 << tr("STR_INCOME") << L"=" << Text::formatFunding(_game->getSavedGame()->getCountryFunding());
+	_txtIncome->setText(ss1.str());
+
+	_lstCrafts->setColor(Palette::blockOffset(13) + 10);
+	_lstCrafts->setColumns(4, 125, 70, 44, 60);
+	_lstCrafts->setDot(true);
+
+	const std::vector<std::string> &crafts = _game->getRuleset()->getCraftsList();
+	for (std::vector<std::string>::const_iterator i = crafts.begin(); i != crafts.end(); ++i)
+	{
+		RuleCraft *craft = _game->getRuleset()->getCraft(*i);
+		if (craft->getRentCost() != 0 && _game->getSavedGame()->isResearched(craft->getRequirements()))
+		{
+			std::wostringstream ss2;
+			ss2 << _base->getCraftCount((*i));
+			_lstCrafts->addRow(4, tr(*i).c_str(), Text::formatFunding(craft->getRentCost()).c_str(), ss2.str().c_str(), Text::formatFunding(_base->getCraftCount(*i) * craft->getRentCost()).c_str());
+		}
+	}
+
+	_lstSalaries->setColor(Palette::blockOffset(13) + 10);
+	_lstSalaries->setColumns(4, 125, 70, 44, 60);
+	_lstSalaries->setDot(true);
+
+	std::wostringstream ss4;
+	ss4 << _base->getSoldiers()->size();
+	_lstSalaries->addRow(4, tr("STR_SOLDIERS").c_str(), Text::formatFunding(_game->getRuleset()->getSoldierCost()).c_str(), ss4.str().c_str(), Text::formatFunding(_base->getSoldiers()->size() * _game->getRuleset()->getSoldierCost()).c_str());
+	std::wostringstream ss5;
+	ss5 << _base->getTotalEngineers();
+	_lstSalaries->addRow(4, tr("STR_ENGINEERS").c_str(), Text::formatFunding(_game->getRuleset()->getEngineerCost()).c_str(), ss5.str().c_str(), Text::formatFunding(_base->getTotalEngineers() * _game->getRuleset()->getEngineerCost()).c_str());
+	std::wostringstream ss6;
+	ss6 << _base->getTotalScientists();
+	_lstSalaries->addRow(4, tr("STR_SCIENTISTS").c_str(), Text::formatFunding(_game->getRuleset()->getScientistCost()).c_str(), ss6.str().c_str(), Text::formatFunding(_base->getTotalScientists() * _game->getRuleset()->getScientistCost()).c_str());
+
+	_lstMaintenance->setColor(Palette::blockOffset(13) + 10);
+	_lstMaintenance->setColumns(2, 239, 60);
+	_lstMaintenance->setDot(true);
+	_lstMaintenance->addRow(2, tr("STR_BASE_MAINTENANCE").c_str(), Text::formatFunding(_base->getFacilityMaintenance()).c_str());
+	_lstMaintenance->setCellColor(0, 0, Palette::blockOffset(15) + 1);
+
+	_lstTotal->setColor(Palette::blockOffset(13));
+	_lstTotal->setColumns(2, 44, 55);
+	_lstTotal->setDot(true);
+	_lstTotal->addRow(2, tr("STR_TOTAL").c_str(), Text::formatFunding(_base->getMonthlyMaintenace()).c_str());
+
+	// Setup all objects for transfer
+	_txtTitleTransfer->setColor(Palette::blockOffset(15) + 6);
+//	_txtTitleTransfer->setBig();
+	_txtTitleTransfer->setAlign(ALIGN_LEFT);
+	_txtTitleTransfer->setText(tr("STR_TRANSFERS"));
+
+	_txtItem->setColor(Palette::blockOffset(15) + 6);
+	_txtItem->setText(tr("STR_ITEM"));
+
+	_txtQuantityTranfer->setColor(Palette::blockOffset(15) + 6);
+	_txtQuantityTranfer->setText(tr("STR_QUANTITY_UC"));
+
+	_txtArrivalTime->setColor(Palette::blockOffset(15) + 6);
+	_txtArrivalTime->setText(tr("STR_ARRIVAL_TIME_HOURS"));
+
+	_lstTransfers->setColor(Palette::blockOffset(13) + 10);
+	_lstTransfers->setArrowColor(Palette::blockOffset(15) + 6);
+	_lstTransfers->setColumns(3, 155, 75, 46);
+	_lstTransfers->setSelectable(true);
+	_lstTransfers->setBackground(_windowTransfer);
+	_lstTransfers->setMargin(2);
+
+	for (std::vector<Transfer*>::iterator i = _base->getTransfers()->begin(); i != _base->getTransfers()->end(); ++i)
+	{
+		std::wostringstream ss, ss2;
+		ss << (*i)->getQuantity();
+		ss2 << (*i)->getHours();
+		_lstTransfers->addRow(3, (*i)->getName(_game->getLanguage()).c_str(), ss.str().c_str(), ss2.str().c_str());
+	}
+
+	//Setup all objects for stores
+	_txtTitleStores->setColor(Palette::blockOffset(13) + 10);
+//	_txtTitleStores->setBig();
+	_txtTitleStores->setAlign(ALIGN_LEFT);
+	_txtTitleStores->setText(tr("STR_STORES"));
+
+	_txtItemStores->setColor(Palette::blockOffset(13) + 10);
+	_txtItemStores->setText(tr("STR_ITEM"));
+
+	_txtQuantityStores->setColor(Palette::blockOffset(13) + 10);
+	_txtQuantityStores->setText(tr("STR_QUANTITY_UC"));
+
+	_txtSpaceUsed->setColor(Palette::blockOffset(13) + 10);
+	_txtSpaceUsed->setText(tr("STR_SPACE_USED_UC"));
+
+	_lstStores->setColor(Palette::blockOffset(13) + 10);
+	_lstStores->setColumns(3, 162, 92, 32);
+	_lstStores->setSelectable(true);
+	_lstStores->setBackground(_windowStores);
+	_lstStores->setMargin(2);
+
+	const std::vector<std::string> &items = _game->getRuleset()->getItemsList();
+	for (std::vector<std::string>::const_iterator i = items.begin(); i != items.end(); ++i)
+	{
+		int qty = _base->getItems()->getItem(*i);
+		if (qty > 0)
+		{
+			RuleItem *rule = _game->getRuleset()->getItem(*i);
+			std::wostringstream ss, ss2;
+			ss << qty;
+			ss2 << qty * rule->getSize();
+			_lstStores->addRow(3, tr(*i).c_str(), ss.str().c_str(), ss2.str().c_str());
+		}
+	}
 }
 
 /**
