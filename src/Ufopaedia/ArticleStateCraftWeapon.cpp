@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,17 +18,14 @@
  */
 
 #include <sstream>
-
-#include "Ufopaedia.h"
 #include "ArticleStateCraftWeapon.h"
-#include "../Ruleset/ArticleDefinition.h"
-#include "../Ruleset/Ruleset.h"
-#include "../Ruleset/RuleCraftWeapon.h"
+#include "../Mod/ArticleDefinition.h"
+#include "../Mod/Mod.h"
+#include "../Mod/RuleCraftWeapon.h"
 #include "../Engine/Game.h"
 #include "../Engine/Palette.h"
 #include "../Engine/Surface.h"
-#include "../Engine/Language.h"
-#include "../Resource/ResourcePack.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/TextList.h"
@@ -36,9 +33,9 @@
 namespace OpenXcom
 {
 
-	ArticleStateCraftWeapon::ArticleStateCraftWeapon(Game *game, ArticleDefinitionCraftWeapon *defs) : ArticleState(game, defs->id)
+	ArticleStateCraftWeapon::ArticleStateCraftWeapon(ArticleDefinitionCraftWeapon *defs) : ArticleState(defs->id)
 	{
-		RuleCraftWeapon *weapon = _game->getRuleset()->getCraftWeapon(defs->id);
+		RuleCraftWeapon *weapon = _game->getMod()->getCraftWeapon(defs->id);
 
 		// add screen elements
 		_txtTitle = new Text(200, 32, 5, 24);
@@ -52,7 +49,7 @@ namespace OpenXcom
 		add(_txtTitle);
 
 		// Set up objects
-		_game->getResourcePack()->getSurface(defs->image_id)->blit(_bg);
+		_game->getMod()->getSurface(defs->image_id)->blit(_bg);
 		_btnOk->setColor(Palette::blockOffset(1));
 		_btnPrev->setColor(Palette::blockOffset(1));
 		_btnNext->setColor(Palette::blockOffset(1));
@@ -60,14 +57,14 @@ namespace OpenXcom
 		_txtTitle->setColor(Palette::blockOffset(14)+15);
 		_txtTitle->setBig();
 		_txtTitle->setWordWrap(true);
-		_txtTitle->setText(Ufopaedia::buildText(_game, defs->title));
+		_txtTitle->setText(tr(defs->title));
 
 		_txtInfo = new Text(310, 32, 5, 160);
 		add(_txtInfo);
 
 		_txtInfo->setColor(Palette::blockOffset(14)+15);
 		_txtInfo->setWordWrap(true);
-		_txtInfo->setText(Ufopaedia::buildText(_game, defs->text));
+		_txtInfo->setText(tr(defs->text));
 
 		_lstInfo = new TextList(250, 111, 5, 80);
 		add(_lstInfo);
@@ -89,6 +86,9 @@ namespace OpenXcom
 
 		_lstInfo->addRow(2, tr("STR_RE_LOAD_TIME").c_str(), tr("STR_SECONDS").arg(weapon->getStandardReload()).c_str());
 		_lstInfo->setCellColor(3, 1, Palette::blockOffset(15)+4);
+
+		_lstInfo->addRow(2, tr("STR_ROUNDS").c_str(), Text::formatNumber(weapon->getAmmoMax()).c_str());
+		_lstInfo->setCellColor(4, 1, Palette::blockOffset(15)+4);
 
 		centerAllSurfaces();
 	}

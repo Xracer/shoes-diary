@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -40,7 +40,7 @@ private:
 	Text *_txtTitle;
 public:
 	/// Creates the No Containment state.
-	NoContainmentState(Game *game);
+	NoContainmentState();
 	/// Cleans up the No Containment state.
 	~NoContainmentState();
 	/// Handler for clicking the OK button.

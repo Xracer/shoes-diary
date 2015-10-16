@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -47,7 +47,7 @@ private:
 	std::string ucWords(std::string str);
 public:
 	/// Creates the Controls state.
-	OptionsControlsState(Game *game, OptionsOrigin origin);
+	OptionsControlsState(OptionsOrigin origin);
 	/// Cleans up the Controls state.
 	~OptionsControlsState();
 	/// Fills controls list.

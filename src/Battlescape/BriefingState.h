@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -40,11 +40,14 @@ private:
 	TextButton *_btnOk;
 	Window *_window;
 	Text *_txtTitle, *_txtTarget, *_txtCraft, *_txtBriefing;
+	std::string _cutsceneId, _musicId;
 public:
 	/// Creates the Briefing state.
-	BriefingState(Game *game, Craft *craft = 0, Base *base = 0);
+	BriefingState(Craft *craft = 0, Base *base = 0);
 	/// Cleans up the Briefing state.
 	~BriefingState();
+	/// Initialization
+	void init();
 	/// Handler for clicking the Ok button.
 	void btnOkClick(Action *action);
 };

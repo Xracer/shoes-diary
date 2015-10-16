@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -23,11 +23,10 @@
 #include "../Engine/Action.h"
 #include "../Savegame/Base.h"
 #include "../Savegame/BaseFacility.h"
-#include "../Ruleset/RuleBaseFacility.h"
+#include "../Mod/RuleBaseFacility.h"
 #include "../Savegame/Craft.h"
-#include "../Ruleset/RuleCraft.h"
+#include "../Mod/RuleCraft.h"
 #include "../Interface/Text.h"
-#include "../Engine/Palette.h"
 #include "../Engine/Timer.h"
 #include "../Engine/Options.h"
 #include <limits>
@@ -132,8 +131,8 @@ BaseFacility *BaseView::getSelectedFacility() const
  */
 void BaseView::resetSelectedFacility()
 {
-    _facilities[_selFacility->getX()][_selFacility->getY()] = 0;
-    _selFacility = 0;
+	_facilities[_selFacility->getX()][_selFacility->getY()] = 0;
+	_selFacility = 0;
 }
 
 
@@ -174,7 +173,7 @@ void BaseView::setSelectable(int size)
 		r.h = _selector->getHeight();
 		r.x = 0;
 		r.y = 0;
-		_selector->drawRect(&r, Palette::blockOffset(1));
+		_selector->drawRect(&r, _selectorColor);
 		r.w -= 2;
 		r.h -= 2;
 		r.x++;
@@ -291,7 +290,7 @@ void BaseView::reCalcQueuedBuildings()
  */
 void BaseView::updateNeighborFacilityBuildTime(BaseFacility* facility, BaseFacility* neighbor)
 {
-	if (0 != facility && 0 != neighbor
+	if (facility != 0 && neighbor != 0
 	&& neighbor->getBuildTime() > neighbor->getRules()->getBuildTime()
 	&& facility->getBuildTime() + neighbor->getRules()->getBuildTime() < neighbor->getBuildTime())
 		neighbor->setBuildTime(facility->getBuildTime() + neighbor->getRules()->getBuildTime());
@@ -321,7 +320,7 @@ void BaseView::blink()
 			r.h = _selector->getHeight();
 			r.x = 0;
 			r.y = 0;
-			_selector->drawRect(&r, Palette::blockOffset(1));
+			_selector->drawRect(&r, _selectorColor);
 			r.w -= 2;
 			r.h -= 2;
 			r.x++;
@@ -371,10 +370,11 @@ void BaseView::draw()
 			{
 				Surface *frame;
 
+				int outline = std::max((*i)->getRules()->getSize() * (*i)->getRules()->getSize(), 3);
 				if ((*i)->getBuildTime() == 0)
 					frame = _texture->getFrame((*i)->getRules()->getSpriteShape() + num);
 				else
-					frame = _texture->getFrame((*i)->getRules()->getSpriteShape() + num + 2 + (*i)->getRules()->getSize());
+					frame = _texture->getFrame((*i)->getRules()->getSpriteShape() + num + outline);
 
 				frame->setX(x * GRID_SIZE);
 				frame->setY(y * GRID_SIZE);
@@ -481,7 +481,7 @@ void BaseView::draw()
 			std::wostringstream ss;
 			ss << (*i)->getBuildTime();
 			text->setAlign(ALIGN_CENTER);
-			text->setColor(Palette::blockOffset(13)+5);
+			text->setColor(_cellColor);
 			text->setText(ss.str());
 			text->blit(this);
 			delete text;
@@ -556,4 +556,12 @@ void BaseView::mouseOut(Action *action, State *state)
 	InteractiveSurface::mouseOut(action, state);
 }
 
+void BaseView::setColor(Uint8 color)
+{
+	_cellColor = color;
+}
+void BaseView::setSecondaryColor(Uint8 color)
+{
+	_selectorColor = color;
+}
 }

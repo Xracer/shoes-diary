@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,20 +17,20 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Ufopaedia.h"
-#include "../Ruleset/ArticleDefinition.h"
+#include "../Mod/ArticleDefinition.h"
 #include "ArticleStateText.h"
 #include "../Engine/Game.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Palette.h"
 #include "../Engine/Surface.h"
-#include "../Resource/ResourcePack.h"
+#include "../Mod/Mod.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextButton.h"
 
 namespace OpenXcom
 {
 
-	ArticleStateText::ArticleStateText(Game *game, ArticleDefinitionText *defs) : ArticleState(game, defs->id)
+	ArticleStateText::ArticleStateText(ArticleDefinitionText *defs) : ArticleState(defs->id)
 	{
 		// add screen elements
 		_txtTitle = new Text(296, 17, 5, 23);
@@ -48,18 +48,18 @@ namespace OpenXcom
 		centerAllSurfaces();
 
 		// Set up objects
-		_game->getResourcePack()->getSurface("BACK10.SCR")->blit(_bg);
+		_game->getMod()->getSurface("BACK10.SCR")->blit(_bg);
 		_btnOk->setColor(Palette::blockOffset(5));
 		_btnPrev->setColor(Palette::blockOffset(5));
 		_btnNext->setColor(Palette::blockOffset(5));
 
 		_txtTitle->setColor(Palette::blockOffset(15)+4);
 		_txtTitle->setBig();
-		_txtTitle->setText(Ufopaedia::buildText(_game, defs->title));
+		_txtTitle->setText(tr(defs->title));
 
 		_txtInfo->setColor(Palette::blockOffset(15)-1);
 		_txtInfo->setWordWrap(true);
-		_txtInfo->setText(Ufopaedia::buildText(_game, defs->text));
+		_txtInfo->setText(tr(defs->text));
 	}
 
 	ArticleStateText::~ArticleStateText()

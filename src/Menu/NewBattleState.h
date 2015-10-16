@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -45,16 +45,15 @@ private:
 	Window *_window;
 	Frame *_frameLeft, *_frameRight;
 	Text *_txtTitle, *_txtMapOptions, *_txtAlienOptions;
-	Text *_txtMission, *_txtCraft, *_txtDarkness, *_txtTerrain, *_txtDifficulty, *_txtAlienRace, *_txtAlienTech;
+	Text *_txtMission, *_txtCraft, *_txtDarkness, *_txtTerrain, *_txtDifficulty, *_txtAlienRace, *_txtAlienTech, *_txtDepth;
 	ComboBox *_cbxMission, *_cbxCraft, *_cbxTerrain, *_cbxDifficulty, *_cbxAlienRace;
-	Slider *_slrDarkness, *_slrAlienTech;
+	Slider *_slrDarkness, *_slrAlienTech, *_slrDepth;
 	TextButton *_btnOk, *_btnCancel, *_btnEquip, *_btnRandom;
 	std::vector<std::string> _missionTypes, _terrainTypes, _alienRaces, _crafts;
-	std::vector<int> _textures;
 	Craft *_craft;
 public:
 	/// Creates the New Battle state.
-	NewBattleState(Game *game);
+	NewBattleState();
 	/// Cleans up the New Battle state.
 	~NewBattleState();
 	/// Resets state.
@@ -77,6 +76,8 @@ public:
 	void cbxMissionChange(Action *action);
 	/// Handler for changing the Craft combobox.
 	void cbxCraftChange(Action *action);
+	/// Updates the depth slider accordingly when terrain selection changes.
+	void cbxTerrainChange(Action *action);
 };
 
 }

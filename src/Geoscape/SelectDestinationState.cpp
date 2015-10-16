@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -21,9 +21,8 @@
 #include "../Engine/Game.h"
 #include "../Engine/Screen.h"
 #include "../Engine/Action.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Surface.h"
 #include "../Interface/Window.h"
 #include "Globe.h"
@@ -33,7 +32,7 @@
 #include "MultipleTargetsState.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Craft.h"
-#include "../Ruleset/RuleCraft.h"
+#include "../Mod/RuleCraft.h"
 #include "ConfirmCydoniaState.h"
 #include "../Engine/Options.h"
 
@@ -46,7 +45,7 @@ namespace OpenXcom
  * @param craft Pointer to the craft to target.
  * @param globe Pointer to the Geoscape globe.
  */
-SelectDestinationState::SelectDestinationState(Game *game, Craft *craft, Globe *globe) : State(game), _craft(craft), _globe(globe)
+SelectDestinationState::SelectDestinationState(Craft *craft, Globe *globe) : _craft(craft), _globe(globe)
 {
 	int dx = _game->getScreen()->getDX();
 	int dy = _game->getScreen()->getDY();
@@ -68,7 +67,7 @@ SelectDestinationState::SelectDestinationState(Game *game, Craft *craft, Globe *
 	_txtTitle = new Text(100, 16, 10 + dx, 6);
 
 	// Set palette
-	setPalette("PAL_GEOSCAPE", 0);
+	setInterface("geoscape");
 
 	add(_btnRotateLeft);
 	add(_btnRotateRight);
@@ -77,10 +76,10 @@ SelectDestinationState::SelectDestinationState(Game *game, Craft *craft, Globe *
 	add(_btnZoomIn);
 	add(_btnZoomOut);
 
-	add(_window);
-	add(_btnCancel);
-	add(_btnCydonia);
-	add(_txtTitle);
+	add(_window, "genericWindow", "geoscape");
+	add(_btnCancel, "genericButton1", "geoscape");
+	add(_btnCydonia, "genericButton1", "geoscape");
+	add(_txtTitle, "genericText", "geoscape");
 
 	// Set up objects
 	_globe->onMouseClick((ActionHandler)&SelectDestinationState::globeClick);
@@ -119,26 +118,22 @@ SelectDestinationState::SelectDestinationState(Game *game, Craft *craft, Globe *
 	_btnRotateUp->setListButton();
 	_btnRotateDown->setListButton();
 
-	_window->setColor(Palette::blockOffset(15)-1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK01.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK01.SCR"));
 
-	_btnCancel->setColor(Palette::blockOffset(8)+5);
 	_btnCancel->setText(tr("STR_CANCEL_UC"));
 	_btnCancel->onMouseClick((ActionHandler)&SelectDestinationState::btnCancelClick);
 	_btnCancel->onKeyboardPress((ActionHandler)&SelectDestinationState::btnCancelClick, Options::keyCancel);
 
-	_txtTitle->setColor(Palette::blockOffset(15)-1);
 	_txtTitle->setText(tr("STR_SELECT_DESTINATION"));
 	_txtTitle->setVerticalAlign(ALIGN_MIDDLE);
 	_txtTitle->setWordWrap(true);
 
-	if (!_craft->getRules()->getSpacecraft() || !_game->getSavedGame()->isResearched("STR_CYDONIA_OR_BUST"))
+	if (!_craft->getRules()->getSpacecraft() || !_game->getSavedGame()->isResearched(_game->getMod()->getFinalResearch()))
 	{
 		_btnCydonia->setVisible(false);
 	}
 	else
 	{
-		_btnCydonia->setColor(Palette::blockOffset(8)+5);
 		_btnCydonia->setText(tr("STR_CYDONIA"));
 		_btnCydonia->onMouseClick((ActionHandler)&SelectDestinationState::btnCydoniaClick);
 	}
@@ -208,7 +203,7 @@ void SelectDestinationState::globeClick(Action *action)
 			w->setLatitude(lat);
 			v.push_back(w);
 		}
-		_game->pushState(new MultipleTargetsState(_game, v, _craft, 0));
+		_game->pushState(new MultipleTargetsState(v, _craft, 0));
 	}
 }
 
@@ -333,7 +328,7 @@ void SelectDestinationState::btnCydoniaClick(Action *)
 {
 	if (_craft->getNumSoldiers() > 0 || _craft->getNumVehicles() > 0)
 	{
-		_game->pushState(new ConfirmCydoniaState(_game, _craft));
+		_game->pushState(new ConfirmCydoniaState(_craft));
 	}
 }
 

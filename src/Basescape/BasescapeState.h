@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -48,7 +48,7 @@ private:
 	Globe *_globe;
 public:
 	/// Creates the Basescape state.
-	BasescapeState(Game *game, Base *base, Globe *globe);
+	BasescapeState(Base *base, Globe *globe);
 	/// Cleans up the Basescape state.
 	~BasescapeState();
 	/// Updates the base stats.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -47,7 +47,7 @@ private:
 	TextButton *_btnCancel, *_btnCydonia;
 public:
 	/// Creates the Select Destination state.
-	SelectDestinationState(Game *game, Craft *craft, Globe *globe);
+	SelectDestinationState(Craft *craft, Globe *globe);
 	/// Cleans up the Select Destination state.
 	~SelectDestinationState();
 	/// Resets globe.

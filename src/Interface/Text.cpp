@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,7 +17,6 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "Text.h"
-#include <cctype>
 #include <cmath>
 #include <sstream>
 #include "../Engine/Font.h"
@@ -36,7 +35,7 @@ namespace OpenXcom
  * @param x X position in pixels.
  * @param y Y position in pixels.
  */
-Text::Text(int width, int height, int x, int y) : Surface(width, height, x, y), _big(0), _small(0), _font(0), _lang(0), _text(L""), _wrap(false), _invert(false), _contrast(false), _indent(false), _align(ALIGN_LEFT), _valign(ALIGN_TOP), _color(0), _color2(0)
+Text::Text(int width, int height, int x, int y) : Surface(width, height, x, y), _big(0), _small(0), _font(0), _lang(0), _wrap(false), _invert(false), _contrast(false), _indent(false), _align(ALIGN_LEFT), _valign(ALIGN_TOP), _color(0), _color2(0)
 {
 }
 
@@ -51,9 +50,10 @@ Text::~Text()
 /**
  * Takes an integer value and formats it as number with separators (spacing the thousands).
  * @param value The value.
+ * @param currency Currency symbol.
  * @return The formatted string.
  */
-std::wstring Text::formatNumber(int value, std::wstring currency)
+std::wstring Text::formatNumber(int64_t value, const std::wstring &currency)
 {
 	// In the future, the whole setlocale thing should be removed from here.
 	// It is inconsistent with the in-game language selection: locale-specific
@@ -91,7 +91,7 @@ std::wstring Text::formatNumber(int value, std::wstring currency)
  * @param funds The funding value.
  * @return The formatted string.
  */
-std::wstring Text::formatFunding(int funds)
+std::wstring Text::formatFunding(int64_t funds)
 {
 	return formatNumber(funds, L"$");
 }
@@ -292,35 +292,56 @@ Uint8 Text::getSecondaryColor() const
 	return _color2;
 }
 
-/**
- * Returns the rendered text's height. Useful to check if wordwrap applies.
- * @return Height in pixels.
- */
-int Text::getTextHeight() const
+int Text::getNumLines() const
 {
-	int height = 0;
-	for (std::vector<int>::const_iterator i = _lineHeight.begin(); i != _lineHeight.end(); ++i)
-	{
-		height += *i;
-	}
-	return height;
+	return _wrap ? _lineHeight.size() : 1;
 }
 
 /**
-  * Returns the rendered text's width.
-  * @return Width in pixels.
-  */
-int Text::getTextWidth() const
+ * Returns the rendered text's height. Useful to check if wordwrap applies.
+ * @param line Line to get the height, or -1 to get whole text height.
+ * @return Height in pixels.
+ */
+int Text::getTextHeight(int line) const
 {
-	int width = 0;
-	for (std::vector<int>::const_iterator i = _lineWidth.begin(); i != _lineWidth.end(); ++i)
+	if (line == -1)
 	{
-		if (*i > width)
+		int height = 0;
+		for (std::vector<int>::const_iterator i = _lineHeight.begin(); i != _lineHeight.end(); ++i)
 		{
-			width = *i;
+			height += *i;
 		}
+		return height;
 	}
-	return width;
+	else
+	{
+		return _lineHeight[line];
+	}
+}
+
+/**
+ * Returns the rendered text's width.
+ * @param line Line to get the width, or -1 to get whole text width.
+ * @return Width in pixels.
+ */
+int Text::getTextWidth(int line) const
+{
+	if (line == -1)
+	{
+		int width = 0;
+		for (std::vector<int>::const_iterator i = _lineWidth.begin(); i != _lineWidth.end(); ++i)
+		{
+			if (*i > width)
+			{
+				width = *i;
+			}
+		}
+		return width;
+	}
+	else
+	{
+		return _lineWidth[line];
+	}
 }
 
 /**
@@ -391,7 +412,7 @@ void Text::processText()
 			word += charWidth;
 
 			// Wordwrap if the last word doesn't fit the line
-			if (_wrap && width > getWidth() && !start)
+			if (_wrap && width >= getWidth() && !start)
 			{
 				if (_lang->getTextWrapping() == WRAP_WORDS || Font::isSpace((*str)[c]))
 				{
@@ -454,7 +475,7 @@ int Text::getLineX(int line) const
 		case ALIGN_LEFT:
 			break;
 		case ALIGN_CENTER:
-			x = (int)ceil((getWidth() - _lineWidth[line]) / 2.0);
+			x = (int)ceil((getWidth() + _font->getSpacing() - _lineWidth[line]) / 2.0);
 			break;
 		case ALIGN_RIGHT:
 			x = getWidth() - 1 - _lineWidth[line];
@@ -468,7 +489,7 @@ int Text::getLineX(int line) const
 			x = getWidth() - 1;
 			break;
 		case ALIGN_CENTER:
-			x = getWidth() - (int)ceil((getWidth() - _lineWidth[line]) / 2.0);
+			x = getWidth() - (int)ceil((getWidth() + _font->getSpacing() - _lineWidth[line]) / 2.0);
 			break;
 		case ALIGN_RIGHT:
 			x = _lineWidth[line];
@@ -486,7 +507,7 @@ struct PaletteShift
 {
 	static inline void func(Uint8& dest, Uint8& src, int off, int mul, int mid)
 	{
-		if(src)
+		if (src)
 		{
 			int inverseOffset = mid ? 2 * (mid - src) : 0;
 			dest = off + src * mul + inverseOffset;

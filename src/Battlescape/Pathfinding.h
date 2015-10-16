@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -22,7 +22,7 @@
 #include <vector>
 #include "Position.h"
 #include "PathfindingNode.h"
-#include "../Ruleset/MapData.h"
+#include "../Mod/MapData.h"
 
 namespace OpenXcom
 {
@@ -66,8 +66,11 @@ public:
 	bool isBlocked(Tile *startTile, Tile *endTile, const int direction, BattleUnit *missileTarget);
 	static const int DIR_UP = 8;
 	static const int DIR_DOWN = 9;
-	enum bigWallTypes{ BLOCK = 1, BIGWALLNESW, BIGWALLNWSE, BIGWALLWEST, BIGWALLNORTH, BIGWALLEAST, BIGWALLSOUTH, BIGWALLEASTANDSOUTH};
+	enum bigWallTypes{ BLOCK = 1, BIGWALLNESW, BIGWALLNWSE, BIGWALLWEST, BIGWALLNORTH, BIGWALLEAST, BIGWALLSOUTH, BIGWALLEASTANDSOUTH, BIGWALLWESTANDNORTH};
 	static const int O_BIGWALL = -1;
+	static int red;
+	static int green;
+	static int yellow;
 	/// Creates a new Pathfinding class.
 	Pathfinding(SavedBattleGame *save);
 	/// Cleans up the Pathfinding.
@@ -83,7 +86,7 @@ public:
 	/// Dequeues a direction.
 	int dequeuePath();
 	/// Gets the TU cost to move from 1 tile to the other.
-	int getTUCost(const Position &startPosition, const int direction, Position *endPosition, BattleUnit *unit, BattleUnit *target, bool missile);
+	int getTUCost(const Position &startPosition, int direction, Position *endPosition, BattleUnit *unit, BattleUnit *target, bool missile);
 	/// Aborts the current path.
 	void abortPath();
 	/// Gets the strafe move setting.

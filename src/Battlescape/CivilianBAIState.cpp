@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -21,14 +21,12 @@
 #include "CivilianBAIState.h"
 #include "TileEngine.h"
 #include "Pathfinding.h"
-#include "BattlescapeState.h"
 #include "../Savegame/BattleUnit.h"
 #include "../Savegame/SavedBattleGame.h"
 #include "../Savegame/Node.h"
 #include "../Engine/RNG.h"
 #include "../Engine/Logger.h"
 #include "../Engine/Options.h"
-#include "../Ruleset/Armor.h"
 #include "../Savegame/Tile.h"
 
 namespace OpenXcom
@@ -36,8 +34,11 @@ namespace OpenXcom
 
 /**
  * Sets up a CivilianBAIState.
+ * @param save Pointer to the battle game.
+ * @param unit Pointer to the unit.
+ * @param node Pointer to the node the unit originates from.
  */
-CivilianBAIState::CivilianBAIState(SavedBattleGame *game, BattleUnit *unit, Node *node) : BattleAIState(game, unit), _aggroTarget(0), _escapeTUs(0), _AIMode(0), _visibleEnemies(0), _spottingEnemies(0), _fromNode(node), _toNode(0)
+CivilianBAIState::CivilianBAIState(SavedBattleGame *save, BattleUnit *unit, Node *node) : BattleAIState(save, unit), _aggroTarget(0), _escapeTUs(0), _AIMode(0), _visibleEnemies(0), _spottingEnemies(0), _fromNode(node), _toNode(0)
 {
 	_traceAI = Options::traceAI;
 	_escapeAction = new BattleAction();
@@ -75,7 +76,7 @@ void CivilianBAIState::load(const YAML::Node &node)
 
 /**
  * Saves the AI state to a YAML file.
- * @param out YAML emitter.
+ * @return YAML node.
  */
 YAML::Node CivilianBAIState::save() const
 {
@@ -109,8 +110,8 @@ void CivilianBAIState::exit()
 }
 
 /**
- * Runs any code the state needs to keep updating every
- * AI cycle.
+ * Runs any code the state needs to keep updating every AI cycle.
+ * @param action (possible) AI action to execute after thinking is done.
  */
 void CivilianBAIState::think(BattleAction *action)
 {
@@ -160,7 +161,7 @@ void CivilianBAIState::think(BattleAction *action)
 		}
 	}
 	if (_spottingEnemies > 2
-		|| _unit->getHealth() < 2 * _unit->getStats()->health / 3)
+		|| _unit->getHealth() < 2 * _unit->getBaseStats()->health / 3)
 	{
 		evaluate = true;
 	}
@@ -192,7 +193,6 @@ void CivilianBAIState::think(BattleAction *action)
 		action->number = 3;
 		_unit->dontReselect();
 		action->desperate = true;
-		_save->getBattleGame()->setTUReserved(BA_NONE, false);
 		break;
 	case AI_PATROL:
 		action->type = _patrolAction->type;
@@ -294,7 +294,7 @@ void CivilianBAIState::setupEscape()
 	const int FIRE_PENALTY = 40;
 	const int BASE_SYSTEMATIC_SUCCESS = 100;
 	const int BASE_DESPERATE_SUCCESS = 110;
-	const int FAST_PASS_THRESHOLD = 100; // a score that's good engouh to quit the while loop early; it's subjective, hand-tuned and may need tweaking
+	const int FAST_PASS_THRESHOLD = 100; // a score that's good enough to quit the while loop early; it's subjective, hand-tuned and may need tweaking
 
 	int tu = _unit->getTimeUnits() / 2;
 
@@ -548,15 +548,15 @@ void CivilianBAIState::evaluateAIMode()
 		break;
 	}
 
-	if (_unit->getHealth() < _unit->getStats()->health / 3)
+	if (_unit->getHealth() < _unit->getBaseStats()->health / 3)
 	{
 		escapeOdds *= 1.7;
 	}
-	else if (_unit->getHealth() < 2 * (_unit->getStats()->health / 3))
+	else if (_unit->getHealth() < 2 * (_unit->getBaseStats()->health / 3))
 	{
 		escapeOdds *= 1.4;
 	}
-	else if (_unit->getHealth() < _unit->getStats()->health)
+	else if (_unit->getHealth() < _unit->getBaseStats()->health)
 	{
 		escapeOdds *= 1.1;
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -19,15 +19,15 @@
 #include "Soldier.h"
 #include "../Engine/RNG.h"
 #include "../Engine/Language.h"
-#include "../Savegame/Craft.h"
-#include "../Savegame/EquipmentLayoutItem.h"
-#include "../Savegame/SoldierDeath.h"
-#include "../Ruleset/SoldierNamePool.h"
-#include "../Ruleset/RuleSoldier.h"
-#include "../Ruleset/Armor.h"
-#include "../Ruleset/Ruleset.h"
-#include "../Ruleset/StatString.h"
 #include "../Engine/Options.h"
+#include "Craft.h"
+#include "EquipmentLayoutItem.h"
+#include "SoldierDeath.h"
+#include "../Mod/SoldierNamePool.h"
+#include "../Mod/RuleSoldier.h"
+#include "../Mod/Armor.h"
+#include "../Mod/Mod.h"
+#include "../Mod/StatString.h"
 #include "SavedGame.h"
 
 namespace OpenXcom
@@ -40,7 +40,7 @@ namespace OpenXcom
  * @param names List of name pools for soldier generation.
  * @param id Pointer to unique soldier id for soldier generation.
  */
-Soldier::Soldier(RuleSoldier *rules, Armor *armor, const std::vector<SoldierNamePool*> *names, int id) : _name(L""), _id(id), _improvement(0), _rules(rules), _initialStats(), _currentStats(), _rank(RANK_ROOKIE), _craft(0), _gender(GENDER_MALE), _look(LOOK_BLONDE), _missions(0), _kills(0), _recovery(0), _recentlyPromoted(false), _psiTraining(false), _armor(armor), _equipmentLayout(), _death(0)
+Soldier::Soldier(RuleSoldier *rules, Armor *armor, const std::vector<SoldierNamePool*> *names, int id) : _id(id), _improvement(0), _psiStrImprovement(0), _rules(rules), _rank(RANK_ROOKIE), _craft(0), _gender(GENDER_MALE), _look(LOOK_BLONDE), _missions(0), _kills(0), _recovery(0), _recentlyPromoted(false), _psiTraining(false), _armor(armor), _death(0)
 {
 	if (names != 0)
 	{
@@ -63,14 +63,14 @@ Soldier::Soldier(RuleSoldier *rules, Armor *armor, const std::vector<SoldierName
 
 		if (!names->empty())
 		{
-			int nationality = RNG::generate(0, names->size()-1);
-			_name = names->at(nationality)->genName(&_gender);
+			size_t nationality = RNG::generate(0, names->size()-1);
+			_name = names->at(nationality)->genName(&_gender, rules->getFemaleFrequency());
 			_look = (SoldierLook)names->at(nationality)->genLook(4); // Once we add the ability to mod in extra looks, this will need to reference the ruleset for the maximum amount of looks.
 		}
 		else
 		{
 			_name = L"";
-			_gender = (SoldierGender)RNG::generate(0, 1);
+			_gender = (RNG::percent(rules->getFemaleFrequency()) ? GENDER_FEMALE : GENDER_MALE);
 			_look = (SoldierLook)RNG::generate(0,3);
 		}
 	}
@@ -91,10 +91,10 @@ Soldier::~Soldier()
 /**
  * Loads the soldier from a YAML file.
  * @param node YAML node.
- * @param rule Game ruleset.
+ * @param mod Game mod.
  * @param save Pointer to savegame.
  */
-void Soldier::load(const YAML::Node& node, const Ruleset *rule, SavedGame *save)
+void Soldier::load(const YAML::Node& node, const Mod *mod, SavedGame *save)
 {
 	_id = node["id"].as<int>(_id);
 	_name = Language::utf8ToWstr(node["name"].as<std::string>());
@@ -106,25 +106,36 @@ void Soldier::load(const YAML::Node& node, const Ruleset *rule, SavedGame *save)
 	_missions = node["missions"].as<int>(_missions);
 	_kills = node["kills"].as<int>(_kills);
 	_recovery = node["recovery"].as<int>(_recovery);
-	Armor *armor = rule->getArmor(node["armor"].as<std::string>());
+	Armor *armor = mod->getArmor(node["armor"].as<std::string>());
 	if (armor == 0)
 	{
-		armor = rule->getArmor("STR_NONE_UC");
+		armor = mod->getArmor(mod->getSoldier(mod->getSoldiersList().front())->getArmor());
 	}
 	_armor = armor;
 	_psiTraining = node["psiTraining"].as<bool>(_psiTraining);
 	_improvement = node["improvement"].as<int>(_improvement);
+	_psiStrImprovement = node["psiStrImprovement"].as<int>(_psiStrImprovement);
 	if (const YAML::Node &layout = node["equipmentLayout"])
 	{
 		for (YAML::const_iterator i = layout.begin(); i != layout.end(); ++i)
-			_equipmentLayout.push_back(new EquipmentLayoutItem(*i));
+		{
+			EquipmentLayoutItem *layoutItem = new EquipmentLayoutItem(*i);
+			if (mod->getInventory(layoutItem->getSlot()))
+			{
+				_equipmentLayout.push_back(layoutItem);
+			}
+			else
+			{
+				delete layoutItem;
+			}
+		}
 	}
 	if (node["death"])
 	{
 		_death = new SoldierDeath();
 		_death->load(node["death"]);
 	}
-	calcStatString(rule->getStatStrings(), (Options::psiStrengthEval && save->isResearched(rule->getPsiRequirements())));
+	calcStatString(mod->getStatStrings(), (Options::psiStrengthEval && save->isResearched(mod->getPsiRequirements())));
 }
 
 /**
@@ -134,6 +145,7 @@ void Soldier::load(const YAML::Node& node, const Ruleset *rule, SavedGame *save)
 YAML::Node Soldier::save() const
 {
 	YAML::Node node;
+	node["type"] = _rules->getType();
 	node["id"] = _id;
 	node["name"] = Language::wstrToUtf8(_name);
 	node["initialStats"] = _initialStats;
@@ -153,6 +165,7 @@ YAML::Node Soldier::save() const
 	if (_psiTraining)
 		node["psiTraining"] = _psiTraining;
 	node["improvement"] = _improvement;
+	node["psiStrImprovement"] = _psiStrImprovement;
 	if (!_equipmentLayout.empty())
 	{
 		for (std::vector<EquipmentLayoutItem*>::const_iterator i = _equipmentLayout.begin(); i != _equipmentLayout.end(); ++i)
@@ -167,19 +180,25 @@ YAML::Node Soldier::save() const
 
 /**
  * Returns the soldier's full name (and, optionally, statString).
+ * @param statstring Add stat string?
+ * @param maxLength Restrict length to a certain value.
  * @return Soldier name.
  */
 std::wstring Soldier::getName(bool statstring, unsigned int maxLength) const
 {
-	if (statstring && _statString != L"" && _missions >= 1) {
-		if (_name.length() + _statString.length() > maxLength) {
+	if (statstring && !_statString.empty())
+	{
+		if (_name.length() + _statString.length() > maxLength)
+		{
 			return _name.substr(0, maxLength - _statString.length()) + L"/" + _statString;
 		}
-		else {
+		else
+		{
 			return _name + L"/" + _statString;
 		}
 	}
-	else {
+	else
+	{
 		return _name;
 	}
 }
@@ -454,31 +473,43 @@ std::vector<EquipmentLayoutItem*> *Soldier::getEquipmentLayout()
 }
 
 /**
- * Trains a soldier's Psychic abilities
+ * Trains a soldier's Psychic abilities after 1 month.
  */
 void Soldier::trainPsi()
 {
-	_improvement = 0;
+	int psiSkillCap = _rules->getStatCaps().psiSkill;
+	int psiStrengthCap = _rules->getStatCaps().psiStrength;
+
+	_improvement = _psiStrImprovement = 0;
 	// -10 days - tolerance threshold for switch from anytimePsiTraining option.
 	// If soldier has psiskill -10..-1, he was trained 20..59 days. 81.7% probability, he was trained more that 30 days.
 	if (_currentStats.psiSkill < -10 + _rules->getMinStats().psiSkill)
 		_currentStats.psiSkill = _rules->getMinStats().psiSkill;
-	else if(_currentStats.psiSkill <= _rules->getMaxStats().psiSkill)
+	else if (_currentStats.psiSkill <= _rules->getMaxStats().psiSkill)
 	{
 		int max = _rules->getMaxStats().psiSkill + _rules->getMaxStats().psiSkill / 2;
 		_improvement = RNG::generate(_rules->getMaxStats().psiSkill, max);
 	}
-	else if(_currentStats.psiSkill <= (_rules->getStatCaps().psiSkill / 2))
-		_improvement = RNG::generate(5, 12);
-	else if(_currentStats.psiSkill < _rules->getStatCaps().psiSkill)
-		_improvement = RNG::generate(1, 3);
+	else
+	{
+		if (_currentStats.psiSkill <= (psiSkillCap / 2)) _improvement = RNG::generate(5, 12);
+		else if (_currentStats.psiSkill < psiSkillCap) _improvement = RNG::generate(1, 3);
+
+		if (Options::allowPsiStrengthImprovement)
+		{
+			if (_currentStats.psiStrength <= (psiStrengthCap / 2)) _psiStrImprovement = RNG::generate(5, 12);
+			else if (_currentStats.psiStrength < psiStrengthCap) _psiStrImprovement = RNG::generate(1, 3);
+		}
+	}
 	_currentStats.psiSkill += _improvement;
-	if(_currentStats.psiSkill > 100)
-		_currentStats.psiSkill = 100;
+	_currentStats.psiStrength += _psiStrImprovement;
+	if (_currentStats.psiSkill > psiSkillCap) _currentStats.psiSkill = psiSkillCap;
+	if (_currentStats.psiStrength > psiStrengthCap) _currentStats.psiStrength = psiStrengthCap;
 }
 
 /**
- * Trains a soldier's Psychic abilities (anytimePsiTraining option)
+ * Trains a soldier's Psychic abilities after 1 day.
+ * (anytimePsiTraining option)
  */
 void Soldier::trainPsi1Day()
 {
@@ -495,6 +526,15 @@ void Soldier::trainPsi1Day()
 			++_improvement;
 			++_currentStats.psiSkill;
 		}
+
+		if (Options::allowPsiStrengthImprovement)
+		{
+			if (8 * 100 >= _currentStats.psiStrength * RNG::generate(1, 100) && _currentStats.psiStrength < _rules->getStatCaps().psiStrength)
+			{
+				++_psiStrImprovement;
+				++_currentStats.psiStrength;
+			}
+		}
 	}
 	else if (_currentStats.psiSkill < _rules->getMinStats().psiSkill)
 	{
@@ -510,6 +550,7 @@ void Soldier::trainPsi1Day()
 
 /**
  * returns whether or not the unit is in psi training
+ * @return true/false
  */
 bool Soldier::isInPsiTraining()
 {
@@ -517,7 +558,7 @@ bool Soldier::isInPsiTraining()
 }
 
 /**
- * changes whether or not the unit is in psi training
+ * toggles whether or not the unit is in psi training
  */
 void Soldier::setPsiTraining()
 {
@@ -525,7 +566,8 @@ void Soldier::setPsiTraining()
 }
 
 /**
- * returns this soldier's psionic improvement score for this month.
+ * returns this soldier's psionic skill improvement score for this month.
+ * @return score
  */
 int Soldier::getImprovement()
 {
@@ -533,8 +575,16 @@ int Soldier::getImprovement()
 }
 
 /**
+ * returns this soldier's psionic strength improvement score for this month.
+ */
+int Soldier::getPsiStrImprovement()
+{
+	return _psiStrImprovement;
+}
+
+/**
  * Returns the soldier's death details.
- * @return Pointer to death data. NULL if no death has occured.
+ * @return Pointer to death data. NULL if no death has occurred.
  */
 SoldierDeath *Soldier::getDeath() const
 {
@@ -563,7 +613,9 @@ void Soldier::die(SoldierDeath *death)
 }
 
 /**
- * Calculates the soldier's statString
+ * Calculates the soldier's statString.
+ * @param statStrings List of statString rules.
+ * @param psiStrengthEval Are psi stats available?
  */
 void Soldier::calcStatString(const std::vector<StatString *> &statStrings, bool psiStrengthEval)
 {

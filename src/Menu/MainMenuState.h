@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -28,6 +28,13 @@ class TextButton;
 class Window;
 class Text;
 
+// Utility class for enqueuing a state in the stack that goes to the main menu
+class GoToMainMenuState : public State
+{
+public:
+	void init();
+};
+
 /**
  * Main Menu window displayed when first
  * starting the game.
@@ -40,7 +47,7 @@ private:
 	Text *_txtTitle;
 public:
 	/// Creates the Main Menu state.
-	MainMenuState(Game *game);
+	MainMenuState();
 	/// Cleans up the Main Menu state.
 	~MainMenuState();
 	/// Handler for clicking the New Game button.

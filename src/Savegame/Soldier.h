@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -21,8 +21,8 @@
 
 #include <string>
 #include <yaml-cpp/yaml.h>
-#include "../Ruleset/Unit.h"
-#include "../Ruleset/StatString.h"
+#include "../Mod/Unit.h"
+#include "../Mod/StatString.h"
 	 
 namespace OpenXcom
 {
@@ -33,7 +33,7 @@ enum SoldierLook { LOOK_BLONDE, LOOK_BROWNHAIR, LOOK_ORIENTAL, LOOK_AFRICAN };
 
 class Craft;
 class SoldierNamePool;
-class Ruleset;
+class Mod;
 class RuleSoldier;
 class Armor;
 class Language;
@@ -50,7 +50,7 @@ class Soldier
 {
 private:
 	std::wstring _name;
-	int _id, _improvement;
+	int _id, _improvement, _psiStrImprovement;
 	RuleSoldier *_rules;
 	UnitStats _initialStats, _currentStats;
 	SoldierRank _rank;
@@ -69,11 +69,11 @@ public:
 	/// Cleans up the soldier.
 	~Soldier();
 	/// Loads the soldier from YAML.
-	void load(const YAML::Node& node, const Ruleset *rule, SavedGame *save);
+	void load(const YAML::Node& node, const Mod *mod, SavedGame *save);
 	/// Saves the soldier to YAML.
 	YAML::Node save() const;
 	/// Gets the soldier's name.
-	std::wstring getName(bool statstring = false, unsigned int maxLength = 24) const;
+	std::wstring getName(bool statstring = false, unsigned int maxLength = 20) const;
 	/// Sets the soldier's name.
 	void setName(const std::wstring &name);
 	/// Gets the soldier's craft.
@@ -132,8 +132,10 @@ public:
 	bool isInPsiTraining();
 	/// set the psi training status
 	void setPsiTraining();
-	/// returns this soldier's psionic improvement score for this month.
+	/// returns this soldier's psionic skill improvement score for this month.
 	int getImprovement();
+	/// returns this soldier's psionic strength improvement score for this month.
+	int getPsiStrImprovement();
 	/// Gets the soldier death info.
 	SoldierDeath *getDeath() const;
 	/// Kills the soldier.

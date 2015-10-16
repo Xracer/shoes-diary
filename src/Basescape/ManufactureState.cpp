@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -19,10 +19,8 @@
 #include "ManufactureState.h"
 #include <sstream>
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
+#include "../Mod/Mod.h"
 #include "../Engine/Language.h"
-#include "../Engine/Palette.h"
-#include "../Engine/Screen.h"
 #include "../Engine/Options.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
@@ -30,12 +28,10 @@
 #include "../Interface/TextList.h"
 #include "../Savegame/Base.h"
 #include "../Savegame/SavedGame.h"
-#include "../Ruleset/Ruleset.h"
-#include "../Ruleset/RuleManufacture.h"
+#include "../Mod/RuleManufacture.h"
 #include "../Savegame/Production.h"
 #include "NewManufactureListState.h"
 #include "ManufactureInfoState.h"
-#include <limits>
 
 namespace OpenXcom
 {
@@ -45,7 +41,7 @@ namespace OpenXcom
  * @param game Pointer to the core game.
  * @param base Pointer to the base to get info from.
  */
-ManufactureState::ManufactureState(Game *game, Base *base) : State(game), _base(base)
+ManufactureState::ManufactureState(Base *base) : _base(base)
 {
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
@@ -60,91 +56,65 @@ ManufactureState::ManufactureState(Game *game, Base *base) : State(game), _base(
 	_txtEngineers = new Text(56, 18, 112, 44);
 	_txtProduced = new Text(56, 18, 168, 44);
 	_txtCost = new Text(44, 27, 222, 44);
-	_txtTimeLeft = new Text(60, 18, 260, 44);
-	_lstManufacture = new TextList(307, 90, 8, 80);
+	_txtTimeLeft = new Text(60, 27, 260, 44);
+	_lstManufacture = new TextList(288, 90, 8, 80);
 
 	// Set palette
-	setPalette("PAL_BASESCAPE", 6);
+	setInterface("manufactureMenu");
 
-	add(_window);
-	add(_btnNew);
-	add(_btnOk);
-	add(_txtTitle);
-	add(_txtAvailable);
-	add(_txtAllocated);
-	add(_txtSpace);
-	add(_txtFunds);
-	add(_txtItem);
-	add(_txtEngineers);
-	add(_txtProduced);
-	add(_txtCost);
-	add(_txtTimeLeft);
-	add(_lstManufacture);
+	add(_window, "window", "manufactureMenu");
+	add(_btnNew, "button", "manufactureMenu");
+	add(_btnOk, "button", "manufactureMenu");
+	add(_txtTitle, "text1", "manufactureMenu");
+	add(_txtAvailable, "text1", "manufactureMenu");
+	add(_txtAllocated, "text1", "manufactureMenu");
+	add(_txtSpace, "text1", "manufactureMenu");
+	add(_txtFunds, "text1", "manufactureMenu");
+	add(_txtItem, "text2", "manufactureMenu");
+	add(_txtEngineers, "text2", "manufactureMenu");
+	add(_txtProduced, "text2", "manufactureMenu");
+	add(_txtCost, "text2", "manufactureMenu");
+	add(_txtTimeLeft, "text2", "manufactureMenu");
+	add(_lstManufacture, "list", "manufactureMenu");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(15)+6);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK17.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK17.SCR"));
 
-	_btnNew->setColor(Palette::blockOffset(13)+10);
 	_btnNew->setText(tr("STR_NEW_PRODUCTION"));
 	_btnNew->onMouseClick((ActionHandler)&ManufactureState::btnNewProductionClick);
 
-	_btnOk->setColor(Palette::blockOffset(13)+10);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&ManufactureState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&ManufactureState::btnOkClick, Options::keyCancel);
 
-	_txtTitle->setColor(Palette::blockOffset(15)+6);
 	_txtTitle->setBig();
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setText(tr("STR_CURRENT_PRODUCTION"));
 
-	_txtAvailable->setColor(Palette::blockOffset(15)+6);
-	_txtAvailable->setSecondaryColor(Palette::blockOffset(13));
-
-	_txtAllocated->setColor(Palette::blockOffset(15)+6);
-	_txtAllocated->setSecondaryColor(Palette::blockOffset(13));
-
-	_txtSpace->setColor(Palette::blockOffset(15)+6);
-	_txtSpace->setSecondaryColor(Palette::blockOffset(13));
-
-	_txtFunds->setColor(Palette::blockOffset(15)+6);
-	_txtFunds->setSecondaryColor(Palette::blockOffset(13));
 	_txtFunds->setText(tr("STR_CURRENT_FUNDS").arg(Text::formatFunding(_game->getSavedGame()->getFunds())));
 
-	_txtItem->setColor(Palette::blockOffset(15)+1);
 	_txtItem->setText(tr("STR_ITEM"));
 
-	_txtEngineers->setColor(Palette::blockOffset(15)+1);
 	_txtEngineers->setText(tr("STR_ENGINEERS__ALLOCATED"));
 	_txtEngineers->setWordWrap(true);
-	_txtEngineers->setVerticalAlign(ALIGN_BOTTOM);
 
-	_txtProduced->setColor(Palette::blockOffset(15)+1);
 	_txtProduced->setText(tr("STR_UNITS_PRODUCED"));
 	_txtProduced->setWordWrap(true);
-	_txtProduced->setVerticalAlign(ALIGN_BOTTOM);
-	
-	_txtCost->setColor(Palette::blockOffset(15)+1);
+
 	_txtCost->setText(tr("STR_COST__PER__UNIT"));
 	_txtCost->setWordWrap(true);
-	_txtCost->setVerticalAlign(ALIGN_BOTTOM);
 
-	_txtTimeLeft->setColor(Palette::blockOffset(15)+1);
 	_txtTimeLeft->setText(tr("STR_DAYS_HOURS_LEFT"));
 	_txtTimeLeft->setWordWrap(true);
-	_txtTimeLeft->setVerticalAlign(ALIGN_BOTTOM);
 
-	_lstManufacture->setColor(Palette::blockOffset(13)+10);
-	_lstManufacture->setArrowColor(Palette::blockOffset(15)+9);
-	_lstManufacture->setColumns(5, 122, 17, 52, 56, 32);
+	_lstManufacture->setColumns(5, 115, 15, 52, 56, 48);
 	_lstManufacture->setAlign(ALIGN_RIGHT);
 	_lstManufacture->setAlign(ALIGN_LEFT, 0);
 	_lstManufacture->setSelectable(true);
 	_lstManufacture->setBackground(_window);
-	_lstManufacture->setMargin(1);
+	_lstManufacture->setMargin(2);
 	_lstManufacture->setWordWrap(true);
 	_lstManufacture->onMouseClick((ActionHandler)&ManufactureState::lstManufactureClick);
 	fillProductionList();
@@ -183,7 +153,7 @@ void ManufactureState::btnOkClick(Action *)
  */
 void ManufactureState::btnNewProductionClick(Action *)
 {
-	_game->pushState(new NewManufactureListState(_game, _base));
+	_game->pushState(new NewManufactureListState(_base));
 }
 
 /**
@@ -193,28 +163,35 @@ void ManufactureState::fillProductionList()
 {
 	const std::vector<Production *> productions(_base->getProductions());
 	_lstManufacture->clearList();
-	for(std::vector<Production *>::const_iterator iter = productions.begin(); iter != productions.end(); ++iter)
+	for (std::vector<Production *>::const_iterator iter = productions.begin(); iter != productions.end(); ++iter)
 	{
 		std::wostringstream s1;
 		s1 << (*iter)->getAssignedEngineers();
 		std::wostringstream s2;
+		if ((*iter)->getSellItems()) s2 << "$";
 		s2 << (*iter)->getAmountProduced() << "/";
-		if (Options::allowAutoSellProduction && (*iter)->getAmountTotal() == std::numeric_limits<int>::max())
-			s2 << "$$$";
+		if ((*iter)->getInfiniteAmount()) s2 << Language::utf8ToWstr("∞");
 		else s2 << (*iter)->getAmountTotal();
 		std::wostringstream s3;
 		s3 << Text::formatFunding((*iter)->getRules()->getManufactureCost());
 		std::wostringstream s4;
-		if ((*iter)->getAssignedEngineers() > 0)
+		if ((*iter)->getInfiniteAmount())
 		{
-			int timeLeft;
-			if (Options::allowAutoSellProduction && (*iter)->getAmountTotal() == std::numeric_limits<int>::max())
-				timeLeft = ((*iter)->getAmountProduced()+1) * (*iter)->getRules()->getManufactureTime() - (*iter)->getTimeSpent();
-			else timeLeft = (*iter)->getAmountTotal() * (*iter)->getRules()->getManufactureTime() - (*iter)->getTimeSpent();
-			timeLeft /= (*iter)->getAssignedEngineers();
-			float dayLeft = timeLeft / 24.0f;
-			int hours = (dayLeft - static_cast<int>(dayLeft)) * 24;
-			s4 << static_cast<int>(dayLeft) << "/" << hours;
+			s4 << Language::utf8ToWstr("∞");
+		}
+		else if ((*iter)->getAssignedEngineers() > 0)
+		{
+			int timeLeft = (*iter)->getAmountTotal() * (*iter)->getRules()->getManufactureTime() - (*iter)->getTimeSpent();
+			int numEffectiveEngineers = (*iter)->getAssignedEngineers();
+			if (!Options::canManufactureMoreItemsPerHour)
+			{
+				numEffectiveEngineers = std::min(numEffectiveEngineers, (*iter)->getRules()->getManufactureTime());
+			}
+			// ensure we round up since it takes an entire hour to manufacture any part of that hour's capacity
+			int hoursLeft = (timeLeft + numEffectiveEngineers - 1) / numEffectiveEngineers;
+			int daysLeft = hoursLeft / 24;
+			int hours = hoursLeft % 24;
+			s4 << daysLeft << "/" << hours;
 		}
 		else
 		{
@@ -235,7 +212,7 @@ void ManufactureState::fillProductionList()
 void ManufactureState::lstManufactureClick(Action *)
 {
 	const std::vector<Production*> productions(_base->getProductions());
-	_game->pushState(new ManufactureInfoState(_game, _base, productions[_lstManufacture->getSelectedRow()]));
+	_game->pushState(new ManufactureInfoState(_base, productions[_lstManufacture->getSelectedRow()]));
 }
 
 }

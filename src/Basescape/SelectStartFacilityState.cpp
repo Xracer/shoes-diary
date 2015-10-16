@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,16 +18,11 @@
  */
 #include "SelectStartFacilityState.h"
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
-#include "../Interface/Window.h"
-#include "../Interface/Text.h"
 #include "../Interface/TextList.h"
-#include "../Ruleset/Ruleset.h"
-#include "../Ruleset/RuleBaseFacility.h"
-#include "../Savegame/SavedGame.h"
+#include "../Mod/Mod.h"
+#include "../Mod/RuleBaseFacility.h"
 #include "../Savegame/Base.h"
 #include "../Savegame/BaseFacility.h"
 #include "../Engine/Options.h"
@@ -44,9 +39,9 @@ namespace OpenXcom
  * @param state Pointer to the base state to refresh.
  * @param globe Pointer to the globe to refresh.
  */
-SelectStartFacilityState::SelectStartFacilityState(Game *game, Base *base, State *state, Globe *globe) : BuildFacilitiesState(game, base, state), _globe(globe)
+SelectStartFacilityState::SelectStartFacilityState(Base *base, State *state, Globe *globe) : BuildFacilitiesState(base, state), _globe(globe)
 {
-	_facilities = _game->getRuleset()->getCustomBaseFacilities();
+	_facilities = _game->getMod()->getCustomBaseFacilities();
 
 	_btnOk->setText(tr("STR_RESET"));
 	_btnOk->onMouseClick((ActionHandler)&SelectStartFacilityState::btnOkClick);
@@ -90,7 +85,7 @@ void SelectStartFacilityState::btnOkClick(Action *)
 	_base->getFacilities()->clear();
 	_game->popState();
 	_game->popState();
-	_game->pushState(new PlaceLiftState(_game, _base, _globe, true));
+	_game->pushState(new PlaceLiftState(_base, _globe, true));
 }
 
 /**
@@ -99,7 +94,7 @@ void SelectStartFacilityState::btnOkClick(Action *)
  */
 void SelectStartFacilityState::lstFacilitiesClick(Action *)
 {
-	_game->pushState(new PlaceStartFacilityState(_game, _base, this, _facilities[_lstFacilities->getSelectedRow()]));
+	_game->pushState(new PlaceStartFacilityState(_base, this, _facilities[_lstFacilities->getSelectedRow()]));
 }
 
 /**

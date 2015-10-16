@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -20,7 +20,6 @@
 #define OPENXCOM_GRAPHSSTATE_H
 
 #include "../Engine/State.h"
-#include <string>
 
 namespace OpenXcom
 {
@@ -65,7 +64,7 @@ private:
 	void updateButton(GraphButInfo *from,ToggleTextButton *to);
 public:
 	/// Creates the Graphs state.
-	GraphsState(Game *game);
+	GraphsState();
 	/// Cleans up the Graphs state.
 	~GraphsState();
 	/// Handler for clicking the Geoscape icon.

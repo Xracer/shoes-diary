@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -26,11 +26,11 @@
 namespace OpenXcom
 {
 
-class ResourcePack;
 class BattleItem;
 class SavedBattleGame;
 class Surface;
 class Tile;
+class Mod;
 
 /**
  * A class that represents a projectile. Map is the owner of an instance of this class during its short life.
@@ -39,7 +39,7 @@ class Tile;
 class Projectile
 {
 private:
-	ResourcePack *_res;
+	Mod *_mod;
 	SavedBattleGame *_save;
 	BattleAction _action;
 	Position _origin, _targetVoxel;
@@ -47,10 +47,13 @@ private:
 	size_t _position;
 	Surface *_sprite;
 	int _speed;
-	void applyAccuracy(const Position& origin, Position *target, double accuracy, bool keepRange, Tile *targetTile, bool extendLine);
+	int _bulletSprite;
+	bool _reversed;
+	int _vaporColor, _vaporDensity, _vaporProbability;
+	void applyAccuracy(const Position& origin, Position *target, double accuracy, bool keepRange, bool extendLine);
 public:
 	/// Creates a new Projectile.
-	Projectile(ResourcePack *res, SavedBattleGame *save, BattleAction action, Position origin, Position target);
+	Projectile(Mod *mod, SavedBattleGame *save, BattleAction action, Position origin, Position target, BattleItem *ammo);
 	/// Cleans up the Projectile.
 	~Projectile();
 	/// Calculates the trajectory for a straight path.
@@ -74,6 +77,10 @@ public:
 	Position getOrigin();
 	/// Gets the targetted tile for the projectile.
 	Position getTarget();
+	/// Is this projectile being drawn back-to-front or front-to-back?
+	bool isReversed() const;
+	/// adds a cloud of particles at the projectile's location
+	void addVaporCloud();
 };
 
 }

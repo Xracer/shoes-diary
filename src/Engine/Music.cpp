@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -69,7 +69,7 @@ void Music::load(const std::string &filename)
  * @param data Pointer to the music file in memory
  * @param size Size of the music file in bytes.
  */
-void Music::load(const void *data, size_t size)
+void Music::load(const void *data, int size)
 {
 #ifndef __NO_MUSIC
 	SDL_RWops *rwops = SDL_RWFromConstMem(data, size);
@@ -91,10 +91,13 @@ void Music::play(int loop) const
 #ifndef __NO_MUSIC
 	if (!Options::mute)
 	{
-		stop();
-		if (_music != 0 && Mix_PlayMusic(_music, loop) == -1)
+		if (_music != 0)
 		{
-			Log(LOG_WARNING) << Mix_GetError();
+			stop();
+			if (Mix_PlayMusic(_music, loop) == -1)
+			{
+				Log(LOG_WARNING) << Mix_GetError();
+			}
 		}
 	}
 #endif
@@ -124,7 +127,8 @@ void Music::pause()
 	if (!Options::mute)
 	{
 		Mix_PauseMusic();
-		Mix_HookMusic(NULL, NULL);
+		if (Mix_GetMusicType(0) == MUS_NONE)
+			Mix_HookMusic(NULL, NULL);
 	}
 #endif
 }
@@ -138,9 +142,24 @@ void Music::resume()
 	if (!Options::mute)
 	{
 		Mix_ResumeMusic();
-		Mix_HookMusic(AdlibMusic::player, NULL);
+		if (Mix_GetMusicType(0) == MUS_NONE)
+			Mix_HookMusic(AdlibMusic::player, NULL);
 	}
 #endif
+}
+
+/**
+ * Checks if any music is playing.
+ */
+bool Music::isPlaying()
+{
+#ifndef __NO_MUSIC
+	if (!Options::mute)
+	{
+		return Mix_Playing(-1);
+	}
+#endif
+	return false;
 }
 
 }

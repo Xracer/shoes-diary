@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,7 +17,7 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "BaseFacility.h"
-#include "../Ruleset/RuleBaseFacility.h"
+#include "../Mod/RuleBaseFacility.h"
 #include "Base.h"
 
 namespace OpenXcom

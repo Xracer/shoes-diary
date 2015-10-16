@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,16 +18,13 @@
  */
 
 #include "Ufopaedia.h"
-#include <sstream>
 #include "ArticleState.h"
 #include "../Engine/Game.h"
 #include "../Engine/Options.h"
 #include "../Engine/Surface.h"
-#include "../Engine/Language.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Palette.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
-#include "../Ruleset/RuleItem.h"
+#include "../Mod/RuleItem.h"
 
 namespace OpenXcom
 {
@@ -37,8 +34,7 @@ namespace OpenXcom
 	 * @param game Pointer to current game.
 	 * @param article_id The article id of this article state instance.
 	 */
-	ArticleState::ArticleState(Game *game, std::string article_id) :
-		State(game), _id(article_id)
+	ArticleState::ArticleState(const std::string &article_id) : _id(article_id)
 	{
 		// init background and navigation elements
 		_bg = new Surface(320, 200, 0, 0);
@@ -108,8 +104,10 @@ namespace OpenXcom
 		_btnOk->onKeyboardPress((ActionHandler)&ArticleState::btnOkClick,Options::keyCancel);
 		_btnPrev->setText(L"<<");
 		_btnPrev->onMouseClick((ActionHandler)&ArticleState::btnPrevClick);
+		_btnPrev->onKeyboardPress((ActionHandler)&ArticleState::btnPrevClick, Options::keyGeoLeft);
 		_btnNext->setText(L">>");
 		_btnNext->onMouseClick((ActionHandler)&ArticleState::btnNextClick);
+		_btnNext->onKeyboardPress((ActionHandler)&ArticleState::btnNextClick, Options::keyGeoRight);
 	}
 
 	/**

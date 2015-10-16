@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -45,20 +45,18 @@ private:
 	OptionsOrigin _origin;
 	TextButton *_btnOk, *_btnCancel;
 	Window *_window;
-	Text *_txtTitle, *_txtUsed, *_txtAvailable, *_txtItem, *_txtLiveAliens, *_txtDeadAliens;
+	Text *_txtTitle, *_txtUsed, *_txtAvailable, *_txtItem, *_txtLiveAliens, *_txtDeadAliens, *_txtInterrogatedAliens;
 	TextList *_lstAliens;
 	Timer *_timerInc, *_timerDec;
 	std::vector<int> _qtys;
 	std::vector<std::string> _aliens;
 	size_t _sel;
-	int _aliensSold, _researchedAliens;
-	bool _overCrowded;
-	Uint8 _color, _color2;
+	int _aliensSold;
 	/// Gets selected quantity.
 	int getQuantity();
 public:
 	/// Creates the ManageAlienContainment state.
-	ManageAlienContainmentState(Game *game, Base *base, OptionsOrigin origin);
+	ManageAlienContainmentState(Base *base, OptionsOrigin origin);
 	/// Cleans up the ManageAlienContainment state.
 	~ManageAlienContainmentState();
 	/// Runs the timers.

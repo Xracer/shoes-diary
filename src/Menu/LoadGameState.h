@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -20,6 +20,7 @@
 #define OPENXCOM__LOADGAMESTATE
 
 #include "../Engine/State.h"
+#include <SDL.h>
 #include <string>
 #include "OptionsBaseState.h"
 #include "../Savegame/SavedGame.h"
@@ -35,20 +36,23 @@ class Text;
 class LoadGameState : public State
 {
 private:
+	int _firstRun;
 	OptionsOrigin _origin;
 	Text *_txtStatus;
 	std::string _filename;
 public:
 	/// Creates the Load Game state.
-	LoadGameState(Game *game, OptionsOrigin origin, const std::string &filename);
+	LoadGameState(OptionsOrigin origin, const std::string &filename, SDL_Color *palette);
 	/// Creates the Load Game state.
-	LoadGameState(Game *game, OptionsOrigin origin, SaveType type);
+	LoadGameState(OptionsOrigin origin, SaveType type, SDL_Color *palette);
 	/// Cleans up the Load Game state.
 	~LoadGameState();
 	/// Creates the interface.
-	void buildUi();
-	/// Loads the game.
+	void buildUi(SDL_Color *palette);
+	/// Validates game.
 	void init();
+	/// Loads the game.
+	void think();
 };
 
 }

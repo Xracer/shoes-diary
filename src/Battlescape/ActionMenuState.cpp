@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,17 +17,13 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "ActionMenuState.h"
-#include <sstream>
-#include <cmath>
 #include "../Engine/Game.h"
 #include "../Engine/Options.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Action.h"
 #include "../Savegame/BattleUnit.h"
 #include "../Savegame/BattleItem.h"
-#include "../Ruleset/RuleItem.h"
+#include "../Mod/RuleItem.h"
 #include "ActionMenuItem.h"
 #include "PrimeGrenadeState.h"
 #include "MedikitState.h"
@@ -49,12 +45,12 @@ namespace OpenXcom
  * @param x Position on the x-axis.
  * @param y position on the y-axis.
  */
-ActionMenuState::ActionMenuState(Game *game, BattleAction *action, int x, int y) : State(game), _action(action)
+ActionMenuState::ActionMenuState(BattleAction *action, int x, int y) : _action(action)
 {
 	_screen = false;
 
 	// Set palette
-	setPalette("PAL_BATTLESCAPE");
+	_game->getSavedGame()->getSavedBattle()->setPaletteByDepth(this);
 
 	for (int i = 0; i < 6; ++i)
 	{
@@ -81,6 +77,29 @@ ActionMenuState::ActionMenuState(Game *game, BattleAction *action, int x, int y)
 		addItem(BA_PRIME, "STR_PRIME_GRENADE", &id);
 	}
 
+	if (weapon->getBattleType() == BT_FIREARM)
+	{
+		if (weapon->isWaypoint() || (_action->weapon->getAmmoItem() && _action->weapon->getAmmoItem()->getRules()->isWaypoint()))
+		{
+			addItem(BA_LAUNCH, "STR_LAUNCH_MISSILE", &id);
+		}
+		else
+		{
+			if (weapon->getAccuracyAuto() != 0)
+			{
+				addItem(BA_AUTOSHOT, "STR_AUTO_SHOT", &id);
+			}
+			if (weapon->getAccuracySnap() != 0)
+			{
+				addItem(BA_SNAPSHOT, "STR_SNAP_SHOT", &id);
+			}
+			if (weapon->getAccuracyAimed() != 0)
+			{
+				addItem(BA_AIMEDSHOT, "STR_AIMED_SHOT", &id);
+			}
+		}
+	}
+
 	if (weapon->getTUMelee())
 	{
 		// stun rod
@@ -103,7 +122,7 @@ ActionMenuState::ActionMenuState(Game *game, BattleAction *action, int x, int y)
 	{
 		addItem(BA_USE, "STR_USE_SCANNER", &id);
 	}
-	else if (weapon->getBattleType() == BT_PSIAMP && _action->actor->getStats()->psiSkill > 0)
+	else if (weapon->getBattleType() == BT_PSIAMP && _action->actor->getBaseStats()->psiSkill > 0)
 	{
 		addItem(BA_MINDCONTROL, "STR_MIND_CONTROL", &id);
 		addItem(BA_PANIC, "STR_PANIC_UNIT", &id);
@@ -111,28 +130,6 @@ ActionMenuState::ActionMenuState(Game *game, BattleAction *action, int x, int y)
 	else if (weapon->getBattleType() == BT_MINDPROBE)
 	{
 		addItem(BA_USE, "STR_USE_MIND_PROBE", &id);
-	}
-	if (weapon->getBattleType() == BT_FIREARM)
-	{
-		if (weapon->isWaypoint() || (_action->weapon->getAmmoItem() && _action->weapon->getAmmoItem()->getRules()->isWaypoint()))
-		{
-			addItem(BA_LAUNCH, "STR_LAUNCH_MISSILE", &id);
-		}
-		else
-		{
-			if (weapon->getAccuracyAuto() != 0)
-			{
-				addItem(BA_AUTOSHOT, "STR_AUTO_SHOT", &id);
-			}
-			if (weapon->getAccuracySnap() != 0)
-			{
-				addItem(BA_SNAPSHOT, "STR_SNAP_SHOT", &id);
-			}
-			if (weapon->getAccuracyAimed() != 0)
-			{
-				addItem(BA_AIMEDSHOT, "STR_AIMED_SHOT", &id);
-			}
-		}
 	}
 
 }
@@ -211,7 +208,21 @@ void ActionMenuState::btnActionMenuItemClick(Action *action)
 	{
 		_action->type = _actionMenu[btnID]->getAction();
 		_action->TU = _actionMenu[btnID]->getTUs();
-		if (_action->type == BA_PRIME)
+		if (_action->type != BA_THROW &&
+			_action->actor->getOriginalFaction() == FACTION_PLAYER &&
+			!_game->getSavedGame()->isResearched(weapon->getRequirements()))
+		{
+			_action->result = "STR_UNABLE_TO_USE_ALIEN_ARTIFACT_UNTIL_RESEARCHED";
+			_game->popState();
+		}
+		else if (weapon->isWaterOnly() &&
+			_game->getSavedGame()->getSavedBattle()->getDepth() == 0 &&
+			_action->type != BA_THROW)
+		{
+			_action->result = "STR_UNDERWATER_EQUIPMENT";
+			_game->popState();
+		}
+		else if (_action->type == BA_PRIME)
 		{
 			if (weapon->getBattleType() == BT_PROXIMITYGRENADE)
 			{
@@ -220,17 +231,17 @@ void ActionMenuState::btnActionMenuItemClick(Action *action)
 			}
 			else
 			{
-				_game->pushState(new PrimeGrenadeState(_game, _action, false, 0));
+				_game->pushState(new PrimeGrenadeState(_action, false, 0));
 			}
 		}
 		else if (_action->type == BA_USE && weapon->getBattleType() == BT_MEDIKIT)
 		{
 			BattleUnit *targetUnit = NULL;
 			std::vector<BattleUnit*> *const units (_game->getSavedGame()->getSavedBattle()->getUnits());
-			for(std::vector<BattleUnit*>::const_iterator i = units->begin (); i != units->end () && !targetUnit; ++i)
+			for (std::vector<BattleUnit*>::const_iterator i = units->begin(); i != units->end() && !targetUnit; ++i)
 			{
 				// we can heal a unit that is at the same position, unconscious and healable(=woundable)
-				if ((*i)->getPosition() == _action->actor->getPosition() && *i != _action->actor && (*i)->getStatus () == STATUS_UNCONSCIOUS && (*i)->isWoundable())
+				if ((*i)->getPosition() == _action->actor->getPosition() && *i != _action->actor && (*i)->getStatus() == STATUS_UNCONSCIOUS && (*i)->isWoundable())
 				{
 					targetUnit = *i;
 				}
@@ -241,7 +252,7 @@ void ActionMenuState::btnActionMenuItemClick(Action *action)
 					_action->actor->getPosition(),
 					_action->actor->getDirection(),
 					_action->actor,
-					0, &_action->target))
+					0, &_action->target, false))
 				{
 					Tile * tile (_game->getSavedGame()->getSavedBattle()->getTile(_action->target));
 					if (tile != 0 && tile->getUnit() && tile->getUnit()->isWoundable())
@@ -253,7 +264,7 @@ void ActionMenuState::btnActionMenuItemClick(Action *action)
 			if (targetUnit)
 			{
 				_game->popState();
-				_game->pushState (new MedikitState (_game, targetUnit, _action));
+				_game->pushState (new MedikitState(targetUnit, _action));
 			}
 			else
 			{
@@ -267,7 +278,7 @@ void ActionMenuState::btnActionMenuItemClick(Action *action)
 			if (_action->actor->spendTimeUnits (_action->TU))
 			{
 				_game->popState();
-				_game->pushState (new ScannerState (_game, _action));
+				_game->pushState (new ScannerState(_action));
 			}
 			else
 			{
@@ -292,9 +303,14 @@ void ActionMenuState::btnActionMenuItemClick(Action *action)
 			}
 			_game->popState();
 		}
-		else if (_action->type == BA_STUN || _action->type == BA_HIT)
+		else if (_action->type == BA_HIT)
 		{
-			if (!_game->getSavedGame()->getSavedBattle()->getTileEngine()->validMeleeRange(
+			// check beforehand if we have enough time units
+			if (_action->TU > _action->actor->getTimeUnits())
+			{
+				_action->result = "STR_NOT_ENOUGH_TIME_UNITS";
+			}
+			else if (!_game->getSavedGame()->getSavedBattle()->getTileEngine()->validMeleeRange(
 				_action->actor->getPosition(),
 				_action->actor->getDirection(),
 				_action->actor,

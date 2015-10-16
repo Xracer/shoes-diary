@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -31,6 +31,7 @@ namespace OpenXcom
 class Surface;
 class Map;
 class ImageButton;
+class BattlescapeButton;
 class InteractiveSurface;
 class Text;
 class Bar;
@@ -51,11 +52,11 @@ private:
 	Surface *_rank;
 	InteractiveSurface *_icons;
 	Map *_map;
-	InteractiveSurface *_btnUnitUp, *_btnUnitDown, *_btnMapUp, *_btnMapDown, *_btnShowMap, *_btnKneel;
-	InteractiveSurface *_btnInventory, *_btnCenter, *_btnNextSoldier, *_btnNextStop, *_btnShowLayers, *_btnHelp;
-	InteractiveSurface *_btnEndTurn, *_btnAbort, *_btnStats, *_btnLaunch, *_btnPsi;
-	ImageButton *_reserve;
-	ImageButton *_btnReserveNone, *_btnReserveSnap, *_btnReserveAimed, *_btnReserveAuto, *_btnReserveKneel, *_btnZeroTUs;
+	BattlescapeButton *_btnUnitUp, *_btnUnitDown, *_btnMapUp, *_btnMapDown, *_btnShowMap, *_btnKneel;
+	BattlescapeButton *_btnInventory, *_btnCenter, *_btnNextSoldier, *_btnNextStop, *_btnShowLayers, *_btnHelp;
+	BattlescapeButton *_btnEndTurn, *_btnAbort, *_btnLaunch, *_btnPsi, *_reserve;
+	InteractiveSurface *_btnStats;
+	BattlescapeButton *_btnReserveNone, *_btnReserveSnap, *_btnReserveAimed, *_btnReserveAuto, *_btnReserveKneel, *_btnZeroTUs;
 	InteractiveSurface *_btnLeftHandItem, *_btnRightHandItem;
 	static const int VISIBLE_MAX = 10;
 	InteractiveSurface *_btnVisibleUnit[VISIBLE_MAX];
@@ -79,6 +80,7 @@ private:
 	bool _mouseMovedOverThreshold;
 	bool _mouseOverIcons;
 	std::string _currentTooltip;
+	Position _cursorPosition;
 	/// Popups a context sensitive list of actions the user can choose from.
 	void handleItemClick(BattleItem *item);
 	/// Shifts the red colors of the visible unit buttons backgrounds.
@@ -90,10 +92,10 @@ public:
 	void selectPreviousPlayerUnit(bool checkReselect = false, bool setReselect = false, bool checkInventory = false);
 	static const int DEFAULT_ANIM_SPEED = 100;
 	/// Creates the Battlescape state.
-	BattlescapeState(Game *game);
+	BattlescapeState();
 	/// Cleans up the Battlescape state.
 	~BattlescapeState();
-	/// Initilizes the battlescapestate.
+	/// Initializes the battlescapestate.
 	void init();
 	/// Runs the timers and handles popups.
 	void think();
@@ -209,6 +211,8 @@ public:
 	void txtTooltipOut(Action *action);
 	/// Update the resolution settings, we just resized the window.
 	void resize(int &dX, int &dY);
+	/// Move the mouse back to where it started after we finish drag scrolling.
+	void stopScrolling(Action *action);
 };
 
 }

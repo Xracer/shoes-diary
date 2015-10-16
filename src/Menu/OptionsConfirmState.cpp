@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -20,15 +20,15 @@
 #include <sstream>
 #include <iomanip>
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
 #include "../Engine/Options.h"
 #include "../Engine/Timer.h"
 #include "../Engine/Screen.h"
+#include "../Savegame/SavedGame.h"
 
 namespace OpenXcom
 {
@@ -38,7 +38,7 @@ namespace OpenXcom
  * @param game Pointer to the core game.
  * @param origin Game section that originated this state.
  */
-OptionsConfirmState::OptionsConfirmState(Game *game, OptionsOrigin origin) : State(game), _origin(origin), _countdown(15)
+OptionsConfirmState::OptionsConfirmState(OptionsOrigin origin) : _origin(origin), _countdown(15)
 {
 	_screen = false;
 
@@ -51,42 +51,30 @@ OptionsConfirmState::OptionsConfirmState(Game *game, OptionsOrigin origin) : Sta
 	_timer = new Timer(1000);
 
 	// Set palette
-	if (_origin == OPT_BATTLESCAPE)
-	{
-		setPalette("PAL_BATTLESCAPE");
-	}
-	else
-	{
-		setPalette("PAL_GEOSCAPE", 0);
-	}
+	setInterface("mainMenu", false, _game->getSavedGame() ? _game->getSavedGame()->getSavedBattle() : 0);
 
-	add(_window);
-	add(_btnYes);
-	add(_btnNo);
-	add(_txtTitle);
-	add(_txtTimer);
+	add(_window, "confirmVideo", "mainMenu");
+	add(_btnYes, "confirmVideo", "mainMenu");
+	add(_btnNo, "confirmVideo", "mainMenu");
+	add(_txtTitle, "confirmVideo", "mainMenu");
+	add(_txtTimer, "confirmVideo", "mainMenu");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(15)-1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK01.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK01.SCR"));
 
-	_btnYes->setColor(Palette::blockOffset(15)-1);
 	_btnYes->setText(tr("STR_YES"));
 	_btnYes->onMouseClick((ActionHandler)&OptionsConfirmState::btnYesClick);
 
-	_btnNo->setColor(Palette::blockOffset(15)-1);
 	_btnNo->setText(tr("STR_NO"));
 	_btnNo->onMouseClick((ActionHandler)&OptionsConfirmState::btnNoClick);
 	// no keyboard shortcuts to make sure users can see the message
 
-	_txtTitle->setColor(Palette::blockOffset(15)-1);
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setWordWrap(true);
 	_txtTitle->setText(tr("STR_DISPLAY_OPTIONS_CONFIRM"));
 
-	_txtTimer->setColor(Palette::blockOffset(15)-1);
 	_txtTimer->setAlign(ALIGN_CENTER);
 	_txtTimer->setWordWrap(true);
 	_txtTimer->setText(tr("STR_DISPLAY_OPTIONS_REVERT").arg(_countdown));
@@ -140,7 +128,7 @@ void OptionsConfirmState::countdown()
 void OptionsConfirmState::btnYesClick(Action *)
 {
 	_game->popState();
-	OptionsBaseState::restart(_game, _origin);
+	OptionsBaseState::restart(_origin);
 }
 
 /**
@@ -153,7 +141,7 @@ void OptionsConfirmState::btnNoClick(Action *)
 	Options::save();
 	_game->getScreen()->resetDisplay();
 	_game->popState();
-	OptionsBaseState::restart(_game, _origin);
+	OptionsBaseState::restart(_origin);
 }
 
 }

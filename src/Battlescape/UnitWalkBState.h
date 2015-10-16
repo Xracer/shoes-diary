@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -56,8 +56,6 @@ public:
 	UnitWalkBState(BattlescapeGame *parent, BattleAction _action);
 	/// Cleans up the UnitWalkBState.
 	~UnitWalkBState();
-	/// Sets the target to walk to.
-	void setTarget(Position target);
 	/// Initializes the state.
 	void init();
 	/// Handles a cancels request.

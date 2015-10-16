@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,23 +17,21 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "NewManufactureListState.h"
-#include <algorithm>
 #include "../Interface/Window.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextList.h"
+#include "../Interface/ComboBox.h"
 #include "../Engine/Game.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Options.h"
-#include "../Resource/ResourcePack.h"
-#include "../Ruleset/RuleManufacture.h"
-#include "../Ruleset/Ruleset.h"
+#include "../Mod/Mod.h"
+#include "../Mod/RuleManufacture.h"
 #include "../Savegame/SavedGame.h"
-#include "../Savegame/Production.h"
 #include "../Savegame/Base.h"
 #include "ManufactureStartState.h"
 #include "../Menu/ErrorMessageState.h"
+#include "../Mod/RuleInterface.h"
 
 namespace OpenXcom
 {
@@ -43,62 +41,75 @@ namespace OpenXcom
  * @param game Pointer to the core game.
  * @param base Pointer to the base to get info from.
  */
-NewManufactureListState::NewManufactureListState(Game *game, Base *base) : State(game), _base(base)
+NewManufactureListState::NewManufactureListState(Base *base) : _base(base)
 {
-	int width = 320;
-	int height = 140;
-	int max_width = 320;
-	int max_height = 200;
-	int start_x = (max_width - width) / 2;
-	int start_y = (max_height - height) / 2;
-	int button_x_border = 8;
-	int button_y_border = 8;
-	int button_height = 16;
 	_screen = false;
-	_window = new Window(this, width, height, start_x, start_y, POPUP_BOTH);
-	_btnOk = new TextButton (width - 2 * button_x_border, button_height, start_x + button_x_border, start_y + height - button_height - button_y_border);
-	_txtTitle = new Text (width - 2 * button_x_border, button_height, start_x + button_x_border + 2, start_y + button_y_border);
-	_txtItem = new Text (10 * button_x_border, button_height / 2, start_x + button_x_border + 2, start_y + 3 * button_y_border);
-	_txtCategory = new Text (10 * button_x_border, button_height / 2, start_x + 20.75f * button_x_border, start_y + 3 * button_y_border);
-	_lstManufacture = new TextList(width - 4 * button_x_border, height - 3.75f * button_height - 2 * button_y_border, start_x + button_x_border, start_y + 5 * button_y_border);
+
+	_window = new Window(this, 320, 156, 0, 22, POPUP_BOTH);
+	_btnOk = new TextButton(304, 16, 8, 154);
+	_txtTitle = new Text(320, 17, 0, 30);
+	_txtItem = new Text(156, 9, 10, 62);
+	_txtCategory = new Text(130, 9, 166, 62);
+	_lstManufacture = new TextList(288, 80, 8, 70);
+	_cbxCategory = new ComboBox(this, 146, 16, 166, 46);
 
 	// Set palette
-	setPalette("PAL_BASESCAPE", 6);
+	setInterface("selectNewManufacture");
 
-	add(_window);
-	add(_btnOk);
-	add(_txtTitle);
-	add(_txtItem);
-	add(_txtCategory);
-	add(_lstManufacture);
+	add(_window, "window", "selectNewManufacture");
+	add(_btnOk, "button", "selectNewManufacture");
+	add(_txtTitle, "text", "selectNewManufacture");
+	add(_txtItem, "text", "selectNewManufacture");
+	add(_txtCategory, "text", "selectNewManufacture");
+	add(_lstManufacture, "list", "selectNewManufacture");
+	add(_cbxCategory, "catBox", "selectNewManufacture");
 
 	centerAllSurfaces();
 
-	_window->setColor(Palette::blockOffset(15)+1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK17.SCR"));
-	_txtTitle->setColor(Palette::blockOffset(15)+1);
+	_window->setBackground(_game->getMod()->getSurface("BACK17.SCR"));
+
 	_txtTitle->setText(tr("STR_PRODUCTION_ITEMS"));
 	_txtTitle->setBig();
 	_txtTitle->setAlign(ALIGN_CENTER);
 
-	_txtItem->setColor(Palette::blockOffset(15)+1);
 	_txtItem->setText(tr("STR_ITEM"));
 
-	_txtCategory->setColor(Palette::blockOffset(15)+1);
 	_txtCategory->setText(tr("STR_CATEGORY"));
 
-	_lstManufacture->setColumns(2, int(19.5f * button_x_border), int(16.25f * button_x_border));
+	_lstManufacture->setColumns(2, 156, 130);
 	_lstManufacture->setSelectable(true);
 	_lstManufacture->setBackground(_window);
 	_lstManufacture->setMargin(2);
-	_lstManufacture->setColor(Palette::blockOffset(13));
-	_lstManufacture->setArrowColor(Palette::blockOffset(15)+1);
 	_lstManufacture->onMouseClick((ActionHandler)&NewManufactureListState::lstProdClick);
 
-	_btnOk->setColor(Palette::blockOffset(13)+10);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&NewManufactureListState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&NewManufactureListState::btnOkClick, Options::keyCancel);
+
+	_possibleProductions.clear();
+	_game->getSavedGame()->getAvailableProductions(_possibleProductions, _game->getMod(), _base);
+	_catStrings.push_back("STR_ALL_ITEMS");
+
+	for (std::vector<RuleManufacture *>::iterator it = _possibleProductions.begin(); it != _possibleProductions.end(); ++it)
+	{
+		bool addCategory = true;
+		for (size_t x = 0; x < _catStrings.size(); ++x)
+		{
+			if ((*it)->getCategory().c_str() == _catStrings[x])
+			{
+				addCategory = false;
+				break;
+			}
+		}
+		if (addCategory)
+		{
+			_catStrings.push_back((*it)->getCategory().c_str());
+		}
+	}
+
+	_cbxCategory->setOptions(_catStrings);
+	_cbxCategory->onChange((ActionHandler)&NewManufactureListState::cbxCategoryChange);
+
 }
 
 /**
@@ -122,24 +133,40 @@ void NewManufactureListState::btnOkClick(Action *)
 /**
  * Opens the Production settings screen.
  * @param action A pointer to an Action.
-*/
-void NewManufactureListState::lstProdClick (Action *)
+ */
+void NewManufactureListState::lstProdClick(Action *)
 {
-	RuleManufacture *rule = _possibleProductions[_lstManufacture->getSelectedRow()];
-	if (rule->getCategory() == "STR_CRAFT" && _base->getAvailableHangars() - _base->getUsedHangars() == 0)
+	RuleManufacture *rule = 0;
+	for (std::vector<RuleManufacture *>::iterator it = _possibleProductions.begin(); it != _possibleProductions.end(); ++it)
 	{
-		_game->pushState(new ErrorMessageState(_game, "STR_NO_FREE_HANGARS_FOR_CRAFT_PRODUCTION", _palette, Palette::blockOffset(15)+1, "BACK17.SCR", 6));
+		if ((*it)->getName().c_str() == _displayedStrings[_lstManufacture->getSelectedRow()])
+		{
+			rule = (*it);
+			break;
+		}
+	}
+	if (rule->getCategory() == "STR_CRAFT" && _base->getAvailableHangars() - _base->getUsedHangars() <= 0)
+	{
+		_game->pushState(new ErrorMessageState(tr("STR_NO_FREE_HANGARS_FOR_CRAFT_PRODUCTION"), _palette, _game->getMod()->getInterface("basescape")->getElement("errorMessage")->color, "BACK17.SCR", _game->getMod()->getInterface("basescape")->getElement("errorPalette")->color));
 	}
 	else if (rule->getRequiredSpace() > _base->getFreeWorkshops())
 	{
-		_game->pushState(new ErrorMessageState(_game, "STR_NOT_ENOUGH_WORK_SPACE", _palette, Palette::blockOffset(15)+1, "BACK17.SCR", 6));
+		_game->pushState(new ErrorMessageState(tr("STR_NOT_ENOUGH_WORK_SPACE"), _palette, _game->getMod()->getInterface("basescape")->getElement("errorMessage")->color, "BACK17.SCR", _game->getMod()->getInterface("basescape")->getElement("errorPalette")->color));
 	}
 	else
 	{
-		_game->pushState(new ManufactureStartState(_game, _base, rule));
+		_game->pushState(new ManufactureStartState(_base, rule));
 	}
 }
 
+/**
+ * Updates the production list to match the category filter
+ */
+
+void NewManufactureListState::cbxCategoryChange(Action *)
+{
+	fillProductionList();
+}
 
 /**
  * Fills the list of possible productions.
@@ -148,11 +175,16 @@ void NewManufactureListState::fillProductionList()
 {
 	_lstManufacture->clearList();
 	_possibleProductions.clear();
-	_game->getSavedGame()->getAvailableProductions(_possibleProductions, _game->getRuleset(), _base);
+	_game->getSavedGame()->getAvailableProductions(_possibleProductions, _game->getMod(), _base);
+	_displayedStrings.clear();
 
-	for (std::vector<RuleManufacture *>::iterator it = _possibleProductions.begin (); it != _possibleProductions.end (); ++it)
+	for (std::vector<RuleManufacture *>::iterator it = _possibleProductions.begin(); it != _possibleProductions.end(); ++it)
 	{
-		_lstManufacture->addRow(2, tr((*it)->getName()).c_str(), tr((*it)->getCategory ()).c_str());
+		if (((*it)->getCategory().c_str() == _catStrings[_cbxCategory->getSelected()]) || (_catStrings[_cbxCategory->getSelected()] == "STR_ALL_ITEMS"))
+		{
+			_lstManufacture->addRow(2, tr((*it)->getName()).c_str(), tr((*it)->getCategory()).c_str());
+			_displayedStrings.push_back((*it)->getName().c_str());
+		}
 	}
 }
 

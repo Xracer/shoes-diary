@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -23,7 +23,6 @@
 #include "Engine/CrossPlatform.h"
 #include "Engine/Game.h"
 #include "Engine/Options.h"
-#include "Engine/Screen.h"
 #include "Menu/StartState.h"
 
 /** @mainpage
@@ -47,6 +46,9 @@ Game *game = 0;
 // programming license revoked...
 int main(int argc, char *argv[])
 {
+	// Uncomment to check memory leaks in VS
+	//_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+
 #ifndef _DEBUG
 	try
 	{
@@ -58,10 +60,13 @@ int main(int argc, char *argv[])
 			return EXIT_SUCCESS;
 		std::ostringstream title;
 		title << "OpenXcom " << OPENXCOM_VERSION_SHORT << OPENXCOM_VERSION_GIT;
-		Options::baseXResolution = Screen::ORIGINAL_WIDTH;
-		Options::baseYResolution = Screen::ORIGINAL_HEIGHT;
+		if (Options::verboseLogging)
+			Logger::reportingLevel() = LOG_VERBOSE;
+		Options::baseXResolution = Options::displayWidth;
+		Options::baseYResolution = Options::displayHeight;
 		game = new Game(title.str());
-		game->setState(new StartState(game));
+		State::setGamePtr(game);
+		game->setState(new StartState);
 		game->run();
 #ifndef _DEBUG
 	}
@@ -75,8 +80,6 @@ int main(int argc, char *argv[])
 
 	// Comment this for faster exit.
 	delete game;
-	// Uncomment to check memory leaks in VS
-	//_CrtDumpMemoryLeaks();
 	return EXIT_SUCCESS;
 }
 

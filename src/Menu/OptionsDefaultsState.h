@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -43,7 +43,7 @@ private:
 	OptionsBaseState *_state;
 public:
 	/// Creates the Restore Defaults state.
-	OptionsDefaultsState(Game *game, OptionsOrigin origin, OptionsBaseState *state);
+	OptionsDefaultsState(OptionsOrigin origin, OptionsBaseState *state);
 	/// Cleans up the Restore Defaults state.
 	~OptionsDefaultsState();
 	/// Handler for clicking the Yes button.

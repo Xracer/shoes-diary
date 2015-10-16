@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef OPENXCOM__LISTLOADSTATE_H
-#define OPENXCOM__LISTLOADSTATE_H
+#ifndef OPENXCOM_LISTLOADSTATE_H
+#define OPENXCOM_LISTLOADSTATE_H
 
 #include "ListGamesState.h"
 
@@ -30,11 +30,15 @@ namespace OpenXcom
  */
 class ListLoadState : public ListGamesState
 {
+private:
+	TextButton *_btnOld;
 public:
 	/// Creates the Load Game state.
-	ListLoadState(Game *game, OptionsOrigin origin);
+	ListLoadState(OptionsOrigin origin);
 	/// Cleans up the Load Game state.
 	~ListLoadState();
+	/// Handler for clicking the Original X-Com button.
+	void btnOldClick(Action *action);
 	/// Handler for clicking the Saves list.
 	void lstSavesPress(Action *action);
 };

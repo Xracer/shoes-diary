@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -30,9 +30,8 @@ class State;
 class Screen;
 class Cursor;
 class Language;
-class ResourcePack;
 class SavedGame;
-class Ruleset;
+class Mod;
 class FpsCounter;
 
 /**
@@ -49,14 +48,14 @@ private:
 	Cursor *_cursor;
 	Language *_lang;
 	std::list<State*> _states, _deleted;
-	ResourcePack *_res;
 	SavedGame *_save;
-	Ruleset *_rules;
+	Mod *_mod;
 	bool _quit, _init;
 	FpsCounter *_fpsCounter;
 	bool _mouseActive;
-	unsigned int _framestarttime;
-	int _delaytime;
+	unsigned int _timeOfLastFrame;
+	int _timeUntilNextFrame;
+	static const double VOLUME_GRADIENT;
 
 public:
 	/// Creates a new game and initializes SDL.
@@ -69,6 +68,8 @@ public:
 	void quit();
 	/// Sets the game's audio volume.
 	void setVolume(int sound, int music, int ui);
+	/// Adjusts a linear volume level to an exponential one.
+	static double volumeExponent(int volume);
 	/// Gets the game's display screen.
 	Screen *getScreen() const;
 	/// Gets the game's cursor.
@@ -85,18 +86,14 @@ public:
 	Language *getLanguage() const;
 	/// Loads a new language for the game.
 	void loadLanguage(const std::string &filename);
-	/// Gets the currently loaded resource pack.
-	ResourcePack *getResourcePack() const;
-	/// Sets a new resource pack for the game.
-	void setResourcePack(ResourcePack *res);
 	/// Gets the currently loaded saved game.
 	SavedGame *getSavedGame() const;
 	/// Sets a new saved game for the game.
 	void setSavedGame(SavedGame *save);
-	/// Gets the currently loaded ruleset.
-	Ruleset *getRuleset() const;
-	/// Loads a new ruleset for the game.
-	void loadRuleset();
+	/// Gets the currently loaded mod.
+	Mod *getMod() const;
+	/// Loads the mods specified in the game options.
+	void loadMods();
 	/// Sets whether the mouse cursor is activated.
 	void setMouseActive(bool active);
 	/// Returns whether current state is the param state

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -28,6 +28,7 @@
 #include "Action.h"
 #include "Options.h"
 #include "CrossPlatform.h"
+#include "FileMap.h"
 #include "Zoom.h"
 #include "Timer.h"
 #include <SDL.h>
@@ -97,7 +98,7 @@ void Screen::makeVideoFlags()
 		SDL_putenv(const_cast<char*>("SDL_VIDEO_CENTERED="));
 	}
 
-	_bpp = (isHQXEnabled() || isOpenGLEnabled()) ? 32 : 8;
+	_bpp = (is32bitEnabled() || isOpenGLEnabled()) ? 32 : 8;
 	_baseWidth = Options::baseXResolution;
 	_baseHeight = Options::baseYResolution;
 }
@@ -107,7 +108,7 @@ void Screen::makeVideoFlags()
  * Initializes a new display screen for the game to render contents to.
  * The screen is set up based on the current options.
  */
-Screen::Screen() : _baseWidth(ORIGINAL_WIDTH), _baseHeight(ORIGINAL_HEIGHT), _scaleX(1.0), _scaleY(1.0), _numColors(0), _firstColor(0), _pushPalette(false), _surface(0)
+Screen::Screen() : _baseWidth(ORIGINAL_WIDTH), _baseHeight(ORIGINAL_HEIGHT), _scaleX(1.0), _scaleY(1.0), _flags(0), _numColors(0), _firstColor(0), _pushPalette(false), _surface(0)
 {
 	resetDisplay();	
 	memset(deferredPalette, 0, 256*sizeof(SDL_Color));
@@ -164,7 +165,7 @@ void Screen::handle(Action *action)
 		do
 		{
 			ss.str("");
-			ss << Options::getUserFolder() << "screen" << std::setfill('0') << std::setw(3) << i << ".png";
+			ss << Options::getMasterUserFolder() << "screen" << std::setfill('0') << std::setw(3) << i << ".png";
 			i++;
 		}
 		while (CrossPlatform::fileExists(ss.str()));
@@ -232,7 +233,7 @@ void Screen::setPalette(SDL_Color* colors, int firstcolor, int ncolors, bool imm
 {
 	if (_numColors && (_numColors != ncolors) && (_firstColor != firstcolor))
 	{
-		// an initial palette setup has not been comitted to the screen yet
+		// an initial palette setup has not been committed to the screen yet
 		// just update it with whatever colors are being sent now
 		memmove(&(deferredPalette[firstcolor]), colors, sizeof(SDL_Color)*ncolors);
 		_numColors = 256; // all the use cases are just a full palette with 16-color follow-ups
@@ -300,6 +301,7 @@ int Screen::getHeight() const
 /**
  * Resets the screen surfaces based on the current display options,
  * as they don't automatically take effect.
+ * @param resetVideo Reset display surface.
  */
 void Screen::resetDisplay(bool resetVideo)
 {
@@ -316,12 +318,12 @@ void Screen::resetDisplay(bool resetVideo)
 		_surface->getSurface()->h != _baseHeight))) // don't reallocate _surface if not necessary, it's a waste of CPU cycles
 	{
 		if (_surface) delete _surface;
-		_surface = new Surface(_baseWidth, _baseHeight, 0, 0, Screen::isHQXEnabled() ? 32 : 8); // only HQX needs 32bpp for this surface; the OpenGL class has its own 32bpp buffer
+		_surface = new Surface(_baseWidth, _baseHeight, 0, 0, Screen::is32bitEnabled() ? 32 : 8); // only HQX needs 32bpp for this surface; the OpenGL class has its own 32bpp buffer
 		if (_surface->getSurface()->format->BitsPerPixel == 8) _surface->setPalette(deferredPalette);
 	}
 	SDL_SetColorKey(_surface->getSurface(), 0, 0); // turn off color key! 
 
-	if (resetVideo)
+	if (resetVideo || _screen->format->BitsPerPixel != _bpp)
 	{
 #ifdef __linux__
 		// Workaround for segfault when switching to opengl
@@ -367,6 +369,11 @@ void Screen::resetDisplay(bool resetVideo)
 	_clear.w = getWidth();
 	_clear.h = getHeight();
 
+	double pixelRatioY = 1.0;
+	if (Options::nonSquarePixelRatio && !Options::allowResize)
+	{
+		pixelRatioY = 1.2;
+	}
 	bool cursorInBlackBands;
 	if (!Options::keepAspectRatio)
 	{
@@ -387,7 +394,7 @@ void Screen::resetDisplay(bool resetVideo)
 
 	if (_scaleX > _scaleY && Options::keepAspectRatio)
 	{
-		int targetWidth = floor(_scaleY * (double)_baseWidth);
+		int targetWidth = (int)floor(_scaleY * (double)_baseWidth);
 		_topBlackBand = _bottomBlackBand = 0;
 		_leftBlackBand = (getWidth() - targetWidth) / 2;
 		if (_leftBlackBand < 0)
@@ -409,13 +416,17 @@ void Screen::resetDisplay(bool resetVideo)
 	}
 	else if (_scaleY > _scaleX && Options::keepAspectRatio)
 	{
-		int targetHeight = floor(_scaleX * (double)_baseHeight);
+		int targetHeight = (int)floor(_scaleX * (double)_baseHeight * pixelRatioY);
 		_topBlackBand = (getHeight() - targetHeight) / 2;
 		if (_topBlackBand < 0)
 		{
 			_topBlackBand = 0;
 		}
         _bottomBlackBand = getHeight() - targetHeight - _topBlackBand;
+		if (_bottomBlackBand < 0)
+		{
+			_bottomBlackBand = 0;
+		}
 		_leftBlackBand = _rightBlackBand = 0;
 		_cursorLeftBlackBand = 0;
 
@@ -439,7 +450,7 @@ void Screen::resetDisplay(bool resetVideo)
 #ifndef __NO_OPENGL
 		glOutput.init(_baseWidth, _baseHeight);
 		glOutput.linear = Options::useOpenGLSmoothing; // setting from shader file will override this, though
-		glOutput.set_shader(CrossPlatform::getDataFile(Options::useOpenGLShader).c_str());
+		glOutput.set_shader(FileMap::getFilePath(Options::useOpenGLShader).c_str());
 		glOutput.setVSync(Options::vSyncForOpenGL);
 		OpenGL::checkErrors = Options::checkOpenGLErrors;
 #endif
@@ -522,29 +533,26 @@ void Screen::screenshot(const std::string &filename) const
 }
 
 
-/** Check whether useHQXFilter is set in Options and a compatible resolution
- *  has been selected.
+/** 
+ * Check whether a 32bpp scaler has been selected.
+ * @return if it is enabled with a compatible resolution.
  */
-bool Screen::isHQXEnabled()
+bool Screen::is32bitEnabled()
 {
 	int w = Options::displayWidth;
 	int h = Options::displayHeight;
 	int baseW = Options::baseXResolution;
 	int baseH = Options::baseYResolution;
 
-	if (Options::useHQXFilter && (
-		(w == baseW * 2 && h == baseH * 2) || 
-		(w == baseW * 3 && h == baseH * 3) || 
-		(w == baseW * 4 && h == baseH * 4)))
-	{
-		return true;
-	}
-
-	return false;
+	return ((Options::useHQXFilter || Options::useXBRZFilter) && (
+			(w == baseW * 2 && h == baseH * 2) ||
+			(w == baseW * 3 && h == baseH * 3) ||
+			(w == baseW * 4 && h == baseH * 4) ||
+			(w == baseW * 5 && h == baseH * 5 && Options::useXBRZFilter)));
 }
 
 /**
- * Check if openGl is enabled.
+ * Check if OpenGL is enabled.
  * @return if it is enabled.
  */
 bool Screen::isOpenGLEnabled()
@@ -572,6 +580,64 @@ int Screen::getDX()
 int Screen::getDY()
 {
 	return (_baseHeight - ORIGINAL_HEIGHT) / 2;
+}
+
+/**
+ * Changes a given scale, and if necessary, switch the current base resolution.
+ * @param type reference to which scale option we are using, battlescape or geoscape.
+ * @param selection the new scale level.
+ * @param width reference to which x scale to adjust.
+ * @param height reference to which y scale to adjust.
+ * @param change should we change the current scale.
+ */
+void Screen::updateScale(int &type, int selection, int &width, int &height, bool change)
+{
+	double pixelRatioY = 1.0;
+
+	if (Options::nonSquarePixelRatio)
+	{
+		pixelRatioY = 1.2;
+	}
+
+	type = selection;
+	switch (type)
+	{
+	case SCALE_15X:
+		width = Screen::ORIGINAL_WIDTH * 1.5;
+		height = Screen::ORIGINAL_HEIGHT * 1.5;
+		break;
+	case SCALE_2X:
+		width = Screen::ORIGINAL_WIDTH * 2;
+		height = Screen::ORIGINAL_HEIGHT * 2;
+		break;
+	case SCALE_SCREEN_DIV_3:
+		width = Options::displayWidth / 3;
+		height = Options::displayHeight / pixelRatioY / 3;
+		break;
+	case SCALE_SCREEN_DIV_2:
+		width = Options::displayWidth / 2;
+		height = Options::displayHeight / pixelRatioY  / 2.0;
+		break;
+	case SCALE_SCREEN:
+		width = Options::displayWidth;
+		height = Options::displayHeight / pixelRatioY;
+		break;
+	case SCALE_ORIGINAL:
+	default:
+		width = Screen::ORIGINAL_WIDTH;
+		height = Screen::ORIGINAL_HEIGHT;
+		break;
+	}
+
+	// don't go under minimum resolution... it's bad, mmkay?
+	width = std::max(width, Screen::ORIGINAL_WIDTH);
+	height = std::max(height, Screen::ORIGINAL_HEIGHT);
+
+	if (change && (Options::baseXResolution != width || Options::baseYResolution != height))
+	{
+		Options::baseXResolution = width;
+		Options::baseYResolution = height;
+	}
 }
 
 }

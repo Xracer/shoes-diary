@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -39,7 +39,9 @@ class MonthlyReportState : public State
 private:
 	TextButton *_btnOk, *_btnBigOk;
 	Window *_window;
-	Text *_txtTitle, *_txtMonth, *_txtRating, *_txtChange, *_txtDesc, *_txtFailure;
+	Text *_txtTitle, *_txtMonth, *_txtRating;
+	Text *_txtIncome, *_txtMaintenance, *_txtBalance;
+	Text *_txtDesc, *_txtFailure;
 	bool _psi, _gameOver;
 	int _ratingTotal, _fundingDiff, _lastMonthsRating;
 	std::vector<std::string> _happyList, _sadList, _pactList;
@@ -48,7 +50,7 @@ private:
 	std::wstring countryList(const std::vector<std::string> &countries, const std::string &singular, const std::string &plural);
 public:
 	/// Creates the Monthly Report state.
-	MonthlyReportState(Game *game, bool psi, Globe *globe);
+	MonthlyReportState(bool psi, Globe *globe);
 	/// Cleans up the Monthly Report state.
 	~MonthlyReportState();
 	/// Handler for clicking the OK button.

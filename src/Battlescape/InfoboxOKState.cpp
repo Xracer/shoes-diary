@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,13 +18,14 @@
  */
 #include "InfoboxOKState.h"
 #include "../Engine/Game.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Frame.h"
 #include "../Interface/Text.h"
 #include "../Interface/Cursor.h"
 #include "../Engine/Options.h"
+#include "../Savegame/SavedGame.h"
+#include "../Savegame/SavedBattleGame.h"
 
 namespace OpenXcom
 {
@@ -34,7 +35,7 @@ namespace OpenXcom
  * @param game Pointer to the core game.
  * @param msg Message string.
  */
-InfoboxOKState::InfoboxOKState(Game *game, const std::wstring &msg) : State(game)
+InfoboxOKState::InfoboxOKState(const std::wstring &msg)
 {
 	_screen = false;
 
@@ -44,28 +45,24 @@ InfoboxOKState::InfoboxOKState(Game *game, const std::wstring &msg) : State(game
 	_txtTitle = new Text(255, 61, 33, 51);
 
 	// Set palette
-	setPalette("PAL_BATTLESCAPE");
+	_game->getSavedGame()->getSavedBattle()->setPaletteByDepth(this);
 
-	add(_frame);
-	add(_btnOk);
-	add(_txtTitle);
+	add(_frame, "infoBoxOK", "battlescape");
+	add(_btnOk, "infoBoxOKButton", "battlescape");
+	add(_txtTitle, "infoBoxOK", "battlescape");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_frame->setColor(Palette::blockOffset(6)+3);
-	_frame->setBackground(Palette::blockOffset(6)+12);
 	_frame->setThickness(3);
 	_frame->setHighContrast(true);
 
-	_btnOk->setColor(Palette::blockOffset(1)-1);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&InfoboxOKState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&InfoboxOKState::btnOkClick, Options::keyOk);
 	_btnOk->onKeyboardPress((ActionHandler)&InfoboxOKState::btnOkClick, Options::keyCancel);
 	_btnOk->setHighContrast(true);
 
-	_txtTitle->setColor(Palette::blockOffset(1)-1);
 	_txtTitle->setBig();
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setVerticalAlign(ALIGN_MIDDLE);

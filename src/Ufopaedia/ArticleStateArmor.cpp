@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,18 +18,17 @@
  */
 
 #include <sstream>
-
-#include "Ufopaedia.h"
+#include "../fmath.h"
 #include "ArticleStateArmor.h"
-#include "../Ruleset/ArticleDefinition.h"
-#include "../Ruleset/Ruleset.h"
-#include "../Ruleset/Armor.h"
+#include "../Mod/ArticleDefinition.h"
+#include "../Mod/Mod.h"
+#include "../Mod/Armor.h"
 #include "../Engine/Game.h"
 #include "../Engine/Palette.h"
 #include "../Engine/Surface.h"
-#include "../Engine/Language.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/CrossPlatform.h"
-#include "../Resource/ResourcePack.h"
+#include "../Engine/FileMap.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/TextList.h"
@@ -37,9 +36,9 @@
 namespace OpenXcom
 {
 
-	ArticleStateArmor::ArticleStateArmor(Game *game, ArticleDefinitionArmor *defs) : ArticleState(game, defs->id), _row(0)
+	ArticleStateArmor::ArticleStateArmor(ArticleDefinitionArmor *defs) : ArticleState(defs->id), _row(0)
 	{
-		Armor *armor = _game->getRuleset()->getArmor(defs->id);
+		Armor *armor = _game->getMod()->getArmor(defs->id);
 
 		// add screen elements
 		_txtTitle = new Text(300, 17, 5, 24);
@@ -59,18 +58,18 @@ namespace OpenXcom
 
 		_txtTitle->setColor(Palette::blockOffset(14)+15);
 		_txtTitle->setBig();
-		_txtTitle->setText(Ufopaedia::buildText(_game, defs->title));
+		_txtTitle->setText(tr(defs->title));
 
 		_image = new Surface(320, 200, 0, 0);
 		add(_image);
 
 		std::string look = armor->getSpriteInventory();
 		look += "M0.SPK";
-		if (!CrossPlatform::fileExists(CrossPlatform::getDataFile("UFOGRAPH/" + look)) && !_game->getResourcePack()->getSurface(look))
+		if (!CrossPlatform::fileExists(FileMap::getFilePath("UFOGRAPH/" + look)) && !_game->getMod()->getSurface(look))
 		{
 			look = armor->getSpriteInventory() + ".SPK";
 		}
-		_game->getResourcePack()->getSurface(look)->blit(_image);
+		_game->getMod()->getSurface(look)->blit(_image);
 
 
 		_lstInfo = new TextList(150, 96, 150, 46);
@@ -85,7 +84,7 @@ namespace OpenXcom
 
 		_txtInfo->setColor(Palette::blockOffset(14)+15);
 		_txtInfo->setWordWrap(true);
-		_txtInfo->setText(Ufopaedia::buildText(_game, defs->text));
+		_txtInfo->setText(tr(defs->text));
 
 		// Add armor values
 		addStat("STR_FRONT_ARMOR", armor->getFrontArmor());
@@ -101,7 +100,7 @@ namespace OpenXcom
 		for (int i = 0; i < Armor::DAMAGE_TYPES; ++i)
 		{
 			ItemDamageType dt = (ItemDamageType)i;
-			int percentage = (int)floor(armor->getDamageModifier(dt) * 100.0f + 0.5f);
+			int percentage = (int)Round(armor->getDamageModifier(dt) * 100.0f);
 			std::string damage = getDamageTypeText(dt);
 			if (percentage != 100 && damage != "STR_UNKNOWN")
 			{
@@ -120,6 +119,7 @@ namespace OpenXcom
 		addStat("STR_REACTIONS", armor->getStats()->reactions, true);
 		addStat("STR_FIRING_ACCURACY", armor->getStats()->firing, true);
 		addStat("STR_THROWING_ACCURACY", armor->getStats()->throwing, true);
+		addStat("STR_MELEE_ACCURACY", armor->getStats()->melee, true);
 		addStat("STR_STRENGTH", armor->getStats()->strength, true);
 		addStat("STR_PSIONIC_STRENGTH", armor->getStats()->psiStrength, true);
 		addStat("STR_PSIONIC_SKILL", armor->getStats()->psiSkill, true);
@@ -130,7 +130,7 @@ namespace OpenXcom
 	ArticleStateArmor::~ArticleStateArmor()
 	{}
 
-	void ArticleStateArmor::addStat(std::string label, int stat, bool plus)
+	void ArticleStateArmor::addStat(const std::string &label, int stat, bool plus)
 	{
 		if (stat != 0)
 		{
@@ -144,7 +144,7 @@ namespace OpenXcom
 		}
 	}
 
-	void ArticleStateArmor::addStat(std::string label, std::wstring stat)
+	void ArticleStateArmor::addStat(const std::string &label, const std::wstring &stat)
 	{
 		_lstInfo->addRow(2, tr(label).c_str(), stat.c_str());
 		_lstInfo->setCellColor(_row, 1, Palette::blockOffset(15)+4);

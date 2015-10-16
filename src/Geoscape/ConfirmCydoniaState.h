@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -41,7 +41,7 @@ private:
 	Craft *_craft;
 public:
 	/// Creates the Select Destination state.
-	ConfirmCydoniaState(Game *game, Craft *craft);
+	ConfirmCydoniaState(Craft *craft);
 	/// Cleans up the Select Destination state.
 	~ConfirmCydoniaState();
 	/// Handler for clicking the Cancel button.

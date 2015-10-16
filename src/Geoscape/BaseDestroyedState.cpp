@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,10 +18,8 @@
  */
 #include "BaseDestroyedState.h"
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
-#include "../Engine/Surface.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextButton.h"
@@ -30,13 +28,13 @@
 #include "../Savegame/Region.h"
 #include "../Savegame/AlienMission.h"
 #include "../Savegame/Ufo.h"
-#include "../Ruleset/RuleRegion.h"
+#include "../Mod/RuleRegion.h"
 #include "../Engine/Options.h"
 
 namespace OpenXcom
 {
 
-BaseDestroyedState::BaseDestroyedState(Game *game, Base *base) : State(game), _base(base)
+BaseDestroyedState::BaseDestroyedState(Base *base) : _base(base)
 {
 	_screen = false;
 
@@ -46,28 +44,25 @@ BaseDestroyedState::BaseDestroyedState(Game *game, Base *base) : State(game), _b
 	_txtMessage = new Text(224, 48, 48, 76);
 
 	// Set palette
-	setPalette("PAL_GEOSCAPE", 7);
-	
-	add(_window);
-	add(_btnOk);
-	add(_txtMessage);
+	setInterface("UFOInfo");
+
+	add(_window, "window", "UFOInfo");
+	add(_btnOk, "button", "UFOInfo");
+	add(_txtMessage, "text", "UFOInfo");
 
 	centerAllSurfaces();
-	
-	// Set up objects
-	_window->setColor(Palette::blockOffset(8)+5);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK15.SCR"));
 
-	_btnOk->setColor(Palette::blockOffset(8)+5);
+	// Set up objects
+	_window->setBackground(_game->getMod()->getSurface("BACK15.SCR"));
+
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&BaseDestroyedState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&BaseDestroyedState::btnOkClick, Options::keyOk);
 	_btnOk->onKeyboardPress((ActionHandler)&BaseDestroyedState::btnOkClick, Options::keyCancel);
-		
+
 	_txtMessage->setAlign(ALIGN_CENTER);
 	_txtMessage->setBig();
 	_txtMessage->setWordWrap(true);
-	_txtMessage->setColor(Palette::blockOffset(8)+5);
 
 	_txtMessage->setText(tr("STR_THE_ALIENS_HAVE_DESTROYED_THE_UNDEFENDED_BASE").arg(_base->getName()));
 
@@ -80,7 +75,7 @@ BaseDestroyedState::BaseDestroyedState(Game *game, Base *base) : State(game), _b
 		}
 	}
 
-	AlienMission* am = _game->getSavedGame()->getAlienMission((*k)->getRules()->getType(), "STR_ALIEN_RETALIATION");
+	AlienMission* am = _game->getSavedGame()->findAlienMission((*k)->getRules()->getType(), OBJECTIVE_RETALIATION);
 	for (std::vector<Ufo*>::iterator i = _game->getSavedGame()->getUfos()->begin(); i != _game->getSavedGame()->getUfos()->end();)
 	{
 		if ((*i)->getMission() == am)

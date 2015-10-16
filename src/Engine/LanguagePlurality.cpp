@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -24,7 +24,7 @@ namespace OpenXcom
 /**
  * Default plurality rules.
  * Provide rules for languages where 1 is singular and everything else is plural.
- * @langsuffixes one = 1; other = ...
+ * @note one = 1; other = ...
  */
 class OneSingular: public LanguagePlurality
 {
@@ -45,7 +45,7 @@ const char *OneSingular::getSuffix(unsigned n) const
 /**
  * Plurality rules where 0 is also singular.
  * Provide rules for languages where 0 and 1 are singular and everything else is plural.
- * @langsuffixes one = 0-1; other = ...
+ * @note one = 0-1; other = ...
  */
 class ZeroOneSingular : public LanguagePlurality
 {
@@ -66,7 +66,7 @@ const char *ZeroOneSingular::getSuffix(unsigned n) const
 /**
  * Plurality rules where there is no singular.
  * Provide rules for languages where everything is plural.
- * @langsuffixes other = ...
+ * @note other = ...
  */
 class NoSingular : public LanguagePlurality
 {
@@ -81,8 +81,8 @@ const char *NoSingular::getSuffix(unsigned) const
 }
 
 /**
- * Plurality rules for Cyrillic languages (Russian, Ukranian, etc.)
- * @langsuffixes one = 1, 21, 31...; few = 2-4, 22-24, 32-34...; many = 0, 5-20, 25-30, 35-40...; other = ...
+ * Plurality rules for Cyrillic languages (Russian, Ukrainian, etc.)
+ * @note one = 1, 21, 31...; few = 2-4, 22-24, 32-34...; many = 0, 5-20, 25-30, 35-40...; other = ...
  */
 class CyrillicPlurality : public LanguagePlurality
 {
@@ -113,7 +113,7 @@ const char *CyrillicPlurality::getSuffix(unsigned n) const
 
 /**
  * Plurality rules for Czech and Slovak languages.
- * @langsuffixes one = 1; few = 2-4; other = ...
+ * @note one = 1; few = 2-4; other = ...
  */
 class CzechPlurality : public LanguagePlurality
 {
@@ -137,7 +137,7 @@ const char *CzechPlurality::getSuffix(unsigned n) const
 
 /**
  * Plurality rules for the Polish language.
- * @langsuffixes one = 1; few = 2-4, 22-24, 32-34...; many = 0, 5-21, 25-31, 35-41, ...; other = ...
+ * @note one = 1; few = 2-4, 22-24, 32-34...; many = 0, 5-21, 25-31, 35-41, ...; other = ...
  */
 class PolishPlurality : public LanguagePlurality
 {
@@ -168,7 +168,7 @@ const char *PolishPlurality::getSuffix(unsigned n) const
 
 /**
  * Plurality rules for Romanian and Moldavian languages.
- * @langsuffixes one = 1; few = 0, 2-19, 101-119...; other = ...
+ * @note one = 1; few = 0, 2-19, 101-119...; other = ...
  */
 class RomanianPlurality : public LanguagePlurality
 {
@@ -185,6 +185,31 @@ const char *RomanianPlurality::getSuffix(unsigned n) const
 	}
 	else if (n == 0 ||
 			(n % 100 >= 1 && n % 100 <= 19))
+	{
+		return "_few";
+	}
+	return "_other";
+}
+
+/**
+ * Plurality rules for Croatian and Serbian languages.
+ * @note one = 1, 21, 31...; few = 2-4, 22-24, 32-34, ...; other = ...
+ */
+class CroatianPlurality : public LanguagePlurality
+{
+public:
+	virtual const char *getSuffix(unsigned n) const;
+	static LanguagePlurality *create() { return new CroatianPlurality; }
+};
+
+const char *CroatianPlurality::getSuffix(unsigned n) const
+{
+	if (n % 10 == 1 && n % 100 != 11)
+	{
+		return "_one";
+	}
+	else if ((n % 10 >= 2 && n % 10 <= 4) &&
+			!(n % 100 >= 12 && n % 100 <= 14))
 	{
 		return "_few";
 	}
@@ -210,18 +235,19 @@ LanguagePlurality *LanguagePlurality::create(const std::string &language)
 	if (s_factoryFunctions.empty())
 	{
 		s_factoryFunctions.insert(std::make_pair("fr", &ZeroOneSingular::create));
-		s_factoryFunctions.insert(std::make_pair("hu-HU", &NoSingular::create));
-		s_factoryFunctions.insert(std::make_pair("tr-TR", &NoSingular::create));
-		s_factoryFunctions.insert(std::make_pair("cs-CZ", &CzechPlurality::create));
-		s_factoryFunctions.insert(std::make_pair("pl-PL", &PolishPlurality::create));
+		s_factoryFunctions.insert(std::make_pair("hu", &NoSingular::create));
+		s_factoryFunctions.insert(std::make_pair("tr", &NoSingular::create));
+		s_factoryFunctions.insert(std::make_pair("cs", &CzechPlurality::create));
+		s_factoryFunctions.insert(std::make_pair("pl", &PolishPlurality::create));
 		s_factoryFunctions.insert(std::make_pair("ro", &RomanianPlurality::create));
 		s_factoryFunctions.insert(std::make_pair("ru", &CyrillicPlurality::create));
-		s_factoryFunctions.insert(std::make_pair("sk-SK", &CzechPlurality::create));
+		s_factoryFunctions.insert(std::make_pair("sk", &CzechPlurality::create));
 		s_factoryFunctions.insert(std::make_pair("uk", &CyrillicPlurality::create));
-		s_factoryFunctions.insert(std::make_pair("ja-JP", &NoSingular::create));
+		s_factoryFunctions.insert(std::make_pair("ja", &NoSingular::create));
 		s_factoryFunctions.insert(std::make_pair("ko", &NoSingular::create));
 		s_factoryFunctions.insert(std::make_pair("zh-CN", &NoSingular::create));
 		s_factoryFunctions.insert(std::make_pair("zh-TW", &NoSingular::create));
+		s_factoryFunctions.insert(std::make_pair("hr", &CroatianPlurality::create));
 	}
 	PFCreate creator = &OneSingular::create;
 	std::map<std::string, PFCreate>::const_iterator found = s_factoryFunctions.find(language);

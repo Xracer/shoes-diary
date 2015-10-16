@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,7 +17,6 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "ListGamesState.h"
-#include <utility>
 #include "../Engine/Logger.h"
 #include "../Savegame/SavedGame.h"
 #include "../Engine/Game.h"
@@ -25,10 +24,8 @@
 #include "../Engine/Exception.h"
 #include "../Engine/Options.h"
 #include "../Engine/CrossPlatform.h"
-#include "../Engine/Screen.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
@@ -84,7 +81,7 @@ struct compareSaveTimestamp : public std::binary_function<SaveInfo&, SaveInfo&, 
  * @param firstValidRow First row containing saves.
  * @param autoquick Show auto/quick saved games?
  */
-ListGamesState::ListGamesState(Game *game, OptionsOrigin origin, int firstValidRow, bool autoquick) : State(game), _origin(origin), _showMsg(true), _noUI(false), _firstValidRow(firstValidRow), _autoquick(autoquick), _sortable(true)
+ListGamesState::ListGamesState(OptionsOrigin origin, int firstValidRow, bool autoquick) : _origin(origin), _firstValidRow(firstValidRow), _autoquick(autoquick), _sortable(true)
 {
 	_screen = false;
 
@@ -101,51 +98,36 @@ ListGamesState::ListGamesState(Game *game, OptionsOrigin origin, int firstValidR
 	_sortDate = new ArrowButton(ARROW_NONE, 11, 8, 204, 32);
 
 	// Set palette
-	if (_origin == OPT_BATTLESCAPE)
-	{
-		setPalette("PAL_BATTLESCAPE");
-	}
-	else
-	{
-		setPalette("PAL_GEOSCAPE", 6);
-	}
+	setInterface("geoscape", true, _game->getSavedGame() ? _game->getSavedGame()->getSavedBattle() : 0);
 
-	add(_window);
-	add(_btnCancel);
-	add(_txtTitle);
-	add(_txtDelete);
-	add(_txtName);
-	add(_txtDate);
-	add(_lstSaves);
-	add(_txtDetails);
-	add(_sortName);
-	add(_sortDate);
+	add(_window, "window", "saveMenus");
+	add(_btnCancel, "button", "saveMenus");
+	add(_txtTitle, "text", "saveMenus");
+	add(_txtDelete, "text", "saveMenus");
+	add(_txtName, "text", "saveMenus");
+	add(_txtDate, "text", "saveMenus");
+	add(_lstSaves, "list", "saveMenus");
+	add(_txtDetails, "text", "saveMenus");
+	add(_sortName, "text", "saveMenus");
+	add(_sortDate, "text", "saveMenus");
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(8)+5);
-	_window->setBackground(game->getResourcePack()->getSurface("BACK01.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK01.SCR"));
 
-	_btnCancel->setColor(Palette::blockOffset(8)+5);
 	_btnCancel->setText(tr("STR_CANCEL_UC"));
 	_btnCancel->onMouseClick((ActionHandler)&ListGamesState::btnCancelClick);
 	_btnCancel->onKeyboardPress((ActionHandler)&ListGamesState::btnCancelClick, Options::keyCancel);
 
-	_txtTitle->setColor(Palette::blockOffset(15)-1);
 	_txtTitle->setBig();
 	_txtTitle->setAlign(ALIGN_CENTER);
 
-	_txtDelete->setColor(Palette::blockOffset(15)-1);
 	_txtDelete->setAlign(ALIGN_CENTER);
 	_txtDelete->setText(tr("STR_RIGHT_CLICK_TO_DELETE"));
 
-	_txtName->setColor(Palette::blockOffset(15)-1);
 	_txtName->setText(tr("STR_NAME"));
 
-	_txtDate->setColor(Palette::blockOffset(15)-1);
 	_txtDate->setText(tr("STR_DATE"));
 
-	_lstSaves->setColor(Palette::blockOffset(8)+10);
-	_lstSaves->setArrowColor(Palette::blockOffset(8)+5);
 	_lstSaves->setColumns(3, 188, 60, 40);
 	_lstSaves->setSelectable(true);
 	_lstSaves->setBackground(_window);
@@ -154,17 +136,13 @@ ListGamesState::ListGamesState(Game *game, OptionsOrigin origin, int firstValidR
 	_lstSaves->onMouseOut((ActionHandler)&ListGamesState::lstSavesMouseOut);
 	_lstSaves->onMousePress((ActionHandler)&ListGamesState::lstSavesPress);
 
-	_txtDetails->setColor(Palette::blockOffset(15)-1);
-	_txtDetails->setSecondaryColor(Palette::blockOffset(8)+10);
 	_txtDetails->setWordWrap(true);
 	_txtDetails->setText(tr("STR_DETAILS").arg(L""));
 
 	_sortName->setX(_sortName->getX() + _txtName->getTextWidth() + 5);
-	_sortName->setColor(Palette::blockOffset(15)-1);
 	_sortName->onMouseClick((ActionHandler)&ListGamesState::sortNameClick);
 
 	_sortDate->setX(_sortDate->getX() + _txtDate->getTextWidth() + 5);
-	_sortDate->setColor(Palette::blockOffset(15)-1);
 	_sortDate->onMouseClick((ActionHandler)&ListGamesState::sortDateClick);
 
 	updateArrows();
@@ -228,8 +206,8 @@ void ListGamesState::updateArrows()
 }
 
 /**
- * Updates the save game list with the current list
- * of available savegames.
+ * Sorts the save game list.
+ * @param sort Order to sort the games in.
  */
 void ListGamesState::sortList(SaveSort sort)
 {
@@ -258,12 +236,13 @@ void ListGamesState::sortList(SaveSort sort)
 void ListGamesState::updateList()
 {
 	int row = 0;
+	int color = _lstSaves->getSecondaryColor();
 	for (std::vector<SaveInfo>::const_iterator i = _saves.begin(); i != _saves.end(); ++i)
 	{
 		_lstSaves->addRow(3, i->displayName.c_str(), i->isoDate.c_str(), i->isoTime.c_str());
 		if (i->reserved && _origin != OPT_BATTLESCAPE)
 		{
-			_lstSaves->setRowColor(row, Palette::blockOffset(8)+5);
+			_lstSaves->setRowColor(row, color);
 		}
 		row++;
 	}
@@ -310,7 +289,7 @@ void ListGamesState::lstSavesPress(Action *action)
 {
 	if (action->getDetails()->button.button == SDL_BUTTON_RIGHT && _lstSaves->getSelectedRow() >= _firstValidRow)
 	{
-		_game->pushState(new DeleteGameState(_game, _origin, _saves[_lstSaves->getSelectedRow() - _firstValidRow].fileName));
+		_game->pushState(new DeleteGameState(_origin, _saves[_lstSaves->getSelectedRow() - _firstValidRow].fileName));
 	}
 }
 

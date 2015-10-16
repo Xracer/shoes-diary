@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,14 +18,13 @@
  */
 #include "NewPossibleManufactureState.h"
 #include "../Engine/Game.h"
-#include "../Engine/Palette.h"
-#include "../Engine/Language.h"
-#include "../Resource/ResourcePack.h"
+#include "../Engine/LocalizedText.h"
+#include "../Mod/Mod.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextList.h"
-#include "../Ruleset/RuleManufacture.h"
+#include "../Mod/RuleManufacture.h"
 #include "../Basescape/ManufactureState.h"
 #include "../Engine/Options.h"
 
@@ -37,7 +36,7 @@ namespace OpenXcom
  * @param base Pointer to the base to get info from.
  * @param possibilities List of newly possible ManufactureProject
  */
-NewPossibleManufactureState::NewPossibleManufactureState(Game * game, Base * base, const std::vector<RuleManufacture *> & possibilities) : State (game), _base(base)
+NewPossibleManufactureState::NewPossibleManufactureState(Base * base, const std::vector<RuleManufacture *> & possibilities) : _base(base)
 {
 	_screen = false;
 
@@ -46,43 +45,38 @@ NewPossibleManufactureState::NewPossibleManufactureState(Game * game, Base * bas
 	_btnOk = new TextButton(160, 14, 80, 149);
 	_btnManufacture = new TextButton(160, 14, 80, 165);
 	_txtTitle = new Text(288, 40, 16, 20);
-	_lstPossibilities = new TextList(288, 80, 16, 56);
+	_lstPossibilities = new TextList(260, 80, 21, 56);
 
 	// Set palette
-	setPalette("PAL_GEOSCAPE", 6);
+	setInterface("geoManufacture");
 
-	add(_window);
-	add(_btnOk);
-	add(_btnManufacture);
-	add(_txtTitle);
-	add(_lstPossibilities);
+	add(_window, "window", "geoManufacture");
+	add(_btnOk, "button", "geoManufacture");
+	add(_btnManufacture, "button", "geoManufacture");
+	add(_txtTitle, "text1", "geoManufacture");
+	add(_lstPossibilities, "text2", "geoManufacture");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(15)-1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK17.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK17.SCR"));
 
-	_btnOk->setColor(Palette::blockOffset(8)+5);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&NewPossibleManufactureState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&NewPossibleManufactureState::btnOkClick, Options::keyCancel);
-	_btnManufacture->setColor(Palette::blockOffset(8)+5);
 	_btnManufacture->setText(tr("STR_ALLOCATE_MANUFACTURE"));
 	_btnManufacture->onMouseClick((ActionHandler)&NewPossibleManufactureState::btnManufactureClick);
 	_btnManufacture->onKeyboardPress((ActionHandler)&NewPossibleManufactureState::btnManufactureClick, Options::keyOk);
-	_txtTitle->setColor(Palette::blockOffset(15)-1);
 	_txtTitle->setBig();
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setText(tr("STR_WE_CAN_NOW_PRODUCE"));
 
-	_lstPossibilities->setColor(Palette::blockOffset(8)+10);
 	_lstPossibilities->setColumns(1, 288);
 	_lstPossibilities->setBig();
 	_lstPossibilities->setAlign(ALIGN_CENTER);
-	for(std::vector<RuleManufacture *>::const_iterator iter = possibilities.begin (); iter != possibilities.end (); ++iter)
+	for (std::vector<RuleManufacture *>::const_iterator iter = possibilities.begin(); iter != possibilities.end(); ++iter)
 	{
-		_lstPossibilities->addRow (1, tr((*iter)->getName ()).c_str());
+		_lstPossibilities->addRow (1, tr((*iter)->getName()).c_str());
 	}
 }
 
@@ -102,7 +96,7 @@ void NewPossibleManufactureState::btnOkClick(Action *)
 void NewPossibleManufactureState::btnManufactureClick(Action *)
 {
 	_game->popState();
-	_game->pushState (new ManufactureState(_game, _base));
+	_game->pushState (new ManufactureState(_base));
 }
 
 }

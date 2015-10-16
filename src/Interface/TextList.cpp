@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -38,8 +38,8 @@ namespace OpenXcom
  * @param x X position in pixels.
  * @param y Y position in pixels.
  */
-TextList::TextList(int width, int height, int x, int y) : InteractiveSurface(width, height, x, y), _texts(), _columns(), _big(0), _small(0), _font(0), _scroll(0), _visibleRows(0), _selRow(0), _color(0), _dot(false), _selectable(false), _condensed(false), _contrast(false), _wrap(false),
-																								   _bg(0), _selector(0), _margin(0), _scrolling(true), _arrowLeft(), _arrowRight(), _arrowPos(-1), _scrollPos(4), _arrowType(ARROW_VERTICAL),
+TextList::TextList(int width, int height, int x, int y) : InteractiveSurface(width, height, x, y), _big(0), _small(0), _font(0), _scroll(0), _visibleRows(0), _selRow(0), _color(0), _dot(false), _selectable(false), _condensed(false), _contrast(false), _wrap(false),
+																								   _bg(0), _selector(0), _margin(0), _scrolling(true), _arrowPos(-1), _scrollPos(4), _arrowType(ARROW_VERTICAL),
 																								   _leftClick(0), _leftPress(0), _leftRelease(0), _rightClick(0), _rightPress(0), _rightRelease(0), _arrowsLeftEdge(0), _arrowsRightEdge(0), _comboBox(0)
 {
 	_up = new ArrowButton(ARROW_BIG_UP, 13, 14, getX() + getWidth() + _scrollPos, getY());
@@ -81,9 +81,9 @@ TextList::~TextList()
 }
 
 /**
-* Changes the position of the surface in the X axis.
-* @param x X position in pixels.
-*/
+ * Changes the position of the surface in the X axis.
+ * @param x X position in pixels.
+ */
 void TextList::setX(int x)
 {
 	Surface::setX(x);
@@ -95,9 +95,9 @@ void TextList::setX(int x)
 }
 
 /**
-* Changes the position of the surface in the Y axis.
-* @param y Y position in pixels.
-*/
+ * Changes the position of the surface in the Y axis.
+ * @param y Y position in pixels.
+ */
 void TextList::setY(int y)
 {
 	Surface::setY(y);
@@ -149,7 +149,7 @@ void TextList::unpress(State *state)
  * @param column Column number.
  * @param color Text color.
  */
-void TextList::setCellColor(int row, int column, Uint8 color)
+void TextList::setCellColor(size_t row, size_t column, Uint8 color)
 {
 	_texts[row][column]->setColor(color);
 	_redraw = true;
@@ -160,7 +160,7 @@ void TextList::setCellColor(int row, int column, Uint8 color)
  * @param row Row number.
  * @param color Text color.
  */
-void TextList::setRowColor(int row, Uint8 color)
+void TextList::setRowColor(size_t row, Uint8 color)
 {
 	for (std::vector<Text*>::iterator i = _texts[row].begin(); i < _texts[row].end(); ++i)
 	{
@@ -175,7 +175,7 @@ void TextList::setRowColor(int row, Uint8 color)
  * @param column Column number.
  * @return Text string.
  */
-std::wstring TextList::getCellText(int row, int column) const
+std::wstring TextList::getCellText(size_t row, size_t column) const
 {
 	return _texts[row][column]->getText();
 }
@@ -186,7 +186,7 @@ std::wstring TextList::getCellText(int row, int column) const
  * @param column Column number.
  * @param text Text string.
  */
-void TextList::setCellText(int row, int column, const std::wstring &text)
+void TextList::setCellText(size_t row, size_t column, const std::wstring &text)
 {
 	_texts[row][column]->setText(text);
 	_redraw = true;
@@ -197,7 +197,7 @@ void TextList::setCellText(int row, int column, const std::wstring &text)
  * @param column Column number.
  * @return X position in pixels.
  */
-int TextList::getColumnX(int column) const
+int TextList::getColumnX(size_t column) const
 {
 	return getX() + _texts[0][column]->getX();
 }
@@ -207,9 +207,29 @@ int TextList::getColumnX(int column) const
  * @param row Row number.
  * @return Y position in pixels.
  */
-int TextList::getRowY(int row) const
+int TextList::getRowY(size_t row) const
 {
 	return getY() + _texts[row][0]->getY();
+}
+
+/**
+ * Returns the height of a specific text row in the list.
+ * @param row Row number.
+ * @return height in pixels.
+ */
+int TextList::getTextHeight(size_t row) const
+{
+	return _texts[row].front()->getTextHeight();
+}
+
+/**
+ * Returns the height of a specific text row in the list.
+ * @param row Row number.
+ * @return height in pixels.
+ */
+int TextList::getNumTextLines(size_t row) const
+{
+	return _texts[row].front()->getNumLines();
 }
 
 /**
@@ -250,7 +270,7 @@ void TextList::addRow(int cols, ...)
 	va_list args;
 	va_start(args, cols);
 	std::vector<Text*> temp;
-	int rowX = 0, rows = 1;
+	int rowX = 0, rows = 1, rowHeight = 0;
 
 	for (int i = 0; i < cols; ++i)
 	{
@@ -274,18 +294,22 @@ void TextList::addRow(int cols, ...)
 			txt->setSmall();
 		}
 		txt->setText(va_arg(args, wchar_t*));
+		// grab this before we enable word wrapping so we can use it to calculate
+		// the total row height below
+		int vmargin = _font->getHeight() - txt->getTextHeight();
 		// Wordwrap text if necessary
 		if (_wrap && txt->getTextWidth() > txt->getWidth())
 		{
-			txt->setHeight(_font->getHeight() * 2 + _font->getSpacing());
 			txt->setWordWrap(true, true);
-			rows = 2;
+			rows = std::max(rows, txt->getNumLines());
 		}
+		rowHeight = std::max(rowHeight, txt->getTextHeight() + vmargin);
+		
 		// Places dots between text
 		if (_dot && i < cols - 1)
 		{
 			std::wstring buf = txt->getText();
-			int w = txt->getTextWidth();
+			unsigned int w = txt->getTextWidth();
 			while (w < _columns[i])
 			{
 				w += _font->getChar('.')->getCrop()->w + _font->getSpacing();
@@ -304,6 +328,13 @@ void TextList::addRow(int cols, ...)
 			rowX += _columns[i];
 		}
 	}
+
+	// ensure all elements in this row are the same height
+	for (int i = 0; i < cols; ++i)
+	{
+		temp[i]->setHeight(rowHeight);
+	}
+
 	_texts.push_back(temp);
 	for (int i = 0; i < rows; ++i)
 	{
@@ -493,10 +524,7 @@ Uint8 TextList::getSecondaryColor() const
  */
 void TextList::setWordWrap(bool wrap)
 {
-	if (wrap != _wrap)
-	{
-		_wrap = wrap;
-	}
+	_wrap = wrap;
 }
 
 /**
@@ -603,7 +631,7 @@ void TextList::setCondensed(bool condensed)
  * list is selectable.
  * @return Selected row, -1 if none.
  */
-int TextList::getSelectedRow() const
+unsigned int TextList::getSelectedRow() const
 {
 	if (_rows.empty() || _selRow >= _rows.size())
 	{
@@ -759,6 +787,7 @@ void TextList::clearList()
 		}
 		u->clear();
 	}
+	scrollUp(true, false);
 	_texts.clear();
 	_rows.clear();
 	_redraw = true;
@@ -767,8 +796,9 @@ void TextList::clearList()
 /**
  * Scrolls the text in the list up by one row or to the top.
  * @param toMax If true then scrolls to the top of the list. false => one row up
+ * @param scrollByWheel If true then use wheel scroll, otherwise scroll normally.
  */
-void TextList::scrollUp(bool toMax)
+void TextList::scrollUp(bool toMax, bool scrollByWheel)
 {
 	if (!_scrolling)
 		return;
@@ -780,7 +810,14 @@ void TextList::scrollUp(bool toMax)
 		}
 		else
 		{
-			scrollTo(_scroll-1);
+			if (scrollByWheel)
+			{
+				scrollTo(_scroll - std::min((size_t)(Options::mousewheelSpeed), _scroll));
+			}
+			else
+			{
+				scrollTo(_scroll - 1);
+			}
 		}
 	}
 }
@@ -788,8 +825,9 @@ void TextList::scrollUp(bool toMax)
 /**
  * Scrolls the text in the list down by one row or to the bottom.
  * @param toMax If true then scrolls to the bottom of the list. false => one row down
+ * @param scrollByWheel If true then use wheel scroll, otherwise scroll normally.
  */
-void TextList::scrollDown(bool toMax)
+void TextList::scrollDown(bool toMax, bool scrollByWheel)
 {
 	if (!_scrolling)
 		return;
@@ -801,7 +839,14 @@ void TextList::scrollDown(bool toMax)
 		}
 		else
 		{
-			scrollTo(_scroll+1);
+			if (scrollByWheel)
+			{
+				scrollTo(_scroll + Options::mousewheelSpeed);
+			}
+			else
+			{
+				scrollTo(_scroll + 1);
+			}
 		}
 	}
 }
@@ -856,21 +901,30 @@ void TextList::setScrolling(bool scrolling, int scrollPos)
 void TextList::draw()
 {
 	Surface::draw();
-	int y = _scroll * -(_font->getHeight() + _font->getSpacing());
-	for (size_t i = 0; i < _texts.size() && i < _scroll + _visibleRows; ++i)
+	int y = 0;
+	if (!_rows.empty())
 	{
-		for (std::vector<Text*>::iterator j = _texts[i].begin(); j < _texts[i].end(); ++j)
+		// for wrapped items, offset the draw height above the visible surface
+		// so that the correct row appears at the top
+		for (int row = _scroll; row > 0 && _rows[row] == _rows[row - 1]; --row)
 		{
-			(*j)->setY(y);
-			(*j)->blit(this);
+			y -= _font->getHeight() + _font->getSpacing();
 		}
-		if (!_texts[i].empty())
+		for (size_t i = _rows[_scroll]; i < _texts.size() && i < _rows[_scroll] + _visibleRows; ++i)
 		{
-			y += _texts[i].front()->getHeight() + _font->getSpacing();
-		}
-		else
-		{
-			y += _font->getHeight() + _font->getSpacing();
+			for (std::vector<Text*>::iterator j = _texts[i].begin(); j < _texts[i].end(); ++j)
+			{
+				(*j)->setY(y);
+				(*j)->blit(this);
+			}
+			if (!_texts[i].empty())
+			{
+				y += _texts[i].front()->getHeight() + _font->getSpacing();
+			}
+			else
+			{
+				y += _font->getHeight() + _font->getSpacing();
+			}
 		}
 	}
 }
@@ -888,14 +942,34 @@ void TextList::blit(Surface *surface)
 	Surface::blit(surface);
 	if (_visible && !_hidden)
 	{
-		if (_arrowPos != -1)
+		if (_arrowPos != -1 && !_rows.empty())
 		{
-			for (size_t i = _scroll; i < _texts.size() && i < _scroll + _visibleRows; ++i)
+			int y = getY();
+			for (int row = _scroll; row > 0 && _rows[row] == _rows[row - 1]; --row)
 			{
-				_arrowLeft[i]->setY(getY() + (i - _scroll) * (_font->getHeight() + _font->getSpacing()));
-				_arrowLeft[i]->blit(surface);
-				_arrowRight[i]->setY(getY() + (i - _scroll) * (_font->getHeight() + _font->getSpacing()));
-				_arrowRight[i]->blit(surface);
+				y -= _font->getHeight() + _font->getSpacing();
+			}
+			int maxY = getY() + getHeight();
+			for (size_t i = _rows[_scroll]; i < _texts.size() && i < _rows[_scroll] + _visibleRows && y < maxY; ++i)
+			{
+				_arrowLeft[i]->setY(y);
+				_arrowRight[i]->setY(y);
+
+				if (y >= getY())
+				{
+					// only blit arrows that belong to texts that have their first row on-screen
+					_arrowLeft[i]->blit(surface);
+					_arrowRight[i]->blit(surface);
+				}
+
+				if (!_texts[i].empty())
+				{
+					y += _texts[i].front()->getHeight() + _font->getSpacing();
+				}
+				else
+				{
+					y += _font->getHeight() + _font->getSpacing();
+				}
 			}
 		}
 		_up->blit(surface);
@@ -915,9 +989,24 @@ void TextList::handle(Action *action, State *state)
 	_up->handle(action, state);
 	_down->handle(action, state);
 	_scrollbar->handle(action, state);
-	if (_arrowPos != -1)
+	if (_arrowPos != -1 && !_rows.empty())
 	{
-		for (size_t i = _scroll; i < _texts.size() && i < _scroll + _visibleRows; ++i)
+		size_t startArrowIdx = _rows[_scroll];
+		if (0 < _scroll && _rows[_scroll] == _rows[_scroll - 1])
+		{
+			// arrows for first partially-visible line of text are off-screen; don't process them
+			++startArrowIdx;
+		}
+		size_t endArrowIdx = _rows[_scroll] + 1;
+		size_t endRow = std::min(_rows.size(), _scroll + _visibleRows);
+		for (size_t i = _scroll + 1; i < endRow; ++i)
+		{
+			if (_rows[i] != _rows[i - 1])
+			{
+				++endArrowIdx;
+			}
+		}
+		for (size_t i = startArrowIdx; i < endArrowIdx; ++i)
 		{
 			_arrowLeft[i]->handle(action, state);
 			_arrowRight[i]->handle(action, state);
@@ -958,8 +1047,8 @@ void TextList::mousePress(Action *action, State *state)
 	}
 	if (allowScroll)
 	{
-		if (action->getDetails()->button.button == SDL_BUTTON_WHEELUP) scrollUp(false);
-		else if (action->getDetails()->button.button == SDL_BUTTON_WHEELDOWN) scrollDown(false);
+		if (action->getDetails()->button.button == SDL_BUTTON_WHEELUP) scrollUp(false, true);
+		else if (action->getDetails()->button.button == SDL_BUTTON_WHEELDOWN) scrollDown(false, true);
 	}
 	if (_selectable)
 	{
@@ -1033,11 +1122,24 @@ void TextList::mouseOver(Action *action, State *state)
 		if (_selRow < _rows.size())
 		{
 			Text *selText = _texts[_rows[_selRow]].front();
-			_selector->setY(getY() + selText->getY());
-			if (_selector->getHeight() != selText->getHeight() + _font->getSpacing())
+			int y = getY() + selText->getY();
+			int h = selText->getHeight() + _font->getSpacing();
+			if (y < getY() || y + h > getY() + getHeight())
 			{
-				_selector->setHeight(selText->getHeight() + _font->getSpacing());
+				h /= 2;
 			}
+			if (y < getY())
+			{
+				y = getY();
+			}
+			if (_selector->getHeight() != h)
+			{
+				// resizing doesn't work, but recreating does, so let's do that!
+				delete _selector;
+				_selector = new Surface(getWidth(), h, getX(), y);
+				_selector->setPalette(getPalette());
+			}
+			_selector->setY(y);
 			_selector->copy(_bg);
 			if (_contrast)
 			{
@@ -1081,7 +1183,7 @@ void TextList::mouseOut(Action *action, State *state)
  * get the scroll depth.
  * @return scroll depth.
  */
-int TextList::getScroll()
+size_t TextList::getScroll()
 {
 	return _scroll;
 }
@@ -1102,6 +1204,7 @@ void TextList::scrollTo(size_t scroll)
 /**
  * Hooks up the button to work as part of an existing combobox,
  * updating the selection when it's pressed.
+ * @param comboBox Pointer to combobox.
  */
 void TextList::setComboBox(ComboBox *comboBox)
 {
@@ -1115,5 +1218,17 @@ void TextList::setComboBox(ComboBox *comboBox)
 ComboBox *TextList::getComboBox() const
 {
 	return _comboBox;
+}
+
+void TextList::setBorderColor(Uint8 color)
+{
+	_up->setColor(color);
+	_down->setColor(color);
+	_scrollbar->setColor(color);
+}
+
+int TextList::getScrollbarColor()
+{
+	return _scrollbar->getColor();
 }
 }

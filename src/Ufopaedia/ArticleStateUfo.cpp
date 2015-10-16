@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,27 +18,25 @@
  */
 
 #include <sstream>
-
-#include "Ufopaedia.h"
 #include "ArticleStateUfo.h"
-#include "../Ruleset/ArticleDefinition.h"
-#include "../Ruleset/Ruleset.h"
-#include "../Ruleset/RuleUfo.h"
+#include "../Mod/ArticleDefinition.h"
+#include "../Mod/Mod.h"
+#include "../Mod/RuleUfo.h"
 #include "../Engine/Game.h"
 #include "../Engine/Palette.h"
 #include "../Engine/Surface.h"
-#include "../Engine/Language.h"
-#include "../Resource/ResourcePack.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/TextList.h"
+#include "../Mod/RuleInterface.h"
 
 namespace OpenXcom
 {
 
-	ArticleStateUfo::ArticleStateUfo(Game *game, ArticleDefinitionUfo *defs) : ArticleState(game, defs->id)
+	ArticleStateUfo::ArticleStateUfo(ArticleDefinitionUfo *defs) : ArticleState(defs->id)
 	{
-		RuleUfo *ufo = _game->getRuleset()->getUfo(defs->id);
+		RuleUfo *ufo = _game->getMod()->getUfo(defs->id);
 
 		// add screen elements
 		_txtTitle = new Text(155, 32, 5, 24);
@@ -52,7 +50,7 @@ namespace OpenXcom
 		add(_txtTitle);
 
 		// Set up objects
-		_game->getResourcePack()->getSurface("BACK11.SCR")->blit(_bg);
+		_game->getMod()->getSurface("BACK11.SCR")->blit(_bg);
 		_btnOk->setColor(Palette::blockOffset(8)+5);
 		_btnPrev->setColor(Palette::blockOffset(8)+5);
 		_btnNext->setColor(Palette::blockOffset(8)+5);
@@ -60,39 +58,33 @@ namespace OpenXcom
 		_txtTitle->setColor(Palette::blockOffset(8)+5);
 		_txtTitle->setBig();
 		_txtTitle->setWordWrap(true);
-		_txtTitle->setText(Ufopaedia::buildText(_game, defs->title));
+		_txtTitle->setText(tr(defs->title));
 
 		_image = new Surface(160, 52, 160, 6);
 		add(_image);
 
-		Surface *graphic = _game->getResourcePack()->getSurface("INTERWIN.DAT");
+		RuleInterface *dogfightInterface = _game->getMod()->getInterface("dogfight");
+		Surface *graphic = _game->getMod()->getSurface("INTERWIN.DAT");
 		graphic->setX(0);
 		graphic->setY(0);
 		graphic->getCrop()->x = 0;
 		graphic->getCrop()->y = 0;
-		graphic->getCrop()->w = 160;
-		graphic->getCrop()->h = 52;
+		graphic->getCrop()->w = _image->getWidth();
+		graphic->getCrop()->h = _image->getHeight();
 		_image->drawRect(graphic->getCrop(), 15);
-/*
-		graphic->getCrop()->y = 96;
-		graphic->getCrop()->h = 15;
 		graphic->blit(_image);
-		graphic->setY(67);
-		graphic->getCrop()->y = 111;
-		graphic->getCrop()->h = 29;
-		graphic->blit(_image);
-*/
-		if (ufo->getModSprite() == "")
+
+		if (ufo->getModSprite().empty())
 		{
-			graphic->getCrop()->y = 140 + 52 * ufo->getSprite();
-			graphic->getCrop()->h = 52;
+			graphic->getCrop()->y = dogfightInterface->getElement("previewMid")->y + dogfightInterface->getElement("previewMid")->h * ufo->getSprite();
+			graphic->getCrop()->h = dogfightInterface->getElement("previewMid")->h;
 		}
 		else
 		{
-			graphic = _game->getResourcePack()->getSurface(ufo->getModSprite());
-			graphic->setX(0);
-			graphic->setY(0);
+			graphic = _game->getMod()->getSurface(ufo->getModSprite());
 		}
+		graphic->setX(0);
+		graphic->setY(0);
 		graphic->blit(_image);
 
 		_txtInfo = new Text(300, 50, 10, 140);
@@ -100,7 +92,7 @@ namespace OpenXcom
 
 		_txtInfo->setColor(Palette::blockOffset(8)+5);
 		_txtInfo->setWordWrap(true);
-		_txtInfo->setText(Ufopaedia::buildText(_game, defs->text));
+		_txtInfo->setText(tr(defs->text));
 
 		_lstInfo = new TextList(310, 64, 10, 68);
 		add(_lstInfo);

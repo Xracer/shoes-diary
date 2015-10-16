@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -19,10 +19,10 @@
 #ifndef OPENXCOM_TILE_H
 #define OPENXCOM_TILE_H
 
-#include <string>
+#include <list>
 #include <vector>
 #include "../Battlescape/Position.h"
-#include "../Ruleset/MapData.h"
+#include "../Mod/MapData.h"
 #include "BattleUnit.h"
 
 #include <SDL_types.h> // for Uint8
@@ -35,6 +35,7 @@ class MapData;
 class BattleUnit;
 class BattleItem;
 class RuleInventory;
+class Particle;
 
 /**
  * Basic element of which a battle map is build.
@@ -68,6 +69,7 @@ protected:
 	int _smoke;
 	int _fire;
 	int _explosive;
+	int _explosiveType;
 	Position _pos;
 	BattleUnit *_unit;
 	std::vector<BattleItem *> _inventory;
@@ -78,6 +80,7 @@ protected:
 	int _TUMarker;
 	int _overlaps;
 	bool _danger;
+	std::list<Particle*> _particles;
 public:
 	/// Creates a tile.
 	Tile(const Position& pos);
@@ -99,10 +102,6 @@ public:
 	 */
 	MapData *getMapData(int part) const
 	{
-		if (0 > part || 3 < part)
-		{
-			return NULL;
-		}
 		return _objects[part];
 	}
 
@@ -159,13 +158,15 @@ public:
 	/// Get the shade amount.
 	int getShade() const;
 	/// Destroy a tile part.
-	bool destroy(int part);
+	bool destroy(int part, SpecialTileType type);
 	/// Damage a tile part.
-	bool damage(int part, int power);
+	bool damage(int part, int power, SpecialTileType type);
 	/// Set a "virtual" explosive on this tile, to detonate later.
-	void setExplosive(int power, bool force = false);
+	void setExplosive(int power, int damageType, bool force = false);
 	/// Get explosive power of this tile.
 	int getExplosive() const;
+	/// Get explosive power of this tile.
+	int getExplosiveType() const;
 	/// Animated the tile parts.
 	void animate();
 	/// Get object sprites.
@@ -194,6 +195,10 @@ public:
 	int getFlammability() const;
 	/// Get turns to burn
 	int getFuel() const;
+	/// Get flammability of part.
+	int getFlammability(int part) const;
+	/// Get turns to burn of part
+	int getFuel(int part) const;
 	/// attempt to set the tile on fire, sets overlaps to one if successful.
 	void ignite(int power);
 	/// Get fire and smoke animation offset.
@@ -232,6 +237,10 @@ public:
 	void setDangerous();
 	/// check the danger flag on this tile.
 	bool getDangerous();
+	/// adds a particle to this tile's array.
+	void addParticle(Particle *particle);
+	/// gets a pointer to this tile's particle array.
+	std::list<Particle *> *getParticleCloud();
 
 };
 

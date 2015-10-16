@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -48,21 +48,21 @@ private:
 	ToggleTextButton *_btnTooltips, *_btnDeaths;
 public:
 	/// Creates the Battlescape Options state.
-	OptionsBattlescapeState(Game *game, OptionsOrigin origin);
+	OptionsBattlescapeState(OptionsOrigin origin);
 	/// Cleans up the Battlescape Options state.
 	~OptionsBattlescapeState();
 	/// Handler for changing the Edge Scroll combobox.
 	void cbxEdgeScrollChange(Action *action);
-    /// Handler for changing the Drag Scroll combobox.
-    void cbxDragScrollChange(Action *action);
+	/// Handler for changing the Drag Scroll combobox.
+	void cbxDragScrollChange(Action *action);
 	/// Handler for changing the scroll speed slider.
-    void slrScrollSpeedChange(Action *action);
-    /// Handler for changing the fire speed slider.
-    void slrFireSpeedChange(Action *action);
+	void slrScrollSpeedChange(Action *action);
+	/// Handler for changing the fire speed slider.
+	void slrFireSpeedChange(Action *action);
 	/// Handler for changing the X-COM movement speed slider.
-    void slrXcomSpeedChange(Action *action);
-    /// Handler for changing the alien movement speed slider.
-    void slrAlienSpeedChange(Action *action);
+	void slrXcomSpeedChange(Action *action);
+	/// Handler for changing the alien movement speed slider.
+	void slrAlienSpeedChange(Action *action);
 	/// Handler for clicking a Path Preview button.
 	void btnPathPreviewClick(Action *action);
 	/// Handler for clicking the Tooltips button.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -59,7 +59,7 @@ private:
 	SDL_Surface *testSurface();
 public:
 	/// Creates the Test state.
-	TestState(Game *game);
+	TestState();
 	/// Cleans up the Test state.
 	~TestState();
 	void think();

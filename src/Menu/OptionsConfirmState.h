@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -45,7 +45,7 @@ private:
 	int _countdown;
 public:
 	/// Creates the Confirm Display Options state.
-	OptionsConfirmState(Game *game, OptionsOrigin origin);
+	OptionsConfirmState(OptionsOrigin origin);
 	/// Cleans up the Confirm Display Options state.
 	~OptionsConfirmState();
 	/// Handle timers.

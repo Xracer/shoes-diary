@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,11 +17,9 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "AlienBaseState.h"
-#include <sstream>
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
@@ -30,8 +28,8 @@
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Region.h"
 #include "../Savegame/Country.h"
-#include "../Ruleset/RuleRegion.h"
-#include "../Ruleset/RuleCountry.h"
+#include "../Mod/RuleRegion.h"
+#include "../Mod/RuleCountry.h"
 #include "../Savegame/AlienBase.h"
 #include "../Engine/Options.h"
 
@@ -44,33 +42,30 @@ namespace OpenXcom
  * @param base Pointer to the alien base to get info from.
  * @param state Pointer to the Geoscape.
  */
-AlienBaseState::AlienBaseState(Game *game, AlienBase *base, GeoscapeState *state) : State(game), _state(state), _base(base)
+AlienBaseState::AlienBaseState(AlienBase *base, GeoscapeState *state) : _state(state), _base(base)
 {
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
 	_btnOk = new TextButton(50, 12, 135, 180);
 	_txtTitle = new Text(308, 60, 6, 60);
 
-	setPalette("PAL_GEOSCAPE", 3);
+	setInterface("alienBase");
 
-	add(_window);
-	add(_btnOk);
-	add(_txtTitle);
+	add(_window, "window", "alienBase");
+	add(_btnOk, "text", "alienBase");
+	add(_txtTitle, "button", "alienBase");
 
 	centerAllSurfaces();
 
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(15)-1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK13.SCR"));
-	
-	_btnOk->setColor(Palette::blockOffset(8)+10);
+	_window->setBackground(_game->getMod()->getSurface("BACK13.SCR"));
+
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&AlienBaseState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&AlienBaseState::btnOkClick, Options::keyOk);
 	_btnOk->onKeyboardPress((ActionHandler)&AlienBaseState::btnOkClick, Options::keyCancel);
 
-	_txtTitle->setColor(Palette::blockOffset(8)+5);
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setBig();
 	_txtTitle->setWordWrap(true);
@@ -79,7 +74,7 @@ AlienBaseState::AlienBaseState(Game *game, AlienBase *base, GeoscapeState *state
 	std::wstring region, country;
 	for (std::vector<Country*>::iterator i = _game->getSavedGame()->getCountries()->begin(); i != _game->getSavedGame()->getCountries()->end(); ++i)
 	{
-		if ((*i)->getRules()->insideCountry(_base->getLongitude(), _base->getLatitude())) 
+		if ((*i)->getRules()->insideCountry(_base->getLongitude(), _base->getLatitude()))
 		{
 			country = tr((*i)->getRules()->getType());
 			break;
@@ -87,7 +82,7 @@ AlienBaseState::AlienBaseState(Game *game, AlienBase *base, GeoscapeState *state
 	}
 	for (std::vector<Region*>::iterator i = _game->getSavedGame()->getRegions()->begin(); i != _game->getSavedGame()->getRegions()->end(); ++i)
 	{
-		if ((*i)->getRules()->insideRegion(_base->getLongitude(), _base->getLatitude())) 
+		if ((*i)->getRules()->insideRegion(_base->getLongitude(), _base->getLatitude()))
 		{
 			region = tr((*i)->getRules()->getType());
 			break;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -19,9 +19,8 @@
 #include <assert.h>
 #include "ProductionCompleteState.h"
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
@@ -42,7 +41,7 @@ namespace OpenXcom
  * @param state Pointer to the Geoscape state.
  * @param endType What ended the production.
  */
-ProductionCompleteState::ProductionCompleteState(Game *game, Base *base, const std::wstring &item, GeoscapeState *state, productionProgress_e endType) : State(game), _base(base), _state(state), _endType(endType)
+ProductionCompleteState::ProductionCompleteState(Base *base, const std::wstring &item, GeoscapeState *state, productionProgress_e endType) : _base(base), _state(state), _endType(endType)
 {
 	_screen = false;
 
@@ -53,25 +52,22 @@ ProductionCompleteState::ProductionCompleteState(Game *game, Base *base, const s
 	_txtMessage = new Text(246, 110, 37, 35);
 
 	// Set palette
-	setPalette("PAL_GEOSCAPE", 6);
+	setInterface("geoManufacture");
 
-	add(_window);
-	add(_btnOk);
-	add(_btnGotoBase);
-	add(_txtMessage);
+	add(_window, "window", "geoManufacture");
+	add(_btnOk, "button", "geoManufacture");
+	add(_btnGotoBase, "button", "geoManufacture");
+	add(_txtMessage, "text1", "geoManufacture");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(15)-1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK17.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK17.SCR"));
 
-	_btnOk->setColor(Palette::blockOffset(8)+5);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&ProductionCompleteState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&ProductionCompleteState::btnOkClick, Options::keyCancel);
 
-	_btnGotoBase->setColor(Palette::blockOffset(8)+5);
 	if (_endType != PROGRESS_CONSTRUCTION)
 	{
 		_btnGotoBase->setText(tr("STR_ALLOCATE_MANUFACTURE"));
@@ -82,7 +78,6 @@ ProductionCompleteState::ProductionCompleteState(Game *game, Base *base, const s
 	}
 	_btnGotoBase->onMouseClick((ActionHandler)&ProductionCompleteState::btnGotoBaseClick);
 
-	_txtMessage->setColor(Palette::blockOffset(15)-1);
 	_txtMessage->setAlign(ALIGN_CENTER);
 	_txtMessage->setVerticalAlign(ALIGN_MIDDLE);
 	_txtMessage->setBig();
@@ -135,11 +130,11 @@ void ProductionCompleteState::btnGotoBaseClick(Action *)
 	_game->popState();
 	if (_endType != PROGRESS_CONSTRUCTION)
 	{
-		_game->pushState(new ManufactureState(_game, _base));
+		_game->pushState(new ManufactureState(_base));
 	}
 	else
 	{
-		_game->pushState(new BasescapeState(_game, _base, _state->getGlobe()));
+		_game->pushState(new BasescapeState(_base, _state->getGlobe()));
 	}
 }
 

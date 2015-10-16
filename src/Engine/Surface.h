@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -20,7 +20,6 @@
 #define OPENXCOM_SURFACE_H
 
 #include <SDL.h>
-#include <SDL_image.h>
 #include <string>
 
 namespace OpenXcom
@@ -42,7 +41,7 @@ protected:
 	SDL_Surface *_surface;
 	int _x, _y;
 	SDL_Rect _crop, _clear;
-	bool _visible, _hidden, _redraw;
+	bool _visible, _hidden, _redraw, _tftdMode;
 	void *_alignedBuffer;
 	std::string _tooltip;
 
@@ -62,8 +61,8 @@ public:
 	void loadBdy(const std::string &filename);
 	/// Loads a general image file.
 	void loadImage(const std::string &filename);
-	/// Clears the surface's contents.
-	void clear();
+	/// Clears the surface's contents eith a specified colour.
+	void clear(Uint32 color = 0);
 	/// Offsets the surface's colors by a set amount.
 	void offset(int off, int min = -1, int max = -1, int mul = 1);
 	/// Inverts the surface's colors.
@@ -80,6 +79,8 @@ public:
 	void copy(Surface *surface);
     /// Draws a filled rectangle on the surface.
     void drawRect(SDL_Rect *rect, Uint8 color);
+	/// Draws a filled rectangle on the surface.
+	void drawRect(Sint16 x, Sint16 y, Sint16 w, Sint16 h, Uint8 color);
     /// Draws a line on the surface.
     void drawLine(Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2, Uint8 color);
     /// Draws a filled circle on the surface.
@@ -121,7 +122,7 @@ public:
 		return _y;
 	}
 	/// Sets the surface's visibility.
-	void setVisible(bool visible);
+	virtual void setVisible(bool visible);
 	/// Gets the surface's visibility.
 	bool getVisible() const;
 	/// Resets the cropping rectangle for the surface.
@@ -212,11 +213,21 @@ public:
 	/// Specific blit function to blit battlescape terrain data in different shades in a fast way.
 	void blitNShade(Surface *surface, int x, int y, int off, bool half = false, int newBaseColor = 0);
 	/// Invalidate the surface: force it to be redrawn
-	void invalidate();
+	void invalidate(bool valid = true);
 	/// Gets the tooltip of the surface.
 	std::string getTooltip() const;
 	/// Sets the tooltip of the surface.
 	void setTooltip(const std::string &tooltip);
+	/// Sets the color of the surface.
+	virtual void setColor(Uint8 /*color*/) { /* empty by design */ };
+	/// Sets the secondary color of the surface.
+	virtual void setSecondaryColor(Uint8 /*color*/) { /* empty by design */ };
+	/// Sets the border colour of the surface.
+	virtual void setBorderColor(Uint8 /*color*/) { /* empty by design */ };
+	/// Sets this button to use a colour lookup table instead of inversion for its alternate form.
+	virtual void setTFTDMode(bool mode);
+	/// checks if this is a TFTD mode surface.
+	bool isTFTDMode();
 
 };
 

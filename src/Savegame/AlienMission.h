@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -30,11 +30,14 @@ class Ufo;
 class Globe;
 class Game;
 class SavedGame;
-class Ruleset;
+class Mod;
 class RuleRegion;
-class RuleUfo;
+struct MissionWave;
 class UfoTrajectory;
 class AlienBase;
+class MissionSite;
+struct MissionArea;
+class AlienDeployment;
 
 /**
  * Represents an ongoing alien mission.
@@ -47,11 +50,11 @@ class AlienMission
 private:
 	const RuleAlienMission &_rule;
 	std::string _region, _race;
-	unsigned _nextWave;
-	unsigned _nextUfoCounter;
-	unsigned _spawnCountdown;
-	unsigned _liveUfos;
-	int _uniqueID;
+	size_t _nextWave;
+	size_t _nextUfoCounter;
+	size_t _spawnCountdown;
+	size_t _liveUfos;
+	int _uniqueID, _missionSiteZone;
 	const AlienBase *_base;
 public:
 	// Data
@@ -64,20 +67,20 @@ public:
 	void load(const YAML::Node& node, SavedGame &game);
 	/// Saves the mission to YAML.
 	YAML::Node save() const;
-	/// Gets the mission's type.
-	const std::string &getType() const;
+	/// Gets the mission's ruleset.
+	const RuleAlienMission &getRules() const { return _rule; }
 	/// Gets the mission's region.
 	const std::string &getRegion() const { return _region; }
 	/// Sets the mission's region.
-	void setRegion(const std::string &region, const Ruleset &rules);
+	void setRegion(const std::string &region, const Mod &rules);
 	/// Gets the mission's race.
 	const std::string &getRace() const { return _race; }
 	/// Sets the mission's race.
 	void setRace(const std::string &race) { _race = race; }
 	/// Gets the minutes until next wave spawns.
-	unsigned getWaveCountdown() const { return _spawnCountdown; }
+	size_t getWaveCountdown() const { return _spawnCountdown; }
 	/// Sets the minutes until next wave spawns.
-	void setWaveCountdown(unsigned minutes);
+	void setWaveCountdown(size_t minutes);
 	/// Sets the unique ID for this mission.
 	void setId(int id);
 	/// Gets the unique ID for this mission.
@@ -94,7 +97,7 @@ public:
 	/// Handle UFO spawning for the mission.
 	void think(Game &engine, const Globe &globe);
 	/// Initialize with values from rules.
-	void start(unsigned initialCount = 0);
+	void start(size_t initialCount = 0);
 	/// Increase number of live UFOs.
 	void increaseLiveUfos() { ++_liveUfos; }
 	/// Decrease number of live UFOs.
@@ -102,18 +105,25 @@ public:
 	/// Handle UFO reaching a waypoint.
 	void ufoReachedWaypoint(Ufo &ufo, Game &engine, const Globe &globe);
 	/// Handle UFO lifting from the ground.
-	void ufoLifting(Ufo &ufo, Game &engine, const Globe &globe);
+	void ufoLifting(Ufo &ufo, SavedGame &game);
 	/// Handle UFO shot down.
-	void ufoShotDown(Ufo &ufo, Game &engine, const Globe &globe);
+	void ufoShotDown(Ufo &ufo);
 	/// Handle Points for mission successes.
-	void addScore(const double lon, const double lat, Game &engine);
+	void addScore(const double lon, const double lat, SavedGame &game);
+	/// Keep track of the city/whatever that we're going to target.
+	void setMissionSiteZone(int zone);
 private:
 	/// Spawns a UFO, based on mission rules.
-	Ufo *spawnUfo(const SavedGame &game, const Ruleset &ruleset, const Globe &globe, const RuleUfo &ufoRule, const UfoTrajectory &trajectory);
+	Ufo *spawnUfo(const SavedGame &game, const Mod &mod, const Globe &globe, const MissionWave &wave, const UfoTrajectory &trajectory);
 	/// Spawn an alien base
-	void spawnAlienBase(const Globe &globe, Game &engine);
+	void spawnAlienBase(const Globe &globe, Game &engine, int zone);
 	/// Select a destination (lon/lat) based on the criteria of our trajectory and desired waypoint.
-	std::pair<double, double> getWaypoint(const UfoTrajectory &trajectory, const unsigned int nextWaypoint, const Globe &globe, const RuleRegion &region);
+	std::pair<double, double> getWaypoint(const UfoTrajectory &trajectory, const size_t nextWaypoint, const Globe &globe, const RuleRegion &region);
+	/// Get a random landing point inside the given region zone.
+	std::pair<double, double> getLandPoint(const Globe &globe, const RuleRegion &region, size_t zone);
+	/// Spawns a MissionSite at a specific location.
+	MissionSite *spawnMissionSite(SavedGame &game, AlienDeployment *deployment, const MissionArea &area);
+
 };
 
 }

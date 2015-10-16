@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -59,10 +59,9 @@ private:
 	std::vector<std::string> _langs, _filters;
 
 	void updateDisplayResolution();
-	void updateGameResolution();
 public:
 	/// Creates the Options state.
-	OptionsVideoState(Game *game, OptionsOrigin origin);
+	OptionsVideoState(OptionsOrigin origin);
 	/// Cleans up the Options state.
 	~OptionsVideoState();
 	/// Handler for clicking the Next Resolution button.
@@ -75,8 +74,8 @@ public:
 	void txtDisplayHeightChange(Action *action);
 	/// Handler for changing the Language combobox.
 	void cbxLanguageChange(Action *action);
-    /// Handler for changing the Filter combobox.
-    void cbxFilterChange(Action *action);
+	/// Handler for changing the Filter combobox.
+	void cbxFilterChange(Action *action);
 	/// Handler for clicking the Display Mode combobox.
 	void updateDisplayMode(Action *action);
 	/// Handler for clicking the Letterboxed button.
@@ -84,9 +83,9 @@ public:
 	/// Handler for clicking the Lock Mouse button.
 	void btnLockMouseClick(Action *action);
 	/// Handler for updating the selected battlescape scale.
-	void updateBattlescapeScale(Action *);
+	void updateBattlescapeScale(Action *action);
 	/// Handler for updating the selected geoscape scale.
-	void updateGeoscapeScale(Action *);
+	void updateGeoscapeScale(Action *action);
 	/// Update the resolution settings, we just resized the window.
 	void resize(int &, int &);
 	/// Handles keypresses.

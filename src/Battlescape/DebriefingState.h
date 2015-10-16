@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -37,10 +37,13 @@ class Base;
 class Region;
 class Country;
 class RuleItem;
+class BattleUnit;
 
-struct DebriefingStat { DebriefingStat(std::string _item, bool recovery) : item(_item), qty(0), score(0), recovery(recovery) {}; std::string item; int qty; int score; bool recovery; };
+struct DebriefingStat { DebriefingStat(const std::string &_item, bool recovery) : item(_item), qty(0), score(0), recovery(recovery) {}; std::string item; int qty; int score; bool recovery; };
 
 struct ReequipStat { std::string item; int qty; std::wstring craft; };
+
+struct RecoveryItem { std::string name; int value; };
 
 /**
  * Debriefing screen shown after a Battlescape
@@ -59,23 +62,27 @@ private:
 	TextList *_lstStats, *_lstRecovery, *_lstTotal;
 	std::vector<ReequipStat> _missingItems;
 	std::map<RuleItem*, int> _rounds;
+	std::map<int, RecoveryItem*> _recoveryStats;
+	bool _positiveScore, _noContainment, _manageContainment, _destroyBase;
+	int _limitsEnforced;
 	/// Adds to the debriefing stats.
 	void addStat(const std::string &name, int quantity, int score);
 	/// Prepares debriefing.
 	void prepareDebriefing();
 	/// Recovers items from the battlescape.
 	void recoverItems(std::vector<BattleItem*> *from, Base *base);
+	/// Recovers an alien from the battlescape.
+	void recoverAlien(BattleUnit *from, Base *base);
 	/// Reequips a craft after a mission.
 	void reequipCraft(Base *base, Craft *craft, bool vehicleItemsCanBeDestroyed);
-	bool _noContainment, _manageContainment, _destroyBase;
-	int _limitsEnforced;
 public:
 	/// Creates the Debriefing state.
-	DebriefingState(Game *game);
+	DebriefingState();
 	/// Cleans up the Debriefing state.
 	~DebriefingState();
 	/// Handler for clicking the OK button.
 	void btnOkClick(Action *action);
+	void init();
 };
 
 }

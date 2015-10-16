@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -20,7 +20,6 @@
 #define OPENXCOM_NEWGAMESTATE_H
 
 #include "../Engine/State.h"
-#include "../Savegame/SavedGame.h"
 
 namespace OpenXcom
 {
@@ -46,13 +45,13 @@ private:
 	Text *_txtTitle, *_txtIronman;
 public:
 	/// Creates the New Game state.
-	NewGameState(Game *game);
+	NewGameState();
 	/// Cleans up the New Game state.
 	~NewGameState();
 	/// Handler for clicking the Ok button.
-	void btnOkClick(Action *);
+	void btnOkClick(Action *action);
 	/// Handler for clicking the Cancel button.
-	void btnCancelClick(Action *);
+	void btnCancelClick(Action *action);
 };
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -19,7 +19,7 @@
 #include "Window.h"
 #include <SDL.h>
 #include <SDL_mixer.h>
-#include "../aresame.h"
+#include "../fmath.h"
 #include "../Engine/Timer.h"
 #include "../Engine/Sound.h"
 #include "../Engine/RNG.h"
@@ -29,7 +29,7 @@ namespace OpenXcom
 
 const double Window::POPUP_SPEED = 0.05;
 
-Sound *Window::soundPopup[3] = {0, 0, 0};
+Sound *Window::soundPopup[3];
 
 /**
  * Sets up a blank window with the specified size and position.
@@ -131,7 +131,7 @@ void Window::popup()
 {
 	if (AreSame(_popupStep, 0.0))
 	{
-		int sound = RNG::generate(0, 2);
+		int sound = RNG::seedless(0,2);
 		if (soundPopup[sound] != 0)
 		{
 			soundPopup[sound]->play(Mix_GroupAvailable(0));

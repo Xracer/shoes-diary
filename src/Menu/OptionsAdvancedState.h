@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -37,7 +37,6 @@ class OptionsAdvancedState : public OptionsBaseState
 {
 private:
 	TextList *_lstOptions;
-	size_t _boolQuantity;
 	Uint8 _colorGroup;
 	std::vector<OptionInfo> _settingsGeneral, _settingsGeo, _settingsBattle;
 
@@ -45,7 +44,7 @@ private:
 	OptionInfo *getSetting(size_t sel);
 public:
 	/// Creates the Advanced state.
-	OptionsAdvancedState(Game *game, OptionsOrigin origin);
+	OptionsAdvancedState(OptionsOrigin origin);
 	/// Cleans up the Advanced state.
 	~OptionsAdvancedState();
 	/// Fills settings list.

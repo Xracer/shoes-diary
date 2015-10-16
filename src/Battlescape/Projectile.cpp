@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -20,56 +20,81 @@
 #include <cmath>
 #include "Projectile.h"
 #include "TileEngine.h"
-#include "../aresame.h"
+#include "Map.h"
+#include "Camera.h"
+#include "Particle.h"
 #include "../Engine/SurfaceSet.h"
 #include "../Engine/Surface.h"
-#include "../Resource/ResourcePack.h"
-#include "../Ruleset/Unit.h"
-#include "../Ruleset/RuleSoldier.h"
-#include "../Ruleset/RuleItem.h"
-#include "../Ruleset/MapData.h"
+#include "../Mod/Mod.h"
+#include "../Mod/RuleItem.h"
+#include "../Mod/MapData.h"
 #include "../Savegame/BattleUnit.h"
 #include "../Savegame/BattleItem.h"
-#include "../Savegame/Soldier.h"
 #include "../Savegame/SavedBattleGame.h"
 #include "../Savegame/Tile.h"
 #include "../Engine/RNG.h"
 #include "../Engine/Options.h"
-#include "../Ruleset/Armor.h"
-#include "../Engine/Game.h"
 
 namespace OpenXcom
 {
 
 /**
  * Sets up a UnitSprite with the specified size and position.
- * @param res Pointer to resourcepack.
+ * @param mod Pointer to mod.
  * @param save Pointer to battlesavegame.
  * @param action An action.
  * @param origin Position the projectile originates from.
+ * @param targetVoxel Position the projectile is targeting.
+ * @param ammo the ammo that produced this projectile, where applicable.
  */
-Projectile::Projectile(ResourcePack *res, SavedBattleGame *save, BattleAction action, Position origin, Position targetVoxel) : _res(res), _save(save), _action(action), _origin(origin), _targetVoxel(targetVoxel), _position(0)
+Projectile::Projectile(Mod *mod, SavedBattleGame *save, BattleAction action, Position origin, Position targetVoxel, BattleItem *ammo) : _mod(mod), _save(save), _action(action), _origin(origin), _targetVoxel(targetVoxel), _position(0), _bulletSprite(-1), _reversed(false), _vaporColor(-1), _vaporDensity(-1), _vaporProbability(5)
 {
 	// this is the number of pixels the sprite will move between frames
 	_speed = Options::battleFireSpeed;
-
 	if (_action.weapon)
 	{
 		if (_action.type == BA_THROW)
 		{
-			_sprite = _res->getSurfaceSet("FLOOROB.PCK")->getFrame(getItem()->getRules()->getFloorSprite());
+			_sprite = _mod->getSurfaceSet("FLOOROB.PCK")->getFrame(getItem()->getRules()->getFloorSprite());
 		}
 		else
 		{
-			if (_action.weapon->getRules()->getBulletSpeed() != 0)
+			// try to get all the required info from the ammo, if present
+			if (ammo)
+			{
+				_bulletSprite = ammo->getRules()->getBulletSprite();
+				_vaporColor = ammo->getRules()->getVaporColor();
+				_vaporDensity = ammo->getRules()->getVaporDensity();
+				_vaporProbability = ammo->getRules()->getVaporProbability();
+				_speed = std::max(1, _speed + ammo->getRules()->getBulletSpeed());
+			}
+
+			// no ammo, or the ammo didn't contain the info we wanted, see what the weapon has on offer.
+			if (_bulletSprite == -1)
+			{
+				_bulletSprite = _action.weapon->getRules()->getBulletSprite();
+			}
+			if (_vaporColor == -1)
+			{
+				_vaporColor = _action.weapon->getRules()->getVaporColor();
+			}
+			if (_vaporDensity == -1)
+			{
+				_vaporDensity = _action.weapon->getRules()->getVaporDensity();
+			}
+			if (_vaporProbability == 5)
+			{
+				_vaporProbability = _action.weapon->getRules()->getVaporProbability();
+			}
+			if (!ammo || (ammo != _action.weapon || ammo->getRules()->getBulletSpeed() == 0))
 			{
 				_speed = std::max(1, _speed + _action.weapon->getRules()->getBulletSpeed());
 			}
-			else if (_action.weapon->getAmmoItem() && _action.weapon->getAmmoItem()->getRules()->getBulletSpeed() != 0)
-			{
-				_speed = std::max(1, _speed + _action.weapon->getAmmoItem()->getRules()->getBulletSpeed());
-			}
 		}
+	}
+	if ((targetVoxel.x - origin.x) + (targetVoxel.y - origin.y) >= 0)
+	{
+		_reversed = true;
 	}
 }
 
@@ -113,7 +138,7 @@ int Projectile::calculateTrajectory(double accuracy, Position originVoxel)
 			hitPos = Position(hitPos.x, hitPos.y, hitPos.z-1);
 		}
 
-		if (hitPos != _action.target && _action.result == "")
+		if (hitPos != _action.target && _action.result.empty())
 		{
 			if (test == V_NORTHWALL)
 			{
@@ -169,7 +194,7 @@ int Projectile::calculateTrajectory(double accuracy, Position originVoxel)
 
 	// apply some accuracy modifiers.
 	// This will results in a new target voxel
-	applyAccuracy(originVoxel, &_targetVoxel, accuracy, false, targetTile, extendLine);
+	applyAccuracy(originVoxel, &_targetVoxel, accuracy, false, extendLine);
 
 	// finally do a line calculation and store this trajectory.
 	return _save->getTileEngine()->calculateLine(originVoxel, _targetVoxel, true, &_trajectory, bu);
@@ -190,7 +215,7 @@ int Projectile::calculateThrow(double accuracy)
 	if (_action.type != BA_THROW)
 	{
 		BattleUnit *tu = targetTile->getUnit();
-		if(!tu && _action.target.z > 0 && targetTile->hasNoFloor(0))
+		if (!tu && _action.target.z > 0 && targetTile->hasNoFloor(0))
 			tu = _save->getTile(_action.target - Position(0, 0, 1))->getUnit();
 		if (tu)
 		{
@@ -208,7 +233,7 @@ int Projectile::calculateThrow(double accuracy)
 		{
 			Position deltas = targetVoxel;
 			// apply some accuracy modifiers
-			applyAccuracy(originVoxel, &deltas, accuracy, true, _save->getTile(_action.target), false); //calling for best flavor
+			applyAccuracy(originVoxel, &deltas, accuracy, true, false); //calling for best flavor
 			deltas -= targetVoxel;
 			_trajectory.clear();
 			test = _save->getTileEngine()->calculateParabola(originVoxel, targetVoxel, true, &_trajectory, _action.actor, curvature, deltas);
@@ -221,8 +246,8 @@ int Projectile::calculateThrow(double accuracy)
 			// check if the item would land on a tile with a blocking object
 			if (_action.type == BA_THROW
 				&& endTile
-				&& endTile->getMapData(MapData::O_OBJECT)
-				&& endTile->getMapData(MapData::O_OBJECT)->getTUCost(MT_WALK) == 255)
+				&& endTile->getMapData(O_OBJECT)
+				&& endTile->getMapData(O_OBJECT)->getTUCost(MT_WALK) == 255)
 			{
 				test = V_OUTOFBOUNDS;
 			}
@@ -238,10 +263,9 @@ int Projectile::calculateThrow(double accuracy)
  * @param target Endpoint of the trajectory in voxels.
  * @param accuracy Accuracy modifier.
  * @param keepRange Whether range affects accuracy.
- * @param targetTile Tile of target. Default = 0.
  * @param extendLine should this line get extended to maximum distance?
  */
-void Projectile::applyAccuracy(const Position& origin, Position *target, double accuracy, bool keepRange, Tile *targetTile, bool extendLine)
+void Projectile::applyAccuracy(const Position& origin, Position *target, double accuracy, bool keepRange, bool extendLine)
 {
 	int xdiff = origin.x - target->x;
 	int ydiff = origin.y - target->y;
@@ -337,6 +361,10 @@ bool Projectile::move()
 			_position--;
 			return false;
 		}
+		if (_save->getDepth() > 0 && _vaporColor != -1 && _action.type != BA_THROW && RNG::percent(_vaporProbability))
+		{
+			addVaporCloud();
+		}
 	}
 	return true;
 }
@@ -362,10 +390,10 @@ Position Projectile::getPosition(int offset) const
  */
 int Projectile::getParticle(int i) const
 {
-	if (_action.weapon->getRules()->getBulletSprite() == -1)
-		return -1;
+	if (_bulletSprite != -1)
+		return _bulletSprite + i;
 	else
-		return _action.weapon->getRules()->getBulletSprite() + i;
+		return -1;
 }
 
 /**
@@ -395,7 +423,7 @@ Surface *Projectile::getSprite() const
  */
 void Projectile::skipTrajectory()
 {
-	_position = _trajectory.size() - 1;
+	while (move());
 }
 
 /**
@@ -418,5 +446,34 @@ Position Projectile::getOrigin()
 Position Projectile::getTarget()
 {
 	return _action.target;
+}
+
+/**
+ * Is this projectile drawn back to front or front to back?
+ * @return return if this is to be drawn in reverse order.
+ */
+bool Projectile::isReversed() const
+{
+	return _reversed;
+}
+
+/**
+ * adds a cloud of vapor at the projectile's current position.
+ */
+void Projectile::addVaporCloud()
+{
+	Tile *tile = _save->getTile(_trajectory.at(_position) / Position(16,16,24));
+	if (tile)
+	{
+		Position tilePos, voxelPos;
+		_save->getBattleGame()->getMap()->getCamera()->convertMapToScreen(_trajectory.at(_position) / Position(16,16,24), &tilePos);
+		tilePos += _save->getBattleGame()->getMap()->getCamera()->getMapOffset();
+		_save->getBattleGame()->getMap()->getCamera()->convertVoxelToScreen(_trajectory.at(_position), &voxelPos);
+		for (int i = 0; i != _vaporDensity; ++i)
+		{
+			Particle *particle = new Particle(voxelPos.x - tilePos.x + RNG::seedless(0, 4) - 2, voxelPos.y - tilePos.y + RNG::seedless(0, 4) - 2, RNG::seedless(48, 224), _vaporColor, RNG::seedless(32, 44));
+			tile->addParticle(particle);
+		}
+	}
 }
 }

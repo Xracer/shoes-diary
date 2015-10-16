@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -23,10 +23,11 @@
 #include <string>
 #include "../Battlescape/Position.h"
 #include "../Battlescape/BattlescapeGame.h"
-#include "../Ruleset/RuleItem.h"
-#include "../Ruleset/Unit.h"
-#include "../Ruleset/MapData.h"
+#include "../Mod/RuleItem.h"
+#include "../Mod/Unit.h"
+#include "../Mod/MapData.h"
 #include "Soldier.h"
+#include "BattleItem.h"
 
 namespace OpenXcom
 {
@@ -35,6 +36,7 @@ class Tile;
 class BattleItem;
 class Unit;
 class BattleAIState;
+class SavedBattleGame;
 class Node;
 class Surface;
 class RuleInventory;
@@ -45,7 +47,7 @@ class Language;
 class AlienBAIState;
 class CivilianBAIState;
 
-enum UnitStatus {STATUS_STANDING, STATUS_WALKING, STATUS_FLYING, STATUS_TURNING, STATUS_AIMING, STATUS_COLLAPSING, STATUS_DEAD, STATUS_UNCONSCIOUS, STATUS_PANICKING, STATUS_BERSERK};
+enum UnitStatus {STATUS_STANDING, STATUS_WALKING, STATUS_FLYING, STATUS_TURNING, STATUS_AIMING, STATUS_COLLAPSING, STATUS_DEAD, STATUS_UNCONSCIOUS, STATUS_PANICKING, STATUS_BERSERK, STATUS_IGNORE_ME};
 enum UnitFaction {FACTION_PLAYER, FACTION_HOSTILE, FACTION_NEUTRAL};
 enum UnitSide {SIDE_FRONT, SIDE_LEFT, SIDE_RIGHT, SIDE_REAR, SIDE_UNDER};
 enum UnitBodyPart {BODYPART_HEAD, BODYPART_TORSO, BODYPART_RIGHTARM, BODYPART_LEFTARM, BODYPART_RIGHTLEG, BODYPART_LEFTLEG};
@@ -58,6 +60,8 @@ enum UnitBodyPart {BODYPART_HEAD, BODYPART_TORSO, BODYPART_RIGHTARM, BODYPART_LE
 class BattleUnit
 {
 private:
+	static const int SPEC_WEAPON_MAX = 3;
+
 	UnitFaction _faction, _originalFaction;
 	UnitFaction _killedBy;
 	int _id;
@@ -78,11 +82,12 @@ private:
 	int _fatalWounds[6];
 	int _fire;
 	std::vector<BattleItem*> _inventory;
+	BattleItem* _specWeapon[SPEC_WEAPON_MAX];
 	BattleAIState *_currentAIState;
 	bool _visible;
 	Surface *_cache[5];
 	bool _cacheInvalid;
-	int _expBravery, _expReactions, _expFiring, _expThrowing, _expPsiSkill, _expMelee;
+	int _expBravery, _expReactions, _expFiring, _expThrowing, _expPsiSkill, _expPsiStrength, _expMelee;
 	int improveStat(int exp);
 	int _motionPoints;
 	int _kills;
@@ -112,11 +117,20 @@ private:
 	Unit *_unitRules;
 	int _rankInt;
 	int _turretType;
+	int _breathFrame;
+	bool _breathing;
+	bool _hidingForTurn, _floorAbove, _respawn;
+	MovementType _movementType;
+	std::vector<std::pair<Uint8, Uint8> > _recolor;
+
+	/// Helper function initing recolor vector.
+	void setRecolor(int basicLook, int utileLook, int rankLook);
 public:
 	static const int MAX_SOLDIER_ID = 1000000;
-	/// Creates a BattleUnit.
-	BattleUnit(Soldier *soldier, UnitFaction faction);
-	BattleUnit(Unit *unit, UnitFaction faction, int id, Armor *armor, int diff);
+	/// Creates a BattleUnit from solder.
+	BattleUnit(Soldier *soldier, int depth);
+	/// Creates a BattleUnit from unit.
+	BattleUnit(Unit *unit, UnitFaction faction, int id, Armor *armor, int diff, int depth);
 	/// Cleans up the BattleUnit.
 	~BattleUnit();
 	/// Loads the unit from YAML.
@@ -173,6 +187,8 @@ public:
 	void setCache(Surface *cache, int part = 0);
 	/// If this unit is cached on the battlescape.
 	Surface *getCache(bool *invalid, int part = 0) const;
+	/// Gets unit sprite recolors values.
+	const std::vector<std::pair<Uint8, Uint8> > &getRecolor() const;
 	/// Kneel down.
 	void kneel(bool kneeled);
 	/// Is kneeled?
@@ -209,6 +225,7 @@ public:
 	bool isOut() const;
 	/// Get the number of time units a certain action takes.
 	int getActionTUs(BattleActionType actionType, BattleItem *item);
+	int getActionTUs(BattleActionType actionType, RuleItem *item);
 	/// Spend time units if it can.
 	bool spendTimeUnits(int tu);
 	/// Spend energy if it can.
@@ -242,7 +259,7 @@ public:
 	/// Get the current reaction score.
 	double getReactionScore();
 	/// Prepare for a new turn.
-	void prepareNewTurn();
+	void prepareNewTurn(bool fullProcess = true);
 	/// Morale change
 	void moraleChange(int change);
 	/// Don't reselect this unit
@@ -293,8 +310,10 @@ public:
 	void addFiringExp();
 	/// Adds one to the throwing exp counter.
 	void addThrowingExp();
-	/// Adds one to the psi exp counter.
-	void addPsiExp();
+	/// Adds one to the psi skill exp counter.
+	void addPsiSkillExp();
+	/// Adds one to the psi strength exp counter.
+	void addPsiStrengthExp();
 	/// Adds one to the melee exp counter.
 	void addMeleeExp();
 	/// Updates the stats of a Geoscape soldier.
@@ -302,7 +321,7 @@ public:
 	/// Check if unit eligible for squaddie promotion.
 	bool postMissionProcedures(SavedGame *geoscape);
 	/// Get the sprite index for the minimap
-	int getMiniMapSpriteIndex () const;
+	int getMiniMapSpriteIndex() const;
 	/// Set the turret type. -1 is no turret.
 	void setTurretType(int turretType);
 	/// Get the turret type. -1 is no turret.
@@ -312,7 +331,7 @@ public:
 	/// Heal one fatal wound
 	void heal(int part, int woundAmount, int healthAmount);
 	/// Give pain killers to this unit
-	void painKillers ();
+	void painKillers();
 	/// Give stimulant to this unit
 	void stimulant (int energy, int stun);
 	/// Get motion points for the motion scanner.
@@ -322,7 +341,7 @@ public:
 	/// Gets the unit's name.
 	std::wstring getName(Language *lang, bool debugAppendId = false) const;
 	/// Gets the unit's stats.
-	UnitStats *getStats();
+	UnitStats *getBaseStats();
 	/// Get the unit's stand height.
 	int getStandHeight() const;
 	/// Get the unit's kneel height.
@@ -345,8 +364,10 @@ public:
 	int getAggression() const;
 	/// Get the units's special ability.
 	int getSpecialAbility() const;
-	/// Set the units's special ability.
-	void setSpecialAbility(SpecialAbility specab);
+	/// Set the units's respawn flag.
+	void setRespawn(bool respawn);
+	/// Get the units's respawn flag.
+	bool getRespawn();
 	/// Get the units's rank string.
 	std::string getRankString() const;
 	/// Get the geoscape-soldier object.
@@ -366,7 +387,7 @@ public:
 	/// Gets the unit's spawn unit.
 	std::string getSpawnUnit() const;
 	/// Sets the unit's spawn unit.
-	void setSpawnUnit(std::string spawnUnit);
+	void setSpawnUnit(const std::string &spawnUnit);
 	/// Gets the unit's aggro sound.
 	int getAggroSound() const;
 	/// Sets the unit's energy level.
@@ -386,7 +407,7 @@ public:
 	/// Set how many turns this unit will be exposed for.
 	void setTurnsSinceSpotted (int turns);
 	/// Set how many turns this unit will be exposed for.
-	int getTurnsSinceSpotted () const;
+	int getTurnsSinceSpotted() const;
 	/// Get this unit's original faction
 	UnitFaction getOriginalFaction() const;
 	/// call this after the default copy constructor deletes the cache?
@@ -394,8 +415,6 @@ public:
 
 	Unit *getUnitRules() const { return _unitRules; }
 
-	/// scratch value for AI's left hand to tell its right hand what's up...
-	bool _hidingForTurn; // don't zone out and start patrolling again
 	Position lastCover;
 	/// get the vector of units we've seen this turn.
 	std::vector<BattleUnit *> &getUnitsSpottedThisTurn();
@@ -419,6 +438,30 @@ public:
 	bool isSelectable(UnitFaction faction, bool checkReselect, bool checkInventory) const;
 	/// Does this unit have an inventory?
 	bool hasInventory() const;
+	/// Is this unit breathing and if so what frame?
+	int getBreathFrame() const;
+	/// Start breathing and/or update the breathing frame.
+	void breathe();
+	/// Set the flag for "floor above me" meaning stop rendering bubbles.
+	void setFloorAbove(bool floor);
+	/// Get the flag for "floor above me".
+	bool getFloorAbove();
+	/// Get any melee weapon we may be carrying, or a built in one.
+	BattleItem *getMeleeWeapon();
+	/// Use this function to check the unit's movement type.
+	MovementType getMovementType() const;
+	/// Checks if this unit is in hiding for a turn.
+	bool isHiding() {return _hidingForTurn; };
+	/// Sets this unit is in hiding for a turn (or not).
+	void setHiding(bool hiding) { _hidingForTurn = hiding; };
+	/// Puts the unit in the corner to think about what he's done.
+	void goToTimeOut();
+	/// Create special weapon for unit.
+	void setSpecialWeapon(SavedBattleGame *save, const Mod *mod);
+	/// Get special weapon.
+	BattleItem *getSpecialWeapon(BattleType type) const;
+	/// Recovers the unit's time units and energy.
+	void recoverTimeUnits();
 };
 
 }

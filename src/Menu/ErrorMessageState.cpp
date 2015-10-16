@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,8 +18,8 @@
  */
 #include "ErrorMessageState.h"
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Palette.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
@@ -38,7 +38,7 @@ namespace OpenXcom
  * @param bg Background image.
  * @param bgColor Background color (-1 for Battlescape).
  */
-ErrorMessageState::ErrorMessageState(Game *game, const std::string &id, SDL_Color *palette, Uint8 color, std::string bg, int bgColor) : State(game)
+ErrorMessageState::ErrorMessageState(const std::string &id, SDL_Color *palette, Uint8 color, const std::string &bg, int bgColor)
 {
 	create(id, L"", palette, color, bg, bgColor);
 }
@@ -52,7 +52,7 @@ ErrorMessageState::ErrorMessageState(Game *game, const std::string &id, SDL_Colo
  * @param bg Background image.
  * @param bgColor Background color (-1 for Battlescape).
  */
-ErrorMessageState::ErrorMessageState(Game *game, const std::wstring &msg, SDL_Color *palette, Uint8 color, std::string bg, int bgColor) : State(game)
+ErrorMessageState::ErrorMessageState(const std::wstring &msg, SDL_Color *palette, Uint8 color, const std::string &bg, int bgColor)
 {
 	create("", msg, palette, color, bg, bgColor);
 }
@@ -74,7 +74,7 @@ ErrorMessageState::~ErrorMessageState()
  * @param bg Background image.
  * @param bgColor Background color (-1 for Battlescape).
  */
-void ErrorMessageState::create(const std::string &str, const std::wstring &wstr, SDL_Color *palette, Uint8 color, std::string bg, int bgColor)
+void ErrorMessageState::create(const std::string &str, const std::wstring &wstr, SDL_Color *palette, Uint8 color, const std::string &bg, int bgColor)
 {
 	_screen = false;
 
@@ -86,7 +86,7 @@ void ErrorMessageState::create(const std::string &str, const std::wstring &wstr,
 	// Set palette
 	setPalette(palette);
 	if (bgColor != -1)
-		setPalette(_game->getResourcePack()->getPalette("BACKPALS.DAT")->getColors(Palette::blockOffset(bgColor)), Palette::backPos, 16);
+		setPalette(_game->getMod()->getPalette("BACKPALS.DAT")->getColors(Palette::blockOffset(bgColor)), Palette::backPos, 16);
 
 	add(_window);
 	add(_btnOk);
@@ -96,7 +96,7 @@ void ErrorMessageState::create(const std::string &str, const std::wstring &wstr,
 
 	// Set up objects
 	_window->setColor(color);
-	_window->setBackground(_game->getResourcePack()->getSurface(bg));
+	_window->setBackground(_game->getMod()->getSurface(bg));
 
 	_btnOk->setColor(color);
 	_btnOk->setText(tr("STR_OK"));

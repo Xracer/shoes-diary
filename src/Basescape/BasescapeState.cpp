@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,9 +18,8 @@
  */
 #include "BasescapeState.h"
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Options.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Text.h"
@@ -30,10 +29,9 @@
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Base.h"
 #include "../Savegame/BaseFacility.h"
-#include "../Ruleset/RuleBaseFacility.h"
+#include "../Mod/RuleBaseFacility.h"
 #include "../Savegame/Region.h"
-#include "../Ruleset/RuleRegion.h"
-#include "../Geoscape/GeoscapeState.h"
+#include "../Mod/RuleRegion.h"
 #include "../Menu/ErrorMessageState.h"
 #include "DismantleFacilityState.h"
 #include "../Geoscape/BuildNewBaseState.h"
@@ -51,6 +49,7 @@
 #include "TransferBaseState.h"
 #include "CraftInfoState.h"
 #include "../Geoscape/AllocatePsiTrainingState.h"
+#include "../Mod/RuleInterface.h"
 
 namespace OpenXcom
 {
@@ -61,7 +60,7 @@ namespace OpenXcom
  * @param base Pointer to the base to get info from.
  * @param globe Pointer to the Geoscape globe.
  */
-BasescapeState::BasescapeState(Game *game, Base *base, Globe *globe) : State(game), _base(base), _globe(globe)
+BasescapeState::BasescapeState(Base *base, Globe *globe) : _base(base), _globe(globe)
 {
 	// Create objects
 	_txtFacility = new Text(192, 9, 0, 0);
@@ -83,91 +82,73 @@ BasescapeState::BasescapeState(Game *game, Base *base, Globe *globe) : State(gam
 	_btnGeoscape = new TextButton(128, 12, 192, 188);
 
 	// Set palette
-	setPalette("PAL_BASESCAPE");
+	setInterface("basescape");
 
-	add(_view);
-	add(_mini);
-	add(_txtFacility);
-	add(_edtBase);
-	add(_txtLocation);
-	add(_txtFunds);
-	add(_btnNewBase);
-	add(_btnBaseInfo);
-	add(_btnSoldiers);
-	add(_btnCrafts);
-	add(_btnFacilities);
-	add(_btnResearch);
-	add(_btnManufacture);
-	add(_btnTransfer);
-	add(_btnPurchase);
-	add(_btnSell);
-	add(_btnGeoscape);
+	add(_view, "baseView", "basescape");
+	add(_mini, "miniBase", "basescape");
+	add(_txtFacility, "textTooltip", "basescape");
+	add(_edtBase, "text1", "basescape");
+	add(_txtLocation, "text2", "basescape");
+	add(_txtFunds, "text3", "basescape");
+	add(_btnNewBase, "button", "basescape");
+	add(_btnBaseInfo, "button", "basescape");
+	add(_btnSoldiers, "button", "basescape");
+	add(_btnCrafts, "button", "basescape");
+	add(_btnFacilities, "button", "basescape");
+	add(_btnResearch, "button", "basescape");
+	add(_btnManufacture, "button", "basescape");
+	add(_btnTransfer, "button", "basescape");
+	add(_btnPurchase, "button", "basescape");
+	add(_btnSell, "button", "basescape");
+	add(_btnGeoscape, "button", "basescape");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_view->setTexture(_game->getResourcePack()->getSurfaceSet("BASEBITS.PCK"));
+	_view->setTexture(_game->getMod()->getSurfaceSet("BASEBITS.PCK"));
 	_view->onMouseClick((ActionHandler)&BasescapeState::viewLeftClick, SDL_BUTTON_LEFT);
 	_view->onMouseClick((ActionHandler)&BasescapeState::viewRightClick, SDL_BUTTON_RIGHT);
 	_view->onMouseOver((ActionHandler)&BasescapeState::viewMouseOver);
 	_view->onMouseOut((ActionHandler)&BasescapeState::viewMouseOut);
-	_view->onKeyboardPress((ActionHandler)&BasescapeState::handleKeyPress);
 
-	_mini->setTexture(_game->getResourcePack()->getSurfaceSet("BASEBITS.PCK"));
+	_mini->setTexture(_game->getMod()->getSurfaceSet("BASEBITS.PCK"));
 	_mini->setBases(_game->getSavedGame()->getBases());
 	_mini->onMouseClick((ActionHandler)&BasescapeState::miniClick);
+	_mini->onKeyboardPress((ActionHandler)&BasescapeState::handleKeyPress);
 
-	_txtFacility->setColor(Palette::blockOffset(13)+10);
-
-	_edtBase->setColor(Palette::blockOffset(15)+1);
 	_edtBase->setBig();
 	_edtBase->onChange((ActionHandler)&BasescapeState::edtBaseChange);
 
-	_txtLocation->setColor(Palette::blockOffset(15)+6);
-
-	_txtFunds->setColor(Palette::blockOffset(13)+10);
-
-	_btnNewBase->setColor(Palette::blockOffset(13)+5);
 	_btnNewBase->setText(tr("STR_BUILD_NEW_BASE_UC"));
 	_btnNewBase->onMouseClick((ActionHandler)&BasescapeState::btnNewBaseClick);
 
-	_btnBaseInfo->setColor(Palette::blockOffset(13)+5);
 	_btnBaseInfo->setText(tr("STR_BASE_INFORMATION"));
 	_btnBaseInfo->onMouseClick((ActionHandler)&BasescapeState::btnBaseInfoClick);
 
-	_btnSoldiers->setColor(Palette::blockOffset(13)+5);
 	_btnSoldiers->setText(tr("STR_SOLDIERS_UC"));
 	_btnSoldiers->onMouseClick((ActionHandler)&BasescapeState::btnSoldiersClick);
 
-	_btnCrafts->setColor(Palette::blockOffset(13)+5);
 	_btnCrafts->setText(tr("STR_EQUIP_CRAFT"));
 	_btnCrafts->onMouseClick((ActionHandler)&BasescapeState::btnCraftsClick);
 
-	_btnFacilities->setColor(Palette::blockOffset(13)+5);
 	_btnFacilities->setText(tr("STR_BUILD_FACILITIES"));
 	_btnFacilities->onMouseClick((ActionHandler)&BasescapeState::btnFacilitiesClick);
 
-	_btnResearch->setColor(Palette::blockOffset(13)+5);
 	_btnResearch->setText(tr("STR_RESEARCH"));
 	_btnResearch->onMouseClick((ActionHandler)&BasescapeState::btnResearchClick);
 
-	_btnManufacture->setColor(Palette::blockOffset(13)+5);
 	_btnManufacture->setText(tr("STR_MANUFACTURE"));
 	_btnManufacture->onMouseClick((ActionHandler)&BasescapeState::btnManufactureClick);
 
-	_btnTransfer->setColor(Palette::blockOffset(13)+5);
 	_btnTransfer->setText(tr("STR_TRANSFER_UC"));
 	_btnTransfer->onMouseClick((ActionHandler)&BasescapeState::btnTransferClick);
 
-	_btnPurchase->setColor(Palette::blockOffset(13)+5);
 	_btnPurchase->setText(tr("STR_PURCHASE_RECRUIT"));
 	_btnPurchase->onMouseClick((ActionHandler)&BasescapeState::btnPurchaseClick);
 
-	_btnSell->setColor(Palette::blockOffset(13)+5);
 	_btnSell->setText(tr("STR_SELL_SACK_UC"));
 	_btnSell->onMouseClick((ActionHandler)&BasescapeState::btnSellClick);
 
-	_btnGeoscape->setColor(Palette::blockOffset(13)+5);
 	_btnGeoscape->setText(tr("STR_GEOSCAPE_UC"));
 	_btnGeoscape->onMouseClick((ActionHandler)&BasescapeState::btnGeoscapeClick);
 	_btnGeoscape->onKeyboardPress((ActionHandler)&BasescapeState::btnGeoscapeClick, Options::keyCancel);
@@ -254,7 +235,7 @@ void BasescapeState::setBase(Base *base)
 	else
 	{
 		// Use a blank base for special case when player has no bases
-		_base = new Base(_game->getRuleset());
+		_base = new Base(_game->getMod());
 		_mini->setSelectedBase(0);
 		_game->getSavedGame()->setSelectedBase(0);
 	}
@@ -266,9 +247,9 @@ void BasescapeState::setBase(Base *base)
  */
 void BasescapeState::btnNewBaseClick(Action *)
 {
-	Base *base = new Base(_game->getRuleset());
+	Base *base = new Base(_game->getMod());
 	_game->popState();
-	_game->pushState(new BuildNewBaseState(_game, base, _globe, false));
+	_game->pushState(new BuildNewBaseState(base, _globe, false));
 }
 
 /**
@@ -277,7 +258,7 @@ void BasescapeState::btnNewBaseClick(Action *)
  */
 void BasescapeState::btnBaseInfoClick(Action *)
 {
-	_game->pushState(new BaseInfoState(_game, _base, this));
+	_game->pushState(new BaseInfoState(_base, this));
 }
 
 /**
@@ -286,7 +267,7 @@ void BasescapeState::btnBaseInfoClick(Action *)
  */
 void BasescapeState::btnSoldiersClick(Action *)
 {
-	_game->pushState(new SoldiersState(_game, _base));
+	_game->pushState(new SoldiersState(_base));
 }
 
 /**
@@ -295,7 +276,7 @@ void BasescapeState::btnSoldiersClick(Action *)
  */
 void BasescapeState::btnCraftsClick(Action *)
 {
-	_game->pushState(new CraftsState(_game, _base));
+	_game->pushState(new CraftsState(_base));
 }
 
 /**
@@ -304,7 +285,7 @@ void BasescapeState::btnCraftsClick(Action *)
  */
 void BasescapeState::btnFacilitiesClick(Action *)
 {
-	_game->pushState(new BuildFacilitiesState(_game, _base, this));
+	_game->pushState(new BuildFacilitiesState(_base, this));
 }
 
 /**
@@ -313,7 +294,7 @@ void BasescapeState::btnFacilitiesClick(Action *)
  */
 void BasescapeState::btnResearchClick(Action *)
 {
-	_game->pushState(new ResearchState(_game, _base));
+	_game->pushState(new ResearchState(_base));
 }
 
 /**
@@ -322,7 +303,7 @@ void BasescapeState::btnResearchClick(Action *)
  */
 void BasescapeState::btnManufactureClick(Action *)
 {
-	_game->pushState(new ManufactureState(_game, _base));
+	_game->pushState(new ManufactureState(_base));
 }
 
 /**
@@ -331,7 +312,7 @@ void BasescapeState::btnManufactureClick(Action *)
  */
 void BasescapeState::btnPurchaseClick(Action *)
 {
-	_game->pushState(new PurchaseState(_game, _base));
+	_game->pushState(new PurchaseState(_base));
 }
 
 /**
@@ -340,7 +321,7 @@ void BasescapeState::btnPurchaseClick(Action *)
  */
 void BasescapeState::btnSellClick(Action *)
 {
-	_game->pushState(new SellState(_game, _base));
+	_game->pushState(new SellState(_base));
 }
 
 /**
@@ -349,7 +330,7 @@ void BasescapeState::btnSellClick(Action *)
  */
 void BasescapeState::btnTransferClick(Action *)
 {
-	_game->pushState(new TransferBaseState(_game, _base));
+	_game->pushState(new TransferBaseState(_base));
 }
 
 /**
@@ -373,16 +354,16 @@ void BasescapeState::viewLeftClick(Action *)
 		// Is facility in use?
 		if (fac->inUse())
 		{
-			_game->pushState(new ErrorMessageState(_game, "STR_FACILITY_IN_USE", _palette, Palette::blockOffset(15)+1, "BACK13.SCR", 6));
+			_game->pushState(new ErrorMessageState(tr("STR_FACILITY_IN_USE"), _palette, _game->getMod()->getInterface("basescape")->getElement("errorMessage")->color, "BACK13.SCR", _game->getMod()->getInterface("basescape")->getElement("errorPalette")->color));
 		}
 		// Would base become disconnected?
 		else if (!_base->getDisconnectedFacilities(fac).empty())
 		{
-			_game->pushState(new ErrorMessageState(_game, "STR_CANNOT_DISMANTLE_FACILITY", _palette, Palette::blockOffset(15)+1, "BACK13.SCR", 6));
+			_game->pushState(new ErrorMessageState(tr("STR_CANNOT_DISMANTLE_FACILITY"), _palette, _game->getMod()->getInterface("basescape")->getElement("errorMessage")->color, "BACK13.SCR", _game->getMod()->getInterface("basescape")->getElement("errorPalette")->color));
 		}
 		else
 		{
-			_game->pushState(new DismantleFacilityState(_game, _base, _view, fac));
+			_game->pushState(new DismantleFacilityState(_base, _view, fac));
 		}
 	}
 }
@@ -396,47 +377,47 @@ void BasescapeState::viewRightClick(Action *)
 	BaseFacility *f = _view->getSelectedFacility();
 	if (f == 0)
 	{
-		_game->pushState(new BaseInfoState(_game, _base, this));
+		_game->pushState(new BaseInfoState(_base, this));
 	}
 	else if (f->getRules()->getCrafts() > 0)
 	{
 		if (f->getCraft() == 0)
 		{
-			_game->pushState(new CraftsState(_game, _base));
+			_game->pushState(new CraftsState(_base));
 		}
 		else
 			for (size_t craft = 0; craft < _base->getCrafts()->size(); ++craft)
 			{
 				if (f->getCraft() == _base->getCrafts()->at(craft))
 				{
-					_game->pushState(new CraftInfoState(_game, _base, craft));
+					_game->pushState(new CraftInfoState(_base, craft));
 					break;
 				}
 			}
 	}
 	else if (f->getRules()->getStorage() > 0)
 	{
-		_game->pushState(new SellState(_game, _base));
+		_game->pushState(new SellState(_base));
 	}
 	else if (f->getRules()->getPersonnel() > 0)
 	{
-		_game->pushState(new SoldiersState(_game, _base));
+		_game->pushState(new SoldiersState(_base));
 	}
 	else if (f->getRules()->getPsiLaboratories() > 0 && Options::anytimePsiTraining && _base->getAvailablePsiLabs() > 0)
 	{
-		_game->pushState(new AllocatePsiTrainingState(_game, _base));
+		_game->pushState(new AllocatePsiTrainingState(_base));
 	}
 	else if (f->getRules()->getLaboratories() > 0)
 	{
-		_game->pushState(new ResearchState(_game, _base));
+		_game->pushState(new ResearchState(_base));
 	}
 	else if (f->getRules()->getWorkshops() > 0)
 	{
-		_game->pushState(new ManufactureState(_game, _base));
+		_game->pushState(new ManufactureState(_base));
 	}
 	else if (f->getRules()->getAliens() > 0)
 	{
-		_game->pushState(new ManageAlienContainmentState(_game, _base, OPT_GEOSCAPE));
+		_game->pushState(new ManageAlienContainmentState(_base, OPT_GEOSCAPE));
 	}
 	else if (f->getRules()->isLift() || f->getRules()->getRadarRange() > 0)
 	{
@@ -509,20 +490,15 @@ void BasescapeState::handleKeyPress(Action *action)
 			                 Options::keyBaseSelect6,
 			                 Options::keyBaseSelect7,
 			                 Options::keyBaseSelect8};
-		int base = -1;
 		int key = action->getDetails()->key.keysym.sym;
-		for (size_t i = 0; i < MiniBaseView::MAX_BASES; ++i)
+		for (size_t i = 0; i < _game->getSavedGame()->getBases()->size(); ++i)
 		{
 			if (key == baseKeys[i])
 			{
-				base = i;
+				_base = _game->getSavedGame()->getBases()->at(i);
+				init();
 				break;
 			}
-		}
-		if (base > -1 && base < _game->getSavedGame()->getBases()->size())
-		{
-			_base = _game->getSavedGame()->getBases()->at(base);
-			init();
 		}
 	}
 }
@@ -531,7 +507,7 @@ void BasescapeState::handleKeyPress(Action *action)
  * Changes the Base name.
  * @param action Pointer to an action.
  */
-void BasescapeState::edtBaseChange(Action *action)
+void BasescapeState::edtBaseChange(Action *)
 {
 	_base->setName(_edtBase->getText());
 }

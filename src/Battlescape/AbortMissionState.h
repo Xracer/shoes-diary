@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -37,14 +37,14 @@ class AbortMissionState : public State
 {
 private:
 	Window *_window;
-	Text *_txtInExit, *_txtOutsideExit, *_txtAbort;
+	Text *_txtInEntrance, *_txtInExit, *_txtOutside, *_txtAbort;
 	TextButton *_btnOk, *_btnCancel;
 	SavedBattleGame *_battleGame;
 	BattlescapeState *_state;
-	int _inExitArea, _outExitArea;
+	int _inEntrance, _inExit, _outside;
 public:
 	/// Creates the Abort Mission state.
-	AbortMissionState(Game *game, SavedBattleGame *battleGame, BattlescapeState *state);
+	AbortMissionState(SavedBattleGame *battleGame, BattlescapeState *state);
 	/// Cleans up the Abort Mission state.
 	~AbortMissionState();
 	/// Handler for clicking the OK button.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -45,7 +45,7 @@ private:
 	void lstManufactureClick(Action * action);
 public:
 	/// Creates the Manufacture state.
-	ManufactureState(Game *game, Base *base);
+	ManufactureState(Base *base);
 	/// Cleans up the Manufacture state.
 	~ManufactureState();
 	/// Handler for clicking the OK button.

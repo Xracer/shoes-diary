@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -47,13 +47,13 @@ private:
 	TextList *_lstDefenses;
 	Base *_base;
 	Ufo *_ufo;
-	int _thinkcycles, _row, _passes, _gravShields, _defenses, _attacks;
+	int _thinkcycles, _row, _passes, _gravShields, _defenses, _attacks, _explosionCount;
 	BaseDefenseActionType _action;
 	Timer *_timer;
 	GeoscapeState *_state;
 public:
 	/// Creates the Base Defense state.
-	BaseDefenseState(Game *game, Base *base, Ufo *ufo, GeoscapeState *state);
+	BaseDefenseState(Base *base, Ufo *ufo, GeoscapeState *state);
 	/// Cleans up the Base Defense state.
 	~BaseDefenseState();
 	/// Handle the Timer.

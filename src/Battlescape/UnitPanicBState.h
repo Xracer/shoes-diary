@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -34,6 +34,8 @@ class UnitPanicBState : public BattleState
 {
 private:
 	BattleUnit *_unit;
+	bool _berserking;
+	int _shotsFired;
 public:
 	/// Creates a new UnitPanicBState class
 	UnitPanicBState(BattlescapeGame *parent, BattleUnit *unit);
@@ -45,8 +47,6 @@ public:
 	void cancel();
 	/// Runs state functionality every cycle.
 	void think();
-	/// Gets the result of the state.
-	std::string getResult() const;
 };
 
 }

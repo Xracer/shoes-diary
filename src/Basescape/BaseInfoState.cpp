@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -20,9 +20,8 @@
 #include <sstream>
 #include "../Engine/Game.h"
 #include "../Engine/Action.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Options.h"
 #include "../Interface/Bar.h"
 #include "../Interface/TextButton.h"
@@ -46,7 +45,7 @@ namespace OpenXcom
  * @param base Pointer to the base to get info from.
  * @param state Pointer to the Basescape state.
  */
-BaseInfoState::BaseInfoState(Game *game, Base *base, BasescapeState *state) : State(game), _base(base), _state(state)
+BaseInfoState::BaseInfoState(Base *base, BasescapeState *state) : _base(base), _state(state)
 {
 	// Create objects
 	_bg = new Surface(320, 200, 0, 0);
@@ -102,59 +101,59 @@ BaseInfoState::BaseInfoState(Game *game, Base *base, BasescapeState *state) : St
 	_barLongRange = new Bar(150, 5, 166, Options::storageLimitsEnforced ? 169 : 165);
 
 	// Set palette
-	setPalette("PAL_BASESCAPE");
+	setInterface("baseInfo");
 
 	add(_bg);
-	add(_mini);
-	add(_btnOk);
-	add(_btnTransfers);
-	add(_btnStores);
-	add(_btnMonthlyCosts);
-	add(_edtBase);
+	add(_mini, "miniBase", "basescape");
+	add(_btnOk, "button", "baseInfo");
+	add(_btnTransfers, "button", "baseInfo");
+	add(_btnStores, "button", "baseInfo");
+	add(_btnMonthlyCosts, "button", "baseInfo");
+	add(_edtBase, "text1", "baseInfo");
 
-	add(_txtPersonnel);
-	add(_txtSoldiers);
-	add(_numSoldiers);
-	add(_barSoldiers);
-	add(_txtEngineers);
-	add(_numEngineers);
-	add(_barEngineers);
-	add(_txtScientists);
-	add(_numScientists);
-	add(_barScientists);
+	add(_txtPersonnel, "text1", "baseInfo");
+	add(_txtSoldiers, "text2", "baseInfo");
+	add(_numSoldiers, "numbers", "baseInfo");
+	add(_barSoldiers, "personnelBars", "baseInfo");
+	add(_txtEngineers, "text2", "baseInfo");
+	add(_numEngineers, "numbers", "baseInfo");
+	add(_barEngineers, "personnelBars", "baseInfo");
+	add(_txtScientists, "text2", "baseInfo");
+	add(_numScientists, "numbers", "baseInfo");
+	add(_barScientists, "personnelBars", "baseInfo");
 
-	add(_txtSpace);
-	add(_txtQuarters);
-	add(_numQuarters);
-	add(_barQuarters);
-	add(_txtStores);
-	add(_numStores);
-	add(_barStores);
-	add(_txtLaboratories);
-	add(_numLaboratories);
-	add(_barLaboratories);
-	add(_txtWorkshops);
-	add(_numWorkshops);
-	add(_barWorkshops);
+	add(_txtSpace, "text1", "baseInfo");
+	add(_txtQuarters, "text2", "baseInfo");
+	add(_numQuarters, "numbers", "baseInfo");
+	add(_barQuarters, "facilityBars", "baseInfo");
+	add(_txtStores, "text2", "baseInfo");
+	add(_numStores, "numbers", "baseInfo");
+	add(_barStores, "facilityBars", "baseInfo");
+	add(_txtLaboratories, "text2", "baseInfo");
+	add(_numLaboratories, "numbers", "baseInfo");
+	add(_barLaboratories, "facilityBars", "baseInfo");
+	add(_txtWorkshops, "text2", "baseInfo");
+	add(_numWorkshops, "numbers", "baseInfo");
+	add(_barWorkshops, "facilityBars", "baseInfo");
 	if (Options::storageLimitsEnforced)
 	{
-		add(_txtContainment);
-		add(_numContainment);
-		add(_barContainment);
+		add(_txtContainment, "text2", "baseInfo");
+		add(_numContainment, "numbers", "baseInfo");
+		add(_barContainment, "facilityBars", "baseInfo");
 	}
-	add(_txtHangars);
-	add(_numHangars);
-	add(_barHangars);
+	add(_txtHangars, "text2", "baseInfo");
+	add(_numHangars, "numbers", "baseInfo");
+	add(_barHangars, "facilityBars", "baseInfo");
 
-	add(_txtDefense);
-	add(_numDefense);
-	add(_barDefense);
-	add(_txtShortRange);
-	add(_numShortRange);
-	add(_barShortRange);
-	add(_txtLongRange);
-	add(_numLongRange);
-	add(_barLongRange);
+	add(_txtDefense, "text2", "baseInfo");
+	add(_numDefense, "numbers", "baseInfo");
+	add(_barDefense, "defenceBar", "baseInfo");
+	add(_txtShortRange, "text2", "baseInfo");
+	add(_numShortRange, "numbers", "baseInfo");
+	add(_barShortRange, "detectionBars", "baseInfo");
+	add(_txtLongRange, "text2", "baseInfo");
+	add(_numLongRange, "numbers", "baseInfo");
+	add(_barLongRange, "detectionBars", "baseInfo");
 
 	centerAllSurfaces();
 
@@ -165,9 +164,9 @@ BaseInfoState::BaseInfoState(Game *game, Base *base, BasescapeState *state) : St
 		ss << "ALT";
 	}
 	ss << "BACK07.SCR";
-	_game->getResourcePack()->getSurface(ss.str())->blit(_bg);
+	_game->getMod()->getSurface(ss.str())->blit(_bg);
 
-	_mini->setTexture(_game->getResourcePack()->getSurfaceSet("BASEBITS.PCK"));
+	_mini->setTexture(_game->getMod()->getSurfaceSet("BASEBITS.PCK"));
 	_mini->setBases(_game->getSavedGame()->getBases());
 	for (size_t i = 0; i < _game->getSavedGame()->getBases()->size(); ++i)
 	{
@@ -180,132 +179,77 @@ BaseInfoState::BaseInfoState(Game *game, Base *base, BasescapeState *state) : St
 	_mini->onMouseClick((ActionHandler)&BaseInfoState::miniClick);
 	_mini->onKeyboardPress((ActionHandler)&BaseInfoState::handleKeyPress);
 
-	_btnOk->setColor(Palette::blockOffset(15)+6);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&BaseInfoState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&BaseInfoState::btnOkClick, Options::keyCancel);
 
-	_btnTransfers->setColor(Palette::blockOffset(15)+6);
 	_btnTransfers->setText(tr("STR_TRANSFERS_UC"));
 	_btnTransfers->onMouseClick((ActionHandler)&BaseInfoState::btnTransfersClick);
 
-	_btnStores->setColor(Palette::blockOffset(15)+6);
 	_btnStores->setText(tr("STR_STORES_UC"));
 	_btnStores->onMouseClick((ActionHandler)&BaseInfoState::btnStoresClick);
 
-	_btnMonthlyCosts->setColor(Palette::blockOffset(15)+6);
 	_btnMonthlyCosts->setText(tr("STR_MONTHLY_COSTS"));
 	_btnMonthlyCosts->onMouseClick((ActionHandler)&BaseInfoState::btnMonthlyCostsClick);
 
-	_edtBase->setColor(Palette::blockOffset(15)+1);
 	_edtBase->setBig();
 	_edtBase->onChange((ActionHandler)&BaseInfoState::edtBaseChange);
-	
-	_txtPersonnel->setColor(Palette::blockOffset(15)+1);
+
 	_txtPersonnel->setText(tr("STR_PERSONNEL_AVAILABLE_PERSONNEL_TOTAL"));
 
-	_txtSoldiers->setColor(Palette::blockOffset(13)+5);
 	_txtSoldiers->setText(tr("STR_SOLDIERS"));
 
-	_numSoldiers->setColor(Palette::blockOffset(13));
-
-	_barSoldiers->setColor(Palette::blockOffset(1));
 	_barSoldiers->setScale(1.0);
 
-	_txtEngineers->setColor(Palette::blockOffset(13)+5);
 	_txtEngineers->setText(tr("STR_ENGINEERS"));
 
-	_numEngineers->setColor(Palette::blockOffset(13));
-
-	_barEngineers->setColor(Palette::blockOffset(1));
 	_barEngineers->setScale(1.0);
 
-	_txtScientists->setColor(Palette::blockOffset(13)+5);
 	_txtScientists->setText(tr("STR_SCIENTISTS"));
 
-	_numScientists->setColor(Palette::blockOffset(13));
-
-	_barScientists->setColor(Palette::blockOffset(1));
 	_barScientists->setScale(1.0);
 
 
-	_txtSpace->setColor(Palette::blockOffset(15)+1);
 	_txtSpace->setText(tr("STR_SPACE_USED_SPACE_AVAILABLE"));
 
-	_txtQuarters->setColor(Palette::blockOffset(13)+5);
 	_txtQuarters->setText(tr("STR_LIVING_QUARTERS_PLURAL"));
 
-	_numQuarters->setColor(Palette::blockOffset(13));
-
-	_barQuarters->setColor(Palette::blockOffset(3));
 	_barQuarters->setScale(0.5);
 
-	_txtStores->setColor(Palette::blockOffset(13)+5);
 	_txtStores->setText(tr("STR_STORES"));
 
-	_numStores->setColor(Palette::blockOffset(13));
-
-	_barStores->setColor(Palette::blockOffset(3));
 	_barStores->setScale(0.5);
 
-	_txtLaboratories->setColor(Palette::blockOffset(13)+5);
 	_txtLaboratories->setText(tr("STR_LABORATORIES"));
 
-	_numLaboratories->setColor(Palette::blockOffset(13));
-
-	_barLaboratories->setColor(Palette::blockOffset(3));
 	_barLaboratories->setScale(0.5);
 
-	_txtWorkshops->setColor(Palette::blockOffset(13)+5);
 	_txtWorkshops->setText(tr("STR_WORK_SHOPS"));
 
-	_numWorkshops->setColor(Palette::blockOffset(13));
-
-	_barWorkshops->setColor(Palette::blockOffset(3));
 	_barWorkshops->setScale(0.5);
 
 	if (Options::storageLimitsEnforced)
 	{
-		_txtContainment->setColor(Palette::blockOffset(13)+5);
 		_txtContainment->setText(tr("STR_ALIEN_CONTAINMENT"));
 
-		_numContainment->setColor(Palette::blockOffset(13));
-
-		_barContainment->setColor(Palette::blockOffset(3));
 		_barContainment->setScale(0.5);
 	}
 
-	_txtHangars->setColor(Palette::blockOffset(13)+5);
 	_txtHangars->setText(tr("STR_HANGARS"));
 
-	_numHangars->setColor(Palette::blockOffset(13));
-
-	_barHangars->setColor(Palette::blockOffset(3));
 	_barHangars->setScale(18.0);
 
 
-	_txtDefense->setColor(Palette::blockOffset(13)+5);
 	_txtDefense->setText(tr("STR_DEFENSE_STRENGTH"));
 
-	_numDefense->setColor(Palette::blockOffset(13));
-
-	_barDefense->setColor(Palette::blockOffset(2));
 	_barDefense->setScale(0.125);
 
-	_txtShortRange->setColor(Palette::blockOffset(13)+5);
 	_txtShortRange->setText(tr("STR_SHORT_RANGE_DETECTION"));
 
-	_numShortRange->setColor(Palette::blockOffset(13));
-
-	_barShortRange->setColor(Palette::blockOffset(8));
 	_barShortRange->setScale(25.0);
 
-	_txtLongRange->setColor(Palette::blockOffset(13)+5);
 	_txtLongRange->setText(tr("STR_LONG_RANGE_DETECTION"));
 
-	_numLongRange->setColor(Palette::blockOffset(13));
-
-	_barLongRange->setColor(Palette::blockOffset(8));
 	_barLongRange->setScale(25.0);
 }
 
@@ -419,46 +363,9 @@ void BaseInfoState::init()
  * Changes the base name.
  * @param action Pointer to an action.
  */
-void BaseInfoState::edtBaseChange(Action *action)
+void BaseInfoState::edtBaseChange(Action *)
 {
 	_base->setName(_edtBase->getText());
-}
-
-
-/**
- *  * Selects a new base to display.
- *   * @param action Pointer to an action.
- *    */
-void BaseInfoState::handleKeyPress(Action *action)
-{
-        if (action->getDetails()->type == SDL_KEYDOWN)
-	{
-		SDLKey baseKeys[] = {Options::keyBaseSelect1,
-				Options::keyBaseSelect2,
-				Options::keyBaseSelect3,
-				Options::keyBaseSelect4,
-				Options::keyBaseSelect5,
-				Options::keyBaseSelect6,
-				Options::keyBaseSelect7,
-				Options::keyBaseSelect8};
-		int base = -1;
-		int key = action->getDetails()->key.keysym.sym;
-		for (size_t i = 0; i < MiniBaseView::MAX_BASES; ++i)
-		{
-			if (key == baseKeys[i])
-			{
-				base = i;
-				break;
-			}
-		}
-		if (base > -1 && base < _game->getSavedGame()->getBases()->size())
-		{
-			_mini->setSelectedBase(base);
-			_base = _game->getSavedGame()->getBases()->at(base);
-			_state->setBase(_base);
-			init();
-		}
-	}
 }
 
 /**
@@ -478,6 +385,37 @@ void BaseInfoState::miniClick(Action *)
 }
 
 /**
+ * Selects a new base to display.
+ * @param action Pointer to an action.
+ */
+void BaseInfoState::handleKeyPress(Action *action)
+{
+	if (action->getDetails()->type == SDL_KEYDOWN)
+	{
+		SDLKey baseKeys[] = {Options::keyBaseSelect1,
+			                 Options::keyBaseSelect2,
+			                 Options::keyBaseSelect3,
+			                 Options::keyBaseSelect4,
+			                 Options::keyBaseSelect5,
+			                 Options::keyBaseSelect6,
+			                 Options::keyBaseSelect7,
+			                 Options::keyBaseSelect8};
+		int key = action->getDetails()->key.keysym.sym;
+		for (size_t i = 0; i < _game->getSavedGame()->getBases()->size(); ++i)
+		{
+			if (key == baseKeys[i])
+			{
+				_mini->setSelectedBase(i);
+				_base = _game->getSavedGame()->getBases()->at(i);
+				_state->setBase(_base);
+				init();
+				break;
+			}
+		}
+	}
+}
+
+/**
  * Returns to the previous screen.
  * @param action Pointer to an action.
  */
@@ -492,7 +430,7 @@ void BaseInfoState::btnOkClick(Action *)
  */
 void BaseInfoState::btnTransfersClick(Action *)
 {
-	_game->pushState(new TransfersState(_game, _base));
+	_game->pushState(new TransfersState(_base));
 }
 
 /**
@@ -501,7 +439,7 @@ void BaseInfoState::btnTransfersClick(Action *)
  */
 void BaseInfoState::btnStoresClick(Action *)
 {
-	_game->pushState(new StoresState(_game, _base));
+	_game->pushState(new StoresState(_base));
 }
 
 /**
@@ -510,7 +448,7 @@ void BaseInfoState::btnStoresClick(Action *)
  */
 void BaseInfoState::btnMonthlyCostsClick(Action *)
 {
-	_game->pushState(new MonthlyCostsState(_game, _base));
+	_game->pushState(new MonthlyCostsState(_base));
 }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -47,6 +47,7 @@ private:
 	bool _fromInventory, _mindProbe;
 
 	Surface *_bg;
+	InteractiveSurface *_exit;
 	Text *_txtName;
 
 	Text *_txtTimeUnits, *_txtEnergy, *_txtHealth, *_txtFatalWounds, *_txtBravery, *_txtMorale, *_txtReactions, *_txtFiring, *_txtThrowing, *_txtMelee, *_txtStrength;
@@ -62,7 +63,7 @@ private:
 	TextButton *_btnPrev, *_btnNext;
 public:
 	/// Creates the Unit Info state.
-	UnitInfoState(Game *game, BattleUnit *unit, BattlescapeState *parent, bool fromInventory, bool mindProbe);
+	UnitInfoState(BattleUnit *unit, BattlescapeState *parent, bool fromInventory, bool mindProbe);
 	/// Cleans up the Unit Info state.
 	~UnitInfoState();
 	/// Updates the unit info.
@@ -73,6 +74,8 @@ public:
 	void btnPrevClick(Action *action);
 	/// Handler for clicking the Next button.
 	void btnNextClick(Action *action);
+	/// Handler for exiting the state.
+	void exitClick(Action *action);
 };
 
 }

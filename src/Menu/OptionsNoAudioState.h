@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -35,7 +35,7 @@ private:
 	Text *_txtError;
 public:
 	/// Creates the Audio Options state.
-	OptionsNoAudioState(Game *game, OptionsOrigin origin);
+	OptionsNoAudioState(OptionsOrigin origin);
 	/// Cleans up the Audio Options state.
 	~OptionsNoAudioState();
 };

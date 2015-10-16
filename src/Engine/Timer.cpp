@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -19,7 +19,6 @@
 #include "Timer.h"
 #include "Game.h"
 #include "Options.h"
-#include <assert.h>
 
 namespace OpenXcom
 {
@@ -47,6 +46,7 @@ int Timer::maxFrameSkip = 8; // this is a pretty good default at 60FPS.
 /**
  * Initializes a new timer with a set interval.
  * @param interval Time interval in milliseconds.
+ * @param frameSkipping Use frameskipping.
  */
 Timer::Timer(Uint32 interval, bool frameSkipping) : _start(0), _interval(interval), _running(false), _frameSkipping(frameSkipping), _state(0), _surface(0)
 {
@@ -164,8 +164,10 @@ void Timer::onTimer(SurfaceHandler handler)
 	_surface = handler;
 }
 
-
-/// Sets frame skipping on or off
+/**
+ * Sets frame skipping on or off
+ * @param skip Enable frameskipping.
+ */
 void Timer::setFrameSkipping(bool skip)
 {
 	_frameSkipping = skip;

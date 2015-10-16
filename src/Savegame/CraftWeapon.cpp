@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,9 +17,9 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "CraftWeapon.h"
-#include "../Ruleset/RuleCraftWeapon.h"
-#include "../Ruleset/Ruleset.h"
-#include "../Ruleset/RuleItem.h"
+#include "../Mod/RuleCraftWeapon.h"
+#include "../Mod/Mod.h"
+#include "../Mod/RuleItem.h"
 #include "CraftWeaponProjectile.h"
 
 namespace OpenXcom
@@ -86,6 +86,7 @@ int CraftWeapon::getAmmo() const
 /**
  * Changes the ammo contained in this craft weapon.
  * @param ammo Weapon ammo.
+ * @return If the weapon ran out of ammo.
  */
 bool CraftWeapon::setAmmo(int ammo)
 {
@@ -129,30 +130,19 @@ void CraftWeapon::setRearming(bool rearming)
  */
 int CraftWeapon::rearm(const int available, const int clipSize)
 {
-	int used = 0;
+	int ammoUsed = _rules->getRearmRate();
 
 	if (clipSize > 0)
-	{
-		const int needed = std::max(1, (_rules->getAmmoMax() - _ammo) / clipSize);
-		used = std::min(_rules->getRearmRate() / clipSize, needed);
+	{	// +(clipSize - 1) correction for rounding up
+		int needed = std::min(_rules->getRearmRate(), _rules->getAmmoMax() - _ammo + clipSize - 1) / clipSize;
+		ammoUsed = ((needed > available)? available : needed) * clipSize;
 	}
 
-	if (available >= used)
-	{
-		setAmmo(_ammo + _rules->getRearmRate());
-	}
-	else
-	{
-		setAmmo(_ammo + (clipSize * available));
-	}
+	setAmmo(_ammo + ammoUsed);
 
-	if (_ammo >= _rules->getAmmoMax())
-	{
-		_ammo = _rules->getAmmoMax();
-		_rearming = false;
-	}
+	_rearming = _ammo < _rules->getAmmoMax();
 
-	return used;
+	return (clipSize <= 0)? 0 : ammoUsed / clipSize;
 }
 
 /*
@@ -172,13 +162,13 @@ CraftWeaponProjectile* CraftWeapon::fire() const
 
 /*
  * get how many clips are loaded into this weapon.
- * @param ruleset a pointer to the core ruleset.
+ * @param mod a pointer to the core mod.
  * @return number of clips loaded.
  */
-int CraftWeapon::getClipsLoaded(Ruleset *ruleset)
+int CraftWeapon::getClipsLoaded(Mod *mod)
 {
 	int retVal = (int)floor((double)_ammo / _rules->getRearmRate());
-	RuleItem *clip = ruleset->getItem(_rules->getClipItem());
+	RuleItem *clip = mod->getItem(_rules->getClipItem());
 
 	if (clip && clip->getClipSize() > 0)
 	{

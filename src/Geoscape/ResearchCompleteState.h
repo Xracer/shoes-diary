@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -37,11 +37,11 @@ class ResearchCompleteState : public State
 {
 	Window *_window;
 	Text *_txtTitle, *_txtResearch;
-    TextButton *_btnReport, *_btnOk;
+	TextButton *_btnReport, *_btnOk;
 	const RuleResearch * _research, * _bonus;
 public:
 	/// Creates the EndResearch state.
-	ResearchCompleteState(Game * game, const RuleResearch * research, const RuleResearch * bonus);
+	ResearchCompleteState(const RuleResearch * research, const RuleResearch * bonus);
 	/// Handler for clicking the OK button.
 	void btnOkClick(Action *action);
 	/// Handler for clicking the Report button.

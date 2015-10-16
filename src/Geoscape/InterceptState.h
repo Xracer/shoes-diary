@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -51,7 +51,7 @@ private:
 	std::vector<Craft*> _crafts;
 public:
 	/// Creates the Intercept state.
-	InterceptState(Game *game, Globe *globe, Base *base = 0, Target *target = 0);
+	InterceptState(Globe *globe, Base *base = 0, Target *target = 0);
 	/// Cleans up the Intercept state.
 	~InterceptState();
 	/// Handler for clicking the Cancel button.

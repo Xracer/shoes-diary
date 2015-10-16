@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -49,7 +49,7 @@ private:
 	Base *_base;
 public:
 	/// Creates the Psi Training state.
-	AllocatePsiTrainingState(Game *game, Base *base);
+	AllocatePsiTrainingState(Base *base);
 	/// Cleans up the Psi Training state.
 	~AllocatePsiTrainingState();
 	/// Handler for clicking the OK button.

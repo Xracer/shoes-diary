@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,23 +18,19 @@
  */
 
 #include "UnitWalkBState.h"
-#include "ProjectileFlyBState.h"
+#include "MeleeAttackBState.h"
 #include "TileEngine.h"
 #include "Pathfinding.h"
 #include "BattlescapeState.h"
 #include "Map.h"
 #include "Camera.h"
-#include "BattleAIState.h"
-#include "ExplosionBState.h"
-#include "../Engine/Game.h"
-#include "../Savegame/BattleItem.h"
 #include "../Savegame/BattleUnit.h"
 #include "../Savegame/SavedBattleGame.h"
 #include "../Savegame/Tile.h"
-#include "../Resource/ResourcePack.h"
+#include "../Mod/Mod.h"
 #include "../Engine/Sound.h"
 #include "../Engine/Options.h"
-#include "../Ruleset/Armor.h"
+#include "../Mod/Armor.h"
 #include "../Engine/Logger.h"
 #include "UnitFallBState.h"
 
@@ -43,6 +39,8 @@ namespace OpenXcom
 
 /**
  * Sets up an UnitWalkBState.
+ * @param parent Pointer to the Battlescape.
+ * @param action Pointer to an action.
  */
 UnitWalkBState::UnitWalkBState(BattlescapeGame *parent, BattleAction action) : BattleState(parent, action), _unit(0), _pf(0), _terrain(0), _falling(false), _beforeFirstStep(false), _numUnitsSpotted(0), _preMovementCost(0)
 {
@@ -82,7 +80,8 @@ void UnitWalkBState::init()
 void UnitWalkBState::think()
 {
 	bool unitSpotted = false;
-	bool onScreen = (_unit->getVisible() && _parent->getMap()->getCamera()->isOnScreen(_unit->getPosition()));
+	int size = _unit->getArmor()->getSize() - 1;
+	bool onScreen = (_unit->getVisible() && _parent->getMap()->getCamera()->isOnScreen(_unit->getPosition(), true, size, false));
 	if (_unit->isKneeled())
 	{
 		if (_parent->kneel(_unit))
@@ -114,8 +113,9 @@ void UnitWalkBState::think()
 		if ((_parent->getSave()->getTile(_unit->getDestination())->getUnit() == 0) || // next tile must be not occupied
 			(_parent->getSave()->getTile(_unit->getDestination())->getUnit() == _unit))
 		{
+			bool onScreenBoundary = (_unit->getVisible() && _parent->getMap()->getCamera()->isOnScreen(_unit->getPosition(), true, size, true));
+			_unit->keepWalking(tileBelow, onScreenBoundary); // advances the phase
 			playMovementSound();
-			_unit->keepWalking(tileBelow, onScreen); // advances the phase
 		}
 		else if (!_falling)
 		{
@@ -126,14 +126,13 @@ void UnitWalkBState::think()
 		// unit moved from one tile to the other, update the tiles
 		if (_unit->getPosition() != _unit->getLastPosition())
 		{
-			int size = _unit->getArmor()->getSize() - 1;
 			bool largeCheck = true;
 			for (int x = size; x >= 0; x--)
 			{
 				for (int y = size; y >= 0; y--)
 				{
 					Tile *otherTileBelow = _parent->getSave()->getTile(_unit->getPosition() + Position(x,y,-1));
-					if (!_parent->getSave()->getTile(_unit->getPosition() + Position(x,y,0))->hasNoFloor(otherTileBelow) || _unit->getArmor()->getMovementType() == MT_FLY)
+					if (!_parent->getSave()->getTile(_unit->getPosition() + Position(x,y,0))->hasNoFloor(otherTileBelow) || _unit->getMovementType() == MT_FLY)
 						largeCheck = false;
 					_parent->getSave()->getTile(_unit->getLastPosition() + Position(x,y,0))->setUnit(0);
 				}
@@ -145,13 +144,13 @@ void UnitWalkBState::think()
 					_parent->getSave()->getTile(_unit->getPosition() + Position(x,y,0))->setUnit(_unit, _parent->getSave()->getTile(_unit->getPosition() + Position(x,y,-1)));
 				}
 			}
-			_falling = largeCheck && _unit->getPosition().z != 0 && _unit->getTile()->hasNoFloor(tileBelow) && _unit->getArmor()->getMovementType() != MT_FLY && _unit->getWalkingPhase() == 0;
+			_falling = largeCheck && _unit->getPosition().z != 0 && _unit->getTile()->hasNoFloor(tileBelow) && _unit->getMovementType() != MT_FLY && _unit->getWalkingPhase() == 0;
 
 			if (_falling)
 			{
-				for (int x = _unit->getArmor()->getSize() - 1; x >= 0; --x)
+				for (int x = size; x >= 0; --x)
 				{
-					for (int y = _unit->getArmor()->getSize() - 1; y >= 0; --y)
+					for (int y = size; y >= 0; --y)
 					{
 						Tile *otherTileBelow = _parent->getSave()->getTile(_unit->getPosition() + Position(x,y,-1));
 						if (otherTileBelow && otherTileBelow->getUnit())
@@ -166,7 +165,7 @@ void UnitWalkBState::think()
 				}
 			}
 
-			if (!_parent->getMap()->getCamera()->isOnScreen(_unit->getPosition()) && _unit->getFaction() != FACTION_PLAYER && _unit->getVisible())
+			if (!_parent->getMap()->getCamera()->isOnScreen(_unit->getPosition(), true, size, false) && _unit->getFaction() != FACTION_PLAYER && _unit->getVisible())
 				_parent->getMap()->getCamera()->centerOnPosition(_unit->getPosition());
 			// if the unit changed level, camera changes level with
 			_parent->getMap()->getCamera()->setViewLevel(_unit->getPosition().z);
@@ -175,12 +174,25 @@ void UnitWalkBState::think()
 		// is the step finished?
 		if (_unit->getStatus() == STATUS_STANDING)
 		{
-			// if the unit burns floortiles, burn floortiles
-			if (_unit->getSpecialAbility() == SPECAB_BURNFLOOR)
+			// update the TU display
+			_parent->getSave()->getBattleState()->updateSoldierInfo();
+			// if the unit burns floortiles, burn floortiles as long as we're not falling
+			if (!_falling && (_unit->getSpecialAbility() == SPECAB_BURNFLOOR || _unit->getSpecialAbility() == SPECAB_BURN_AND_EXPLODE))
 			{
 				_unit->getTile()->ignite(1);
-				Position here = (_unit->getPosition() * Position(16,16,24)) + Position(8,8,-(_unit->getTile()->getTerrainLevel()));
-				_parent->getTileEngine()->hit(here, _unit->getStats()->strength, DT_IN, _unit);
+				Position posHere = _unit->getPosition();
+				Position voxelHere = (posHere * Position(16,16,24)) + Position(8,8,-(_unit->getTile()->getTerrainLevel()));
+				_parent->getTileEngine()->hit(voxelHere, _unit->getBaseStats()->strength, DT_IN, _unit);
+				
+				if (_unit->getPosition() != posHere) // ie: we burned a hole in the floor and fell through it
+				{
+					_action.TU = 0;
+					_pf->abortPath();
+					_unit->setCache(0);
+					_parent->getMap()->cacheUnit(_unit);
+					_parent->popState();
+					return;
+				}
 			}
 
 			// move our personal lighting with us
@@ -244,7 +256,7 @@ void UnitWalkBState::think()
 		if (unitSpotted && !_action.desperate && _unit->getCharging() == 0 && !_falling)
 		{
 			if (Options::traceAI) { Log(LOG_INFO) << "Uh-oh! Company!"; }
-			_unit->_hidingForTurn = false; // clearly we're not hidden now
+			_unit->setHiding(false); // clearly we're not hidden now
 			_parent->getMap()->cacheUnit(_unit);
 			postPathProcedures();
 			return;
@@ -346,17 +358,17 @@ void UnitWalkBState::think()
 				}
 				if (door == 0)
 				{
-					_parent->getResourcePack()->getSound("BATTLE.CAT", 3)->play(); // normal door
+					_parent->getMod()->getSoundByDepth(_parent->getDepth(), Mod::DOOR_OPEN)->play(-1, _parent->getMap()->getSoundAngle(_unit->getPosition())); // normal door
 				}
 				if (door == 1)
 				{
-					_parent->getResourcePack()->getSound("BATTLE.CAT", 20)->play(); // ufo door
+					_parent->getMod()->getSoundByDepth(_parent->getDepth(), Mod::SLIDING_DOOR_OPEN)->play(-1, _parent->getMap()->getSoundAngle(_unit->getPosition())); // ufo door
 					return; // don't start walking yet, wait for the ufo door to open
 				}
 			}
-			for (int x = _unit->getArmor()->getSize() - 1; x >= 0; --x)
+			for (int x = size; x >= 0; --x)
 			{
-				for (int y = _unit->getArmor()->getSize() - 1; y >= 0; --y)
+				for (int y = size; y >= 0; --y)
 				{
 					BattleUnit* unitInMyWay = _parent->getSave()->getTile(destination + Position(x,y,0))->getUnit();
 					BattleUnit* unitBelowMyWay = 0;
@@ -444,8 +456,9 @@ void UnitWalkBState::think()
 				_unit->spendTimeUnits(_preMovementCost);
 			}
 			if (Options::traceAI) { Log(LOG_INFO) << "Egads! A turn reveals new units! I must pause!"; }
-			_unit->_hidingForTurn = false; // not hidden, are we...
+			_unit->setHiding(false); // not hidden, are we...
 			_pf->abortPath();
+			_unit->abortTurn(); //revert to a standing state.
 			_unit->setCache(0);
 			_parent->getMap()->cacheUnit(_unit);
 			_parent->popState();
@@ -483,18 +496,18 @@ void UnitWalkBState::postPathProcedures()
 				BattleAction action;
 				action.actor = _unit;
 				action.target = _unit->getCharging()->getPosition();
-				action.weapon = _unit->getMainHandWeapon();
+				action.weapon = _unit->getMeleeWeapon();
 				action.type = BA_HIT;
 				action.TU = _unit->getActionTUs(action.type, action.weapon);
 				action.targeting = true;
 				_unit->setCharging(0);
-				_parent->statePushBack(new ProjectileFlyBState(_parent, action));
+				_parent->statePushBack(new MeleeAttackBState(_parent, action));
 			}
 		}
-		else if (_unit->_hidingForTurn)
+		else if (_unit->isHiding())
 		{
 			dir = _unit->getDirection() + 4;
-			_unit->_hidingForTurn = false;
+			_unit->setHiding(false);
 			_unit->dontReselect();
 		}
 		if (dir != -1)
@@ -542,14 +555,15 @@ void UnitWalkBState::setNormalWalkSpeed()
  */
 void UnitWalkBState::playMovementSound()
 {
-	if ((!_unit->getVisible() && !_parent->getSave()->getDebugMode()) || !_parent->getMap()->getCamera()->isOnScreen(_unit->getPosition())) return;
+	int size = _unit->getArmor()->getSize() - 1;
+	if ((!_unit->getVisible() && !_parent->getSave()->getDebugMode()) || !_parent->getMap()->getCamera()->isOnScreen(_unit->getPosition(), true, size, false)) return;
 
 	if (_unit->getMoveSound() != -1)
 	{
 		// if a sound is configured in the ruleset, play that one
 		if (_unit->getWalkingPhase() == 0)
 		{
-			_parent->getResourcePack()->getSound("BATTLE.CAT", _unit->getMoveSound())->play();
+			_parent->getMod()->getSoundByDepth(_parent->getDepth(), _unit->getMoveSound())->play(-1, _parent->getMap()->getSoundAngle(_unit->getPosition()));
 		}
 	}
 	else
@@ -561,17 +575,17 @@ void UnitWalkBState::playMovementSound()
 			// play footstep sound 1
 			if (_unit->getWalkingPhase() == 3)
 			{
-				if (tile->getFootstepSound(tileBelow))
+				if (tile->getFootstepSound(tileBelow) > -1)
 				{
-					_parent->getResourcePack()->getSound("BATTLE.CAT", 22 + (tile->getFootstepSound(tileBelow)*2))->play();
+					_parent->getMod()->getSoundByDepth(_parent->getDepth(), Mod::WALK_OFFSET + (tile->getFootstepSound(tileBelow)*2))->play(-1, _parent->getMap()->getSoundAngle(_unit->getPosition()));
 				}
 			}
 			// play footstep sound 2
 			if (_unit->getWalkingPhase() == 7)
 			{
-				if (tile->getFootstepSound(tileBelow))
+				if (tile->getFootstepSound(tileBelow) > -1)
 				{
-					_parent->getResourcePack()->getSound("BATTLE.CAT", 23 + (tile->getFootstepSound(tileBelow)*2))->play();
+					_parent->getMod()->getSoundByDepth(_parent->getDepth(), 1 + Mod::WALK_OFFSET + (tile->getFootstepSound(tileBelow)*2))->play(-1, _parent->getMap()->getSoundAngle(_unit->getPosition()));
 				}
 			}
 		}
@@ -580,7 +594,7 @@ void UnitWalkBState::playMovementSound()
 			// play default flying sound
 			if (_unit->getWalkingPhase() == 1 && !_falling)
 			{
-				_parent->getResourcePack()->getSound("BATTLE.CAT", 15)->play();
+				_parent->getMod()->getSoundByDepth(_parent->getDepth(), Mod::FLYING_SOUND)->play(-1, _parent->getMap()->getSoundAngle(_unit->getPosition()));
 			}
 		}
 	}

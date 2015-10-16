@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -47,11 +47,11 @@ private:
 	std::vector<RuleResearch *> _projects;
 public:
 	/// Creates the New research list state.
-	NewResearchListState(Game *game, Base *base);
+	NewResearchListState(Base *base);
 	/// Handler for clicking the OK button.
 	void btnOKClick(Action *action);
 	/// Fills the ResearchProject list with possible ResearchProjects.
-	void fillProjectList ();
+	void fillProjectList();
 	/// Initializes the state.
 	void init();
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -38,7 +38,7 @@ namespace OpenXcom
 	class ArticleStateItem : public ArticleState
 	{
 	public:
-		ArticleStateItem(Game *game, ArticleDefinitionItem *article_defs);
+		ArticleStateItem(ArticleDefinitionItem *article_defs);
 		virtual ~ArticleStateItem();
 
 	protected:

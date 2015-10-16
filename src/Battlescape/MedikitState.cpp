@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -20,19 +20,19 @@
 #include "MedikitView.h"
 #include "../Engine/InteractiveSurface.h"
 #include "../Engine/Game.h"
-#include "../Engine/Language.h"
-#include "../Engine/CrossPlatform.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Action.h"
 #include "../Engine/Palette.h"
 #include "../Interface/Text.h"
 #include "../Engine/Screen.h"
 #include "../Savegame/BattleItem.h"
 #include "../Savegame/BattleUnit.h"
-#include "../Ruleset/RuleItem.h"
-#include "../Resource/ResourcePack.h"
-#include <iostream>
+#include "../Mod/RuleItem.h"
+#include "../Mod/Mod.h"
 #include <sstream>
 #include "../Engine/Options.h"
+#include "../Savegame/SavedGame.h"
+#include "../Savegame/SavedBattleGame.h"
 
 namespace OpenXcom
 {
@@ -118,68 +118,65 @@ MedikitButton::MedikitButton(int y) : InteractiveSurface(30, 20, 190, y)
  * @param targetUnit The wounded unit.
  * @param action The healing action.
  */
-MedikitState::MedikitState (Game * game, BattleUnit * targetUnit, BattleAction *action) : State (game), _targetUnit(targetUnit), _action(action)
+MedikitState::MedikitState (BattleUnit *targetUnit, BattleAction *action) : _targetUnit(targetUnit), _action(action)
 {
+	if (Options::maximizeInfoScreens)
+	{
+		Options::baseXResolution = Screen::ORIGINAL_WIDTH;
+		Options::baseYResolution = Screen::ORIGINAL_HEIGHT;
+		_game->getScreen()->resetDisplay(false);
+	}
+
 	_unit = action->actor;
 	_item = action->weapon;
-	_surface = new InteractiveSurface(320, 200);
+	_bg = new Surface(320, 200);
 
 	// Set palette
-	setPalette("PAL_BATTLESCAPE");
+	_game->getSavedGame()->getSavedBattle()->setPaletteByDepth(this);
 
 	if (_game->getScreen()->getDY() > 50)
 	{
 		_screen = false;
-		SDL_Rect current;
-		current.w = 190;
-		current.h = 100;
-		current.x = 67;
-		current.y = 44;
-		_surface->drawRect(&current, Palette::blockOffset(15)+15);
+		_bg->drawRect(67, 44, 190, 100, Palette::blockOffset(15)+15);
 	}
 	_partTxt = new Text(62, 9, 82, 120);
 	_woundTxt = new Text(14, 9, 145, 120);
 	_medikitView = new MedikitView(52, 58, 95, 60, _game, _targetUnit, _partTxt, _woundTxt);
-	InteractiveSurface *endButton = new InteractiveSurface(20, 20,
-							       220, 140);
-
-	InteractiveSurface *stimulantButton = new MedikitButton(84);
-
-	InteractiveSurface *pkButton = new MedikitButton(48);
-	InteractiveSurface *healButton = new MedikitButton(120);
+	_endButton = new InteractiveSurface(20, 20, 220, 140);
+	_stimulantButton = new MedikitButton(84);
+	_pkButton = new MedikitButton(48);
+	_healButton = new MedikitButton(120);
 	_pkText = new MedikitTxt (52);
 	_stimulantTxt = new MedikitTxt (88);
 	_healTxt = new MedikitTxt (124);
-	add(_surface);
-	add(_medikitView);
-	add(endButton);
-	add(new MedikitTitle (37, tr("STR_PAIN_KILLER")));
-	add(new MedikitTitle (73, tr("STR_STIMULANT")));
-	add(new MedikitTitle (109, tr("STR_HEAL")));
-	add(healButton);
-	add(stimulantButton);
-	add(pkButton);
-	add(_pkText);
-	add(_stimulantTxt);
-	add(_healTxt);
-	add(_partTxt);
-	add(_woundTxt);
+	add(_bg);
+	add(_medikitView, "body", "medikit", _bg);
+	add(_endButton, "buttonEnd", "medikit", _bg);
+	add(new MedikitTitle (37, tr("STR_PAIN_KILLER")), "textPK", "medikit", _bg);
+	add(new MedikitTitle (73, tr("STR_STIMULANT")), "textStim", "medikit", _bg);
+	add(new MedikitTitle (109, tr("STR_HEAL")), "textHeal", "medikit", _bg);
+	add(_healButton, "buttonHeal", "medikit", _bg);
+	add(_stimulantButton, "buttonStim", "medikit", _bg);
+	add(_pkButton, "buttonPK", "medikit", _bg);
+	add(_pkText, "numPK", "medikit", _bg);
+	add(_stimulantTxt, "numStim", "medikit", _bg);
+	add(_healTxt, "numHeal", "medikit", _bg);
+	add(_partTxt, "textPart", "medikit", _bg);
+	add(_woundTxt, "numWounds", "medikit", _bg);
 
 	centerAllSurfaces();
 
-	_game->getResourcePack()->getSurface("MEDIBORD.PCK")->blit(_surface);
+	_game->getMod()->getSurface("MEDIBORD.PCK")->blit(_bg);
 	_pkText->setBig();
 	_stimulantTxt->setBig();
 	_healTxt->setBig();
-	_partTxt->setColor(Palette::blockOffset(2));
 	_partTxt->setHighContrast(true);
-	_woundTxt->setColor(Palette::blockOffset(2));
 	_woundTxt->setHighContrast(true);
-	endButton->onMouseClick((ActionHandler)&MedikitState::onEndClick);
-	endButton->onKeyboardPress((ActionHandler)&MedikitState::onEndClick, Options::keyCancel);
-	healButton->onMouseClick((ActionHandler)&MedikitState::onHealClick);
-	stimulantButton->onMouseClick((ActionHandler)&MedikitState::onStimulantClick);
-	pkButton->onMouseClick((ActionHandler)&MedikitState::onPainKillerClick);
+	_endButton->onMouseClick((ActionHandler)&MedikitState::onEndClick);
+	_endButton->onKeyboardPress((ActionHandler)&MedikitState::onEndClick, Options::keyCancel);
+	_healButton->onMouseClick((ActionHandler)&MedikitState::onHealClick);
+	_stimulantButton->onMouseClick((ActionHandler)&MedikitState::onStimulantClick);
+	_pkButton->onMouseClick((ActionHandler)&MedikitState::onPainKillerClick);
 	update();
 }
 
@@ -192,7 +189,7 @@ void MedikitState::handle(Action *action)
 	State::handle(action);
 	if (action->getDetails()->type == SDL_MOUSEBUTTONDOWN && action->getDetails()->button.button == SDL_BUTTON_RIGHT)
 	{
-		_game->popState();
+		onEndClick(0);
 	}
 }
 
@@ -202,6 +199,11 @@ void MedikitState::handle(Action *action)
  */
 void MedikitState::onEndClick(Action *)
 {
+	if (Options::maximizeInfoScreens)
+	{
+		Screen::updateScale(Options::battlescapeScale, Options::battlescapeScale, Options::baseXBattlescape, Options::baseYBattlescape, true);
+		_game->getScreen()->resetDisplay(false);
+	}
 	_game->popState();
 }
 
@@ -233,7 +235,7 @@ void MedikitState::onHealClick(Action *)
 	else
 	{
 		_action->result = "STR_NOT_ENOUGH_TIME_UNITS";
-		_game->popState();
+		onEndClick(0);
 	}
 }
 
@@ -259,13 +261,13 @@ void MedikitState::onStimulantClick(Action *)
 		if (_targetUnit->getStatus() == STATUS_UNCONSCIOUS && _targetUnit->getStunlevel() < _targetUnit->getHealth() && _targetUnit->getHealth() > 0)
 		{
 			_targetUnit->setTimeUnits(0);
-			_game->popState();
+			onEndClick(0);
 		}
 	}
 	else
 	{
 		_action->result = "STR_NOT_ENOUGH_TIME_UNITS";
-		_game->popState();
+		onEndClick(0);
 	}
 }
 
@@ -290,7 +292,7 @@ void MedikitState::onPainKillerClick(Action *)
 	else
 	{
 		_action->result = "STR_NOT_ENOUGH_TIME_UNITS";
-		_game->popState();
+		onEndClick(0);
 	}
 }
 
@@ -302,6 +304,7 @@ void MedikitState::update()
 	_pkText->setText(toString(_item->getPainKillerQuantity()));
 	_stimulantTxt->setText(toString(_item->getStimulantQuantity()));
 	_healTxt->setText(toString(_item->getHealQuantity()));
+	_medikitView->invalidate();
 }
 
 }

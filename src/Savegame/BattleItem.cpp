@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -19,8 +19,8 @@
 #include "BattleItem.h"
 #include "BattleUnit.h"
 #include "Tile.h"
-#include "../Ruleset/RuleItem.h"
-#include "../Ruleset/RuleInventory.h"
+#include "../Mod/RuleItem.h"
+#include "../Mod/RuleInventory.h"
 
 namespace OpenXcom
 {
@@ -30,24 +30,24 @@ namespace OpenXcom
  * @param rules Pointer to ruleset.
  * @param id The id of the item.
  */
-BattleItem::BattleItem(RuleItem *rules, int *id) : _id(*id), _rules(rules), _owner(0), _previousOwner(0), _unit(0), _tile(0), _inventorySlot(0), _inventoryX(0), _inventoryY(0), _ammoItem(0), _fuseTimer(-1), _ammoQuantity(0), _painKiller(0), _heal(0), _stimulant(0), _XCOMProperty(false), _droppedOnAlienTurn(false)
+BattleItem::BattleItem(RuleItem *rules, int *id) : _id(*id), _rules(rules), _owner(0), _previousOwner(0), _unit(0), _tile(0), _inventorySlot(0), _inventoryX(0), _inventoryY(0), _ammoItem(0), _fuseTimer(-1), _ammoQuantity(0), _painKiller(0), _heal(0), _stimulant(0), _XCOMProperty(false), _droppedOnAlienTurn(false), _isAmmo(false)
 {
-	if (_rules && _rules->getBattleType() == BT_AMMO)
-	{
-		setAmmoQuantity(_rules->getClipSize());
-	} else if (_rules && _rules->getBattleType() == BT_MEDIKIT)
-	{
-		setHealQuantity (_rules->getHealQuantity ());
-		setPainKillerQuantity (_rules->getPainKillerQuantity ());
-		setStimulantQuantity (_rules->getStimulantQuantity ());
-	}
 	(*id)++;
-
-	// weapon does not need ammo, ammo item points to weapon
-	if (_rules && (_rules->getBattleType() == BT_FIREARM || _rules->getBattleType() == BT_MELEE) && _rules->getCompatibleAmmo()->empty())
+	if (_rules)
 	{
 		setAmmoQuantity(_rules->getClipSize());
-		_ammoItem = this;
+		if (_rules->getBattleType() == BT_MEDIKIT)
+		{
+			setHealQuantity (_rules->getHealQuantity());
+			setPainKillerQuantity (_rules->getPainKillerQuantity());
+			setStimulantQuantity (_rules->getStimulantQuantity());
+		}
+
+		// weapon does not need ammo, ammo item points to weapon
+		else if ((_rules->getBattleType() == BT_FIREARM || _rules->getBattleType() == BT_MELEE) && _rules->getCompatibleAmmo()->empty())
+		{
+			_ammoItem = this;
+		}
 	}
 }
 
@@ -90,6 +90,10 @@ YAML::Node BattleItem::save() const
 	else
 	{
 		node["owner"] = -1;
+	}
+	if (_previousOwner)
+	{
+		node["previousOwner"] = _previousOwner->getId();
 	}
 	if (_unit)
 	{
@@ -230,6 +234,15 @@ void BattleItem::setOwner(BattleUnit *owner)
 }
 
 /**
+ * Sets the item's previous owner.
+ * @param owner Pointer to Battleunit.
+ */
+void BattleItem::setPreviousOwner(BattleUnit *owner)
+{
+	_previousOwner = owner;
+}
+
+/**
  * Removes the item from the previous owner and moves it to the new owner.
  * @param owner Pointer to Battleunit.
  */
@@ -364,6 +377,10 @@ int BattleItem::setAmmoItem(BattleItem *item)
 
 	if (item == 0)
 	{
+		if (_ammoItem)
+		{
+			_ammoItem->setIsAmmo(false);
+		}
 		_ammoItem = 0;
 		return 0;
 	}
@@ -376,6 +393,7 @@ int BattleItem::setAmmoItem(BattleItem *item)
 		if (*i == item->getRules()->getType())
 		{
 			_ammoItem = item;
+			item->setIsAmmo(true);
 			return 0;
 		}
 	}
@@ -394,7 +412,7 @@ Tile *BattleItem::getTile() const
 
 /**
  * Sets the item's tile.
- * @param The tile.
+ * @param tile The tile.
  */
 void BattleItem::setTile(Tile *tile)
 {
@@ -421,7 +439,7 @@ BattleUnit *BattleItem::getUnit() const
 
 /**
  * Sets the corpse's unit.
- * @param Pointer to BattleUnit.
+ * @param unit Pointer to BattleUnit.
  */
 void BattleItem::setUnit(BattleUnit *unit)
 {
@@ -441,12 +459,12 @@ void BattleItem::setHealQuantity (int heal)
  * Gets the heal quantity of the item.
  * @return The new heal quantity.
  */
-int BattleItem::getHealQuantity () const
+int BattleItem::getHealQuantity() const
 {
 	return _heal;
 }
 
-/**.
+/**
  * Sets the pain killer quantity of the item.
  * @param pk The new pain killer quantity.
  */
@@ -459,7 +477,7 @@ void BattleItem::setPainKillerQuantity (int pk)
  * Gets the pain killer quantity of the item.
  * @return The new pain killer quantity.
  */
-int BattleItem::getPainKillerQuantity () const
+int BattleItem::getPainKillerQuantity() const
 {
 	return _painKiller;
 }
@@ -477,7 +495,7 @@ void BattleItem::setStimulantQuantity (int stimulant)
  * Gets the stimulant quantity of the item.
  * @return The new stimulant quantity.
  */
-int BattleItem::getStimulantQuantity () const
+int BattleItem::getStimulantQuantity() const
 {
 	return _stimulant;
 }
@@ -494,7 +512,7 @@ void BattleItem::setXCOMProperty (bool flag)
  * Gets the XCom property flag. This is to determine at debriefing what goes into the base/craft.
  * @return True if it's XCom property.
  */
-bool BattleItem::getXCOMProperty () const
+bool BattleItem::getXCOMProperty() const
 {
 	return _XCOMProperty;
 }
@@ -517,5 +535,35 @@ bool BattleItem::getTurnFlag() const
 void BattleItem::setTurnFlag(bool flag)
 {
 	_droppedOnAlienTurn = flag;
+}
+
+/**
+ * Converts an unconscious body into a dead one.
+ * @param rules the rules of the corpse item to convert this item into.
+ */
+void BattleItem::convertToCorpse(RuleItem *rules)
+{
+	if (_unit && _rules->getBattleType() == BT_CORPSE && rules->getBattleType() == BT_CORPSE)
+	{
+		_rules = rules;
+	}
+}
+
+/**
+ * Sets the flag on this item indicating whether or not it is a clip used in a weapon.
+ * @param ammo set the ammo flag to this.
+ */
+void BattleItem::setIsAmmo(bool ammo)
+{
+	_isAmmo = ammo;
+}
+
+/**
+ * Checks if this item is loaded into a weapon.
+ * @return if this is loaded into a weapon or not.
+ */
+bool BattleItem::isAmmo()
+{
+	return _isAmmo;
 }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,17 +18,12 @@
  */
 #include "OptionsControlsState.h"
 #include <SDL.h>
-#include "../Engine/Game.h"
 #include "../Engine/Options.h"
-#include "../Resource/ResourcePack.h"
 #include "../Engine/Language.h"
-#include "../Engine/Palette.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
-#include "../Interface/Text.h"
 #include "../Interface/TextList.h"
 #include "../Engine/Action.h"
-#include "../Engine/Logger.h"
 
 namespace OpenXcom
 {
@@ -38,20 +33,25 @@ namespace OpenXcom
  * @param game Pointer to the core game.
  * @param origin Game section that originated this state.
  */
-OptionsControlsState::OptionsControlsState(Game *game, OptionsOrigin origin) : OptionsBaseState(game, origin), _selected(-1), _selKey(0)
+OptionsControlsState::OptionsControlsState(OptionsOrigin origin) : OptionsBaseState(origin), _selected(-1), _selKey(0)
 {
 	setCategory(_btnControls);
 
 	// Create objects
 	_lstControls = new TextList(200, 136, 94, 8);	
-
-	add(_lstControls);
+	
+	if (origin != OPT_BATTLESCAPE)
+	{
+		add(_lstControls, "optionLists", "controlsMenu");
+	}
+	else
+	{
+		add(_lstControls, "optionLists", "battlescape");
+	}
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_lstControls->setColor(Palette::blockOffset(8)+10);
-	_lstControls->setArrowColor(Palette::blockOffset(8)+5);
 	_lstControls->setColumns(2, 152, 48);
 	_lstControls->setWordWrap(true);
 	_lstControls->setSelectable(true);
@@ -63,18 +63,9 @@ OptionsControlsState::OptionsControlsState(Game *game, OptionsOrigin origin) : O
 	_lstControls->onMouseIn((ActionHandler)&OptionsControlsState::txtTooltipIn);
 	_lstControls->onMouseOut((ActionHandler)&OptionsControlsState::txtTooltipOut);
 
-	if (origin != OPT_BATTLESCAPE)
-	{
-		_colorGroup = Palette::blockOffset(15) - 1;
-		_colorSel = Palette::blockOffset(8) + 5;
-		_colorNormal = Palette::blockOffset(8) + 10;
-	}
-	else
-	{
-		_colorGroup = Palette::blockOffset(1) - 1;
-		_colorSel = Palette::blockOffset(5) - 1;
-		_colorNormal = Palette::blockOffset(0) - 1;
-	}
+	_colorGroup = _lstControls->getSecondaryColor();
+	_colorSel = _lstControls->getScrollbarColor();
+	_colorNormal = _lstControls->getColor();
 
 	const std::vector<OptionInfo> &options = Options::getOptionInfo();
 	for (std::vector<OptionInfo>::const_iterator i = options.begin(); i != options.end(); ++i)
@@ -202,7 +193,7 @@ void OptionsControlsState::lstControlsClick(Action *action)
 	}
 	if (_selected != -1)
 	{
-		int selected = _selected;
+		unsigned int selected = _selected;
 		_lstControls->setCellColor(_selected, 0, _colorNormal);
 		_lstControls->setCellColor(_selected, 1, _colorNormal);
 		_selected = -1;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -20,9 +20,8 @@
 #include <sstream>
 #include <algorithm>
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
@@ -34,9 +33,8 @@
 #include "../Savegame/Craft.h"
 #include "../Savegame/CraftWeapon.h"
 #include "../Savegame/Vehicle.h"
-#include "../Ruleset/Ruleset.h"
-#include "../Ruleset/RuleItem.h"
-#include "../Ruleset/RuleCraftWeapon.h"
+#include "../Mod/RuleItem.h"
+#include "../Mod/RuleCraftWeapon.h"
 #include "GeoscapeState.h"
 #include "../Engine/Options.h"
 #include "../Basescape/BasescapeState.h"
@@ -49,7 +47,7 @@ namespace OpenXcom
  * @param game Pointer to the core game.
  * @param state Pointer to the Geoscape state.
  */
-ItemsArrivingState::ItemsArrivingState(Game *game, GeoscapeState *state) : State(game), _state(state), _base(0)
+ItemsArrivingState::ItemsArrivingState(GeoscapeState *state) : _state(state), _base(0)
 {
 	_screen = false;
 
@@ -64,49 +62,40 @@ ItemsArrivingState::ItemsArrivingState(Game *game, GeoscapeState *state) : State
 	_lstTransfers = new TextList(271, 112, 14, 50);
 
 	// Set palette
-	setPalette("PAL_GEOSCAPE", 6);
+	setInterface("itemsArriving");
 
-	add(_window);
-	add(_btnOk);
-	add(_btnGotoBase);
-	add(_txtTitle);
-	add(_txtItem);
-	add(_txtQuantity);
-	add(_txtDestination);
-	add(_lstTransfers);
+	add(_window, "window", "itemsArriving");
+	add(_btnOk, "button", "itemsArriving");
+	add(_btnGotoBase, "button", "itemsArriving");
+	add(_txtTitle, "text1", "itemsArriving");
+	add(_txtItem, "text1", "itemsArriving");
+	add(_txtQuantity, "text1", "itemsArriving");
+	add(_txtDestination, "text1", "itemsArriving");
+	add(_lstTransfers, "text2", "itemsArriving");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(8)+5);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK13.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK13.SCR"));
 
-	_btnOk->setColor(Palette::blockOffset(8)+5);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&ItemsArrivingState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&ItemsArrivingState::btnOkClick, Options::keyCancel);
 
-	_btnGotoBase->setColor(Palette::blockOffset(8)+5);
 	_btnGotoBase->setText(tr("STR_GO_TO_BASE"));
 	_btnGotoBase->onMouseClick((ActionHandler)&ItemsArrivingState::btnGotoBaseClick);
 	_btnGotoBase->onKeyboardPress((ActionHandler)&ItemsArrivingState::btnGotoBaseClick, Options::keyOk);
 
-	_txtTitle->setColor(Palette::blockOffset(8)+5);
 	_txtTitle->setBig();
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setText(tr("STR_ITEMS_ARRIVING"));
 
-	_txtItem->setColor(Palette::blockOffset(8)+5);
 	_txtItem->setText(tr("STR_ITEM"));
 
-	_txtQuantity->setColor(Palette::blockOffset(8)+5);
 	_txtQuantity->setText(tr("STR_QUANTITY_UC"));
 
-	_txtDestination->setColor(Palette::blockOffset(8)+5);
 	_txtDestination->setText(tr("STR_DESTINATION_UC"));
 
-	_lstTransfers->setColor(Palette::blockOffset(8)+10);
-	_lstTransfers->setArrowColor(Palette::blockOffset(8)+5);
 	_lstTransfers->setColumns(3, 155, 41, 98);
 	_lstTransfers->setSelectable(true);
 	_lstTransfers->setBackground(_window);
@@ -123,7 +112,7 @@ ItemsArrivingState::ItemsArrivingState(Game *game, GeoscapeState *state) : State
 				// Check if we have an automated use for an item
 				if ((*j)->getType() == TRANSFER_ITEM)
 				{
-					RuleItem *item = _game->getRuleset()->getItem((*j)->getItems());
+					RuleItem *item = _game->getMod()->getItem((*j)->getItems());
 					for (std::vector<Craft*>::iterator c = (*i)->getCrafts()->begin(); c != (*i)->getCrafts()->end(); ++c)
 					{
 						// Check if it's ammo to reload a craft
@@ -147,7 +136,7 @@ ItemsArrivingState::ItemsArrivingState(Game *game, GeoscapeState *state) : State
 								int used = std::min((*j)->getQuantity(), item->getClipSize() - (*v)->getAmmo());
 								(*v)->setAmmo((*v)->getAmmo() + used);
 								// Note that the items have already been delivered, so we remove them from the base, not the transfer
-								_base->getItems()->removeItem(item->getType(), used);
+								_base->getStorageItems()->removeItem(item->getType(), used);
 							}
 						}
 					}
@@ -193,7 +182,7 @@ void ItemsArrivingState::btnGotoBaseClick(Action *)
 {
 	_state->timerReset();
 	_game->popState();
-	_game->pushState(new BasescapeState(_game, _base, _state->getGlobe()));
+	_game->pushState(new BasescapeState(_base, _state->getGlobe()));
 }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,12 +18,14 @@
  */
 #include "ListLoadState.h"
 #include "../Engine/Game.h"
-#include "../Engine/Language.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Action.h"
 #include "../Interface/Text.h"
+#include "../Interface/TextButton.h"
 #include "../Interface/TextList.h"
 #include "ConfirmLoadState.h"
 #include "LoadGameState.h"
+#include "ListLoadOriginalState.h"
 
 namespace OpenXcom
 {
@@ -33,12 +35,29 @@ namespace OpenXcom
  * @param game Pointer to the core game.
  * @param origin Game section that originated this state.
  */
-ListLoadState::ListLoadState(Game *game, OptionsOrigin origin) : ListGamesState(game, origin, 0, true)
+ListLoadState::ListLoadState(OptionsOrigin origin) : ListGamesState(origin, 0, true)
 {
-	centerAllSurfaces();
+	// Create objects
+	_btnOld = new TextButton(80, 16, 60, 172);
+
+	add(_btnOld, "button", "saveMenus");
 	
 	// Set up objects
 	_txtTitle->setText(tr("STR_SELECT_GAME_TO_LOAD"));
+
+	if (origin != OPT_MENU)
+	{
+		_btnOld->setVisible(false);
+	}
+	else
+	{
+		_btnCancel->setX(180);
+	}
+
+	_btnOld->setText(tr("STR_ORIGINAL_XCOM"));
+	_btnOld->onMouseClick((ActionHandler)&ListLoadState::btnOldClick);
+
+	centerAllSurfaces();
 }
 
 /**
@@ -47,6 +66,15 @@ ListLoadState::ListLoadState(Game *game, OptionsOrigin origin) : ListGamesState(
 ListLoadState::~ListLoadState()
 {
 
+}
+
+/**
+ * Switches to Original X-Com saves.
+ * @param action Pointer to an action.
+ */
+void ListLoadState::btnOldClick(Action *)
+{
+	_game->pushState(new ListLoadOriginalState);
 }
 
 /**
@@ -59,9 +87,10 @@ void ListLoadState::lstSavesPress(Action *action)
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
 	{
 		bool confirm = false;
-		for (std::vector<std::string>::const_iterator i = _saves[_lstSaves->getSelectedRow()].rulesets.begin(); i != _saves[_lstSaves->getSelectedRow()].rulesets.end(); ++i)
+		const SaveInfo &saveInfo(_saves[_lstSaves->getSelectedRow()]);
+		for (std::vector<std::string>::const_iterator i = saveInfo.mods.begin(); i != saveInfo.mods.end(); ++i)
 		{
-			if (std::find(Options::rulesets.begin(), Options::rulesets.end(), *i) == Options::rulesets.end())
+			if (std::find(Options::mods.begin(), Options::mods.end(), std::pair<std::string, bool>(*i, true)) == Options::mods.end())
 			{
 				confirm = true;
 				break;
@@ -69,11 +98,11 @@ void ListLoadState::lstSavesPress(Action *action)
 		}
 		if (confirm)
 		{
-			_game->pushState(new ConfirmLoadState(_game, _origin, _saves[_lstSaves->getSelectedRow()].fileName));
+			_game->pushState(new ConfirmLoadState(_origin, saveInfo.fileName));
 		}
 		else
 		{
-			_game->pushState(new LoadGameState(_game, _origin, _saves[_lstSaves->getSelectedRow()].fileName));
+			_game->pushState(new LoadGameState(_origin, saveInfo.fileName, _palette));
 		}
 	}
 }

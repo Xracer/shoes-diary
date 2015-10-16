@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -19,6 +19,10 @@
 #include "RNG.h"
 #include <math.h>
 #include <time.h>
+#include <stdlib.h>
+#ifndef UINT64_MAX
+#define UINT64_MAX 0xffffffffffffffffULL
+#endif
 
 namespace OpenXcom
 {
@@ -44,22 +48,22 @@ uint64_t next()
 	x ^= x >> 12; // a
 	x ^= x << 25; // b
 	x ^= x >> 27; // c
-	return x * 2685821657736338717LL;
+	return x * 2685821657736338717ULL;
 }
 
 /**
-* Returns the current seed in use by the generator.
-* @return Current seed.
-*/
+ * Returns the current seed in use by the generator.
+ * @return Current seed.
+ */
 uint64_t getSeed()
 {
 	return x;
 }
 
 /**
-* Changes the current seed in use by the generator.
-* @param n New seed.
-*/
+ * Changes the current seed in use by the generator.
+ * @param n New seed.
+ */
 void setSeed(uint64_t n)
 {
 	x = n;
@@ -88,6 +92,19 @@ double generate(double min, double max)
 	double num = next();
 	return (double)(num / ((double)UINT64_MAX / (max - min)) + min);
 }
+
+/**
+ * Generates a random integer number within a certain range.
+ * Distinct from "generate" in that it doesn't touch the seed.
+ * @param min Minimum number, inclusive.
+ * @param max Maximum number, inclusive.
+ * @return Generated number.
+ */
+int seedless(int min, int max)
+{
+	return (int)(rand() % (max - min + 1) + min);
+}
+
 
 /**
  * Normal random variate generator
@@ -125,7 +142,7 @@ double boxMuller(double m, double s)
 }
 
 /**
- * Generates a random percent chance of an event occuring,
+ * Generates a random percent chance of an event occurring,
  * and returns the result
  * @param value Value percentage (0-100%)
  * @return True if the chance succeeded.

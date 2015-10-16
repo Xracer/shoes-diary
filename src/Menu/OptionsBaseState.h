@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -52,11 +52,11 @@ protected:
 	TextButton *_group;
 public:
 	/// Creates the Options state.
-	OptionsBaseState(Game *game, OptionsOrigin origin);
+	OptionsBaseState(OptionsOrigin origin);
 	/// Cleans up the Options state.
 	~OptionsBaseState();
 	/// Restarts the game states.
-	static void restart(Game *game, OptionsOrigin origin);
+	static void restart(OptionsOrigin origin);
 	/// Initializes palettes.
 	void init();
 	/// Presses a certain category button.
@@ -73,8 +73,6 @@ public:
 	void txtTooltipIn(Action *action);
 	/// Handler for hiding tooltip.
 	void txtTooltipOut(Action *action);
-	/// update the game scale as required.
-	static void updateScale(int &type, int selection, int &x, int &y, bool change);
 	/// Update the resolution settings, we just resized the window.
 	void resize(int &dX, int &dY);
 };

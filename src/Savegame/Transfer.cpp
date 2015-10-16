@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -22,7 +22,8 @@
 #include "Craft.h"
 #include "ItemContainer.h"
 #include "../Engine/Language.h"
-#include "../Ruleset/Ruleset.h"
+#include "../Mod/Mod.h"
+#include "../Mod/RuleSoldier.h"
 
 namespace OpenXcom
 {
@@ -31,7 +32,7 @@ namespace OpenXcom
  * Initializes a transfer.
  * @param hours Hours in-transit.
  */
-Transfer::Transfer(int hours) : _hours(hours), _soldier(0), _craft(0), _itemId(""), _itemQty(0), _scientists(0), _engineers(0), _delivered(false)
+Transfer::Transfer(int hours) : _hours(hours), _soldier(0), _craft(0), _itemQty(0), _scientists(0), _engineers(0), _delivered(false)
 {
 }
 
@@ -51,24 +52,34 @@ Transfer::~Transfer()
  * Loads the transfer from a YAML file.
  * @param node YAML node.
  * @param base Destination base.
- * @param rule Game ruleset.
+ * @param rule Game mod.
  * @param save Pointer to savegame.
+ * @return Was the transfer content valid?
  */
-bool Transfer::load(const YAML::Node& node, Base *base, const Ruleset *rule, SavedGame *save)
+bool Transfer::load(const YAML::Node& node, Base *base, const Mod *mod, SavedGame *save)
 {
 	_hours = node["hours"].as<int>(_hours);
 	if (const YAML::Node &soldier = node["soldier"])
 	{
-		_soldier = new Soldier(rule->getSoldier("XCOM"), rule->getArmor("STR_NONE_UC"));
-		_soldier->load(soldier, rule, save);
+		std::string type = soldier["type"].as<std::string>(mod->getSoldiersList().front());
+		if (mod->getSoldier(type) != 0)
+		{
+			_soldier = new Soldier(mod->getSoldier(type), 0);
+			_soldier->load(soldier, mod, save);
+		}
+		else
+		{
+			delete this;
+			return false;
+		}
 	}
 	if (const YAML::Node &craft = node["craft"])
 	{
 		std::string type = craft["type"].as<std::string>();
-		if (rule->getCraft(type) != 0)
+		if (mod->getCraft(type) != 0)
 		{
-			_craft = new Craft(rule->getCraft(type), base);
-			_craft->load(craft, rule, 0);
+			_craft = new Craft(mod->getCraft(type), base);
+			_craft->load(craft, mod, 0);
 		}
 		else
 		{
@@ -80,7 +91,7 @@ bool Transfer::load(const YAML::Node& node, Base *base, const Ruleset *rule, Sav
 	if (const YAML::Node &item = node["itemId"])
 	{
 		_itemId = item.as<std::string>(_itemId);
-		if (rule->getItem(_itemId) == 0)
+		if (mod->getItem(_itemId) == 0)
 		{
 			delete this;
 			return false;
@@ -298,7 +309,7 @@ void Transfer::advance(Base *base)
 		}
 		else if (_itemQty != 0)
 		{
-			base->getItems()->addItem(_itemId, _itemQty);
+			base->getStorageItems()->addItem(_itemId, _itemQty);
 		}
 		else if (_scientists != 0)
 		{
@@ -320,5 +331,4 @@ Soldier *Transfer::getSoldier()
 {
 	return _soldier;
 }
-
 }

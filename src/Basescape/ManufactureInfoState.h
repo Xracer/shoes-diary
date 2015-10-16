@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -28,6 +28,7 @@ class Window;
 class Text;
 class ArrowButton;
 class TextButton;
+class ToggleTextButton;
 class RuleManufacture;
 class Production;
 class Timer;
@@ -35,7 +36,7 @@ class InteractiveSurface;
 
 /**
  * Screen that allows changing of Production settings (assigned engineer, units to build).
-*/
+ */
 class ManufactureInfoState : public State
 {
 private:
@@ -46,6 +47,7 @@ private:
 	ArrowButton * _btnUnitUp, * _btnUnitDown, * _btnEngineerUp, * _btnEngineerDown;
 	TextButton * _btnStop, * _btnOk;
 	Text * _txtTitle, * _txtAvailableEngineer, * _txtAvailableSpace, * _txtAllocatedEngineer, * _txtUnitToProduce, * _txtUnitUp, * _txtUnitDown, * _txtEngineerUp, * _txtEngineerDown, * _txtAllocated, * _txtTodo;
+	ToggleTextButton *_btnSell;
 	Timer * _timerMoreEngineer, * _timerMoreUnit, * _timerLessEngineer, * _timerLessUnit;
 	InteractiveSurface *_surfaceEngineers, *_surfaceUnits;
 	/// Handler for the Stop button.
@@ -106,9 +108,11 @@ private:
 	void exitState();
 public:
 	/// Creates the State (new production).
-	ManufactureInfoState (Game * game, Base * base, RuleManufacture * _item);
+	ManufactureInfoState(Base * base, RuleManufacture * _item);
 	/// Creates the State (modify production).
-	ManufactureInfoState (Game * game, Base * base, Production * production);
+	ManufactureInfoState(Base * base, Production * production);
+	/// Cleans up the state
+	~ManufactureInfoState();
 };
 }
 #endif

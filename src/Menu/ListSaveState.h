@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef OPENXCOM__LISTSAVESTATE_H
-#define OPENXCOM__LISTSAVESTATE_H
+#ifndef OPENXCOM_LISTSAVESTATE_H
+#define OPENXCOM_LISTSAVESTATE_H
 
 #include <string>
 #include "ListGamesState.h"
@@ -41,7 +41,7 @@ private:
 	int _previousSelectedRow, _selectedRow;
 public:
 	/// Creates the Save Game state.
-	ListSaveState(Game *game, OptionsOrigin origin);
+	ListSaveState(OptionsOrigin origin);
 	/// Cleans up the Save Game state.
 	~ListSaveState();
 	/// Updates the savegame list.

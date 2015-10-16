@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -19,7 +19,8 @@
 #define _USE_MATH_DEFINES
 #include "MovingTarget.h"
 #include <cmath>
-#include "../aresame.h"
+#include "../fmath.h"
+#include "SerializationHelper.h"
 
 namespace OpenXcom
 {
@@ -73,9 +74,9 @@ YAML::Node MovingTarget::save() const
 	{
 		node["dest"] = _dest->saveId();
 	}
-	node["speedLon"] = _speedLon;
-	node["speedLat"] = _speedLat;
-	node["speedRadian"] = _speedRadian;
+	node["speedLon"] = serializeDouble(_speedLon);
+	node["speedLat"] = serializeDouble(_speedLat);
+	node["speedRadian"] = serializeDouble(_speedRadian);
 	node["speed"] = _speed;
 	return node;
 }

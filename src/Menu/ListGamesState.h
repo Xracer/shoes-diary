@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef OPENXCOM__LISTGAMESSTATE
-#define OPENXCOM__LISTGAMESSTATE
+#ifndef OPENXCOM_LISTGAMESSTATE_H
+#define OPENXCOM_LISTGAMESSTATE_H
 
 #include "../Engine/State.h"
 #include "OptionsBaseState.h"
@@ -48,15 +48,14 @@ protected:
 	TextList *_lstSaves;
 	ArrowButton *_sortName, *_sortDate;
 	OptionsOrigin _origin;
-	bool _showMsg, _noUI;
 	std::vector<SaveInfo> _saves;
-	int _firstValidRow;
+	unsigned int _firstValidRow;
 	bool _autoquick, _sortable;
 
 	void updateArrows();
 public:
 	/// Creates the Saved Game state.
-	ListGamesState(Game *game, OptionsOrigin origin, int firstValidRow, bool autoquick);
+	ListGamesState(OptionsOrigin origin, int firstValidRow, bool autoquick);
 	/// Cleans up the Saved Game state.
 	virtual ~ListGamesState();
 	/// Sets up the saves list.

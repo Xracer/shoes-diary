@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,13 +18,13 @@
  */
 #include "OptionsDefaultsState.h"
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
 #include "../Engine/Options.h"
+#include "../Savegame/SavedGame.h"
 
 namespace OpenXcom
 {
@@ -35,7 +35,7 @@ namespace OpenXcom
  * @param origin Game section that originated this state.
  * @param state Pointer to the base Options state.
  */
-OptionsDefaultsState::OptionsDefaultsState(Game *game, OptionsOrigin origin, OptionsBaseState *state) : State(game), _origin(origin), _state(state)
+OptionsDefaultsState::OptionsDefaultsState(OptionsOrigin origin, OptionsBaseState *state) : _origin(origin), _state(state)
 {
 	_screen = false;
 
@@ -46,37 +46,26 @@ OptionsDefaultsState::OptionsDefaultsState(Game *game, OptionsOrigin origin, Opt
 	_txtTitle = new Text(246, 32, 37, 70);
 
 	// Set palette
-	if (_origin == OPT_BATTLESCAPE)
-	{
-		setPalette("PAL_BATTLESCAPE");
-	}
-	else
-	{
-		setPalette("PAL_GEOSCAPE", 0);
-	}
+	setInterface("mainMenu", false, _game->getSavedGame() ? _game->getSavedGame()->getSavedBattle() : 0);
 
-	add(_window);
-	add(_btnYes);
-	add(_btnNo);
-	add(_txtTitle);
+	add(_window, "confirmDefaults", "mainMenu");
+	add(_btnYes, "confirmDefaults", "mainMenu");
+	add(_btnNo, "confirmDefaults", "mainMenu");
+	add(_txtTitle, "confirmDefaults", "mainMenu");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(8)+10);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK01.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK01.SCR"));
 
-	_btnYes->setColor(Palette::blockOffset(8)+10);
 	_btnYes->setText(tr("STR_YES"));
 	_btnYes->onMouseClick((ActionHandler)&OptionsDefaultsState::btnYesClick);
 	_btnYes->onKeyboardPress((ActionHandler)&OptionsDefaultsState::btnYesClick, Options::keyOk);
 
-	_btnNo->setColor(Palette::blockOffset(8)+10);
 	_btnNo->setText(tr("STR_NO"));
 	_btnNo->onMouseClick((ActionHandler)&OptionsDefaultsState::btnNoClick);
 	_btnNo->onKeyboardPress((ActionHandler)&OptionsDefaultsState::btnNoClick, Options::keyCancel);
 
-	_txtTitle->setColor(Palette::blockOffset(8)+10);
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setBig();
 	_txtTitle->setWordWrap(true);
@@ -102,12 +91,15 @@ OptionsDefaultsState::~OptionsDefaultsState()
  */
 void OptionsDefaultsState::btnYesClick(Action *action)
 {
-	if (_origin == OPT_MENU && Options::rulesets.size() > 1)
+	std::vector< std::pair<std::string, bool> > prevMods(Options::mods);
+	Options::resetDefault();
+	_game->defaultLanguage();
+
+	if (_origin == OPT_MENU && prevMods != Options::mods)
 	{
 		Options::reload = true;
 	}
-	Options::resetDefault();
-	_game->defaultLanguage();
+
 	_game->popState();
 	_state->btnOkClick(action);
 }

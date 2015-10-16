@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -49,13 +49,15 @@ private:
 	void setAssignedScientist();
 	ResearchProject * _project;
 	RuleResearch * _rule;
-	void buildUi ();
+	void buildUi();
 	Timer *_timerMore, *_timerLess;
 	InteractiveSurface *_surfaceScientists;
 public:
 	/// Creates the ResearchProject state.
-	ResearchInfoState(Game *game, Base *base, RuleResearch * rule);
-	ResearchInfoState(Game *game, Base *base, ResearchProject * project);
+	ResearchInfoState(Base *base, RuleResearch * rule);
+	ResearchInfoState(Base *base, ResearchProject * project);
+	/// Cleans up the ResearchInfo state
+	~ResearchInfoState();
 	/// Handler for clicking the OK button.
 	void btnOkClick(Action *action);
 	/// Handler for clicking the Cancel button.

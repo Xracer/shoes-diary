@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -54,9 +54,9 @@ BattlescapeMessage::~BattlescapeMessage()
 }
 
 /**
-* Changes the position of the surface in the X axis.
-* @param x X position in pixels.
-*/
+ * Changes the position of the surface in the X axis.
+ * @param x X position in pixels.
+ */
 void BattlescapeMessage::setX(int x)
 {
 	Surface::setX(x);
@@ -65,9 +65,9 @@ void BattlescapeMessage::setX(int x)
 }
 
 /**
-* Changes the position of the surface in the Y axis.
-* @param y Y position in pixels.
-*/
+ * Changes the position of the surface in the Y axis.
+ * @param y Y position in pixels.
+ */
 void BattlescapeMessage::setY(int y)
 {
 	Surface::setY(y);
@@ -129,6 +129,26 @@ void BattlescapeMessage::blit(Surface *surface)
 	Surface::blit(surface);
 	_window->blit(surface);
 	_text->blit(surface);
+}
+
+/*
+ * Special handling for setting the height of the battlescape message.
+ * @param height the new height.
+ */
+void BattlescapeMessage::setHeight(int height)
+{
+	Surface::setHeight(height);
+	_window->setHeight(height);
+	_text->setHeight(height);
+}
+
+/*
+ * Sets the text color of the battlescape message.
+ * @param color the new color.
+ */
+void BattlescapeMessage::setTextColor(Uint8 color)
+{
+	_text->setColor(color);
 }
 
 }

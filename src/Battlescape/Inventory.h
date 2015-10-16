@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -32,6 +32,7 @@ class WarningMessage;
 class BattleItem;
 class BattleUnit;
 class NumberText;
+class Timer;
 
 /**
  * Interactive view of an inventory.
@@ -46,10 +47,13 @@ private:
 	BattleUnit *_selUnit;
 	BattleItem *_selItem;
 	bool _tu, _base;
-	int _groundOffset;
+	BattleItem *_mouseOverItem;
+	int _groundOffset, _animFrame;
 	std::map<int, std::map<int, int> > _stackLevel;
+	std::vector<std::pair<int, int> > _grenadeIndicators;
 	NumberText *_stackNumber;
-
+	Timer *_animTimer;
+	int _depth;
 	/// Moves an item to a specified slot.
 	void moveItem(BattleItem *item, RuleInventory *slot, int x, int y);
 	/// Gets the slot in the specified position.
@@ -75,6 +79,10 @@ public:
 	BattleItem *getSelectedItem() const;
 	/// Sets the currently selected item.
 	void setSelectedItem(BattleItem *item);
+	/// Gets the mouse over item.
+	BattleItem *getMouseOverItem() const;
+	/// Sets the mouse over item.
+	void setMouseOverItem(BattleItem *item);
 	/// Handles timers.
 	void think();
 	/// Blits the inventory onto another surface.
@@ -93,6 +101,10 @@ public:
 	bool canBeStacked(BattleItem *itemA, BattleItem *itemB);
 	/// Checks for item overlap.
 	static bool overlapItems(BattleUnit *unit, BattleItem *item, RuleInventory *slot, int x = 0, int y = 0);
+	/// Shows a warning message.
+	void showWarning(const std::wstring &msg);
+	/// Show priming warnings on grenades.
+	void drawPrimers();
 };
 
 }

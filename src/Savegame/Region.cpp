@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,7 +17,7 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "Region.h"
-#include "../Ruleset/RuleRegion.h"
+#include "../Mod/RuleRegion.h"
 
 namespace OpenXcom
 {
@@ -73,6 +73,7 @@ RuleRegion *Region::getRules() const
 
 /**
  * Adds to the region's xcom activity level.
+ * @param activity Amount to add.
  */
 void Region::addActivityXcom(int activity)
 {
@@ -81,6 +82,7 @@ void Region::addActivityXcom(int activity)
 
 /**
  * Adds to the region's alien activity level.
+ * @param activity Amount to add.
  */
 void Region::addActivityAlien(int activity)
 {
@@ -91,7 +93,7 @@ void Region::addActivityAlien(int activity)
  * Gets the region's xcom activity level.
  * @return activity level.
  */
-const std::vector<int> &Region::getActivityXcom() const
+std::vector<int> &Region::getActivityXcom()
 {
 	return _activityXcom;
 }
@@ -100,18 +102,21 @@ const std::vector<int> &Region::getActivityXcom() const
  * Gets the region's alien activity level.
  * @return activity level.
  */
-const std::vector<int> &Region::getActivityAlien() const
+std::vector<int> &Region::getActivityAlien()
 {
 	return _activityAlien;
 }
 
+/**
+ * Store last month's counters, start new counters.
+ */
 void Region::newMonth()
 {
 	_activityAlien.push_back(0);
 	_activityXcom.push_back(0);
-	if(_activityAlien.size() > 12)
+	if (_activityAlien.size() > 12)
 		_activityAlien.erase(_activityAlien.begin());
-	if(_activityXcom.size() > 12)
+	if (_activityXcom.size() > 12)
 		_activityXcom.erase(_activityXcom.begin());
 }
 }

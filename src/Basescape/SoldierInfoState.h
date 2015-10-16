@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -55,7 +55,7 @@ private:
 	Bar *_barTimeUnits, *_barStamina, *_barHealth, *_barBravery, *_barReactions, *_barFiring, *_barThrowing, *_barMelee, *_barStrength, *_barPsiStrength, *_barPsiSkill;
 public:
 	/// Creates the Soldier Info state.
-	SoldierInfoState(Game *game, Base *base, size_t soldierId);
+	SoldierInfoState(Base *base, size_t soldierId);
 	/// Cleans up the Soldier Info state.
 	~SoldierInfoState();
 	/// Updates the soldier info.

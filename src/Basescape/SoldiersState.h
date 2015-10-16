@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -44,7 +44,7 @@ private:
 	Base *_base;
 public:
 	/// Creates the Soldiers state.
-	SoldiersState(Game *game, Base *base);
+	SoldiersState(Base *base);
 	/// Cleans up the Soldiers state.
 	~SoldiersState();
 	/// Updates the soldier names.

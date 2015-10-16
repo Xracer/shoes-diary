@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,18 +18,15 @@
  */
 
 #include <sstream>
-
-#include "Ufopaedia.h"
 #include "ArticleStateBaseFacility.h"
-#include "../Ruleset/ArticleDefinition.h"
-#include "../Ruleset/Ruleset.h"
-#include "../Ruleset/RuleBaseFacility.h"
+#include "../Mod/ArticleDefinition.h"
+#include "../Mod/Mod.h"
+#include "../Mod/RuleBaseFacility.h"
 #include "../Engine/Game.h"
 #include "../Engine/Palette.h"
 #include "../Engine/Surface.h"
 #include "../Engine/SurfaceSet.h"
-#include "../Engine/Language.h"
-#include "../Resource/ResourcePack.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/TextList.h"
@@ -37,9 +34,9 @@
 namespace OpenXcom
 {
 
-	ArticleStateBaseFacility::ArticleStateBaseFacility(Game *game, ArticleDefinitionBaseFacility *defs) : ArticleState(game, defs->id)
+	ArticleStateBaseFacility::ArticleStateBaseFacility(ArticleDefinitionBaseFacility *defs) : ArticleState(defs->id)
 	{
-		RuleBaseFacility *facility = _game->getRuleset()->getBaseFacility(defs->id);
+		RuleBaseFacility *facility = _game->getMod()->getBaseFacility(defs->id);
 
 		// add screen elements
 		_txtTitle = new Text(200, 17, 10, 24);
@@ -53,21 +50,21 @@ namespace OpenXcom
 		add(_txtTitle);
 
 		// Set up objects
-		_game->getResourcePack()->getSurface("BACK09.SCR")->blit(_bg);
+		_game->getMod()->getSurface("BACK09.SCR")->blit(_bg);
 		_btnOk->setColor(Palette::blockOffset(4));
 		_btnPrev->setColor(Palette::blockOffset(4));
 		_btnNext->setColor(Palette::blockOffset(4));
 
 		_txtTitle->setColor(Palette::blockOffset(13)+10);
 		_txtTitle->setBig();
-		_txtTitle->setText(Ufopaedia::buildText(_game, defs->title));
+		_txtTitle->setText(tr(defs->title));
 
 		// build preview image
 		int tile_size = 32;
 		_image = new Surface(tile_size*2, tile_size*2, 232, 16);
 		add(_image);
 
-		SurfaceSet *graphic = _game->getResourcePack()->getSurfaceSet("BASEBITS.PCK");
+		SurfaceSet *graphic = _game->getMod()->getSurfaceSet("BASEBITS.PCK");
 		Surface *frame;
 		int x_offset, y_offset;
 		int x_pos, y_pos;
@@ -113,7 +110,7 @@ namespace OpenXcom
 
 		_txtInfo->setColor(Palette::blockOffset(13)+10);
 		_txtInfo->setWordWrap(true);
-		_txtInfo->setText(Ufopaedia::buildText(_game, defs->text));
+		_txtInfo->setText(tr(defs->text));
 
 		_lstInfo = new TextList(200, 42, 10, 42);
 		add(_lstInfo);

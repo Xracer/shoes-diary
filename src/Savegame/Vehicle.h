@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -19,7 +19,6 @@
 #ifndef OPENXCOM_VEHICLE_H
 #define OPENXCOM_VEHICLE_H
 
-#include <string>
 #include <yaml-cpp/yaml.h>
 
 namespace OpenXcom

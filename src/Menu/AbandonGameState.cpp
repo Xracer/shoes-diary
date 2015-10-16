@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,18 +17,18 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "AbandonGameState.h"
+#include "../Engine/Sound.h"
 #include "../Engine/Game.h"
 #include "../Engine/Options.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
 #include "MainMenuState.h"
-#include "OptionsBaseState.h"
 #include "../Engine/Screen.h"
 #include "../Savegame/SavedGame.h"
+#include "../Savegame/SavedBattleGame.h"
 #include "SaveGameState.h"
 
 namespace OpenXcom
@@ -39,7 +39,7 @@ namespace OpenXcom
  * @param game Pointer to the core game.
  * @param origin Game section that originated this state.
  */
-AbandonGameState::AbandonGameState(Game *game, OptionsOrigin origin) : State(game), _origin(origin)
+AbandonGameState::AbandonGameState(OptionsOrigin origin) : _origin(origin)
 {
 	_screen = false;
 
@@ -60,37 +60,26 @@ AbandonGameState::AbandonGameState(Game *game, OptionsOrigin origin) : State(gam
 	_txtTitle = new Text(206, 17, x+5, 70);
 
 	// Set palette
-	if (_origin == OPT_BATTLESCAPE)
-	{
-		setPalette("PAL_BATTLESCAPE");
-	}
-	else
-	{
-		setPalette("PAL_GEOSCAPE", 0);
-	}
+	setInterface("geoscape", false, _game->getSavedGame() ? _game->getSavedGame()->getSavedBattle() : 0);
 
-	add(_window);
-	add(_btnYes);
-	add(_btnNo);
-	add(_txtTitle);
+	add(_window, "genericWindow", "geoscape");
+	add(_btnYes, "genericButton2", "geoscape");
+	add(_btnNo, "genericButton2", "geoscape");
+	add(_txtTitle, "genericText", "geoscape");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(15)-1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK01.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK01.SCR"));
 
-	_btnYes->setColor(Palette::blockOffset(15)-1);
 	_btnYes->setText(tr("STR_YES"));
 	_btnYes->onMouseClick((ActionHandler)&AbandonGameState::btnYesClick);
 	_btnYes->onKeyboardPress((ActionHandler)&AbandonGameState::btnYesClick, Options::keyOk);
 
-	_btnNo->setColor(Palette::blockOffset(15)-1);
 	_btnNo->setText(tr("STR_NO"));
 	_btnNo->onMouseClick((ActionHandler)&AbandonGameState::btnNoClick);
 	_btnNo->onKeyboardPress((ActionHandler)&AbandonGameState::btnNoClick, Options::keyCancel);
 
-	_txtTitle->setColor(Palette::blockOffset(15)-1);
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setBig();
 	_txtTitle->setText(tr("STR_ABANDON_GAME_QUESTION"));
@@ -115,17 +104,19 @@ AbandonGameState::~AbandonGameState()
  */
 void AbandonGameState::btnYesClick(Action *)
 {
+	if (_origin == OPT_BATTLESCAPE && _game->getSavedGame()->getSavedBattle()->getAmbientSound() != -1)
+		_game->getMod()->getSoundByDepth(0, _game->getSavedGame()->getSavedBattle()->getAmbientSound())->stopLoop();
 	if (!_game->getSavedGame()->isIronman())
 	{
-		OptionsBaseState::updateScale(Options::geoscapeScale, Options::geoscapeScale, Options::baseXGeoscape, Options::baseYGeoscape, true);
+		Screen::updateScale(Options::geoscapeScale, Options::geoscapeScale, Options::baseXGeoscape, Options::baseYGeoscape, true);
 		_game->getScreen()->resetDisplay(false);
 
-		_game->setState(new MainMenuState(_game));
+		_game->setState(new MainMenuState);
 		_game->setSavedGame(0);
 	}
 	else
 	{
-		_game->pushState(new SaveGameState(_game, OPT_GEOSCAPE, SAVE_IRONMAN_END));
+		_game->pushState(new SaveGameState(OPT_GEOSCAPE, SAVE_IRONMAN_END, _palette));
 	}
 }
 

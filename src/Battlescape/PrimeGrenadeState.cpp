@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -20,9 +20,7 @@
 #include <sstream>
 #include <cmath>
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Action.h"
 #include "../Interface/Text.h"
 #include "../Interface/Frame.h"
@@ -30,6 +28,8 @@
 #include "../Savegame/BattleItem.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/SavedBattleGame.h"
+#include "../Mod/Mod.h"
+#include "../Mod/RuleInterface.h"
 
 namespace OpenXcom
 {
@@ -37,9 +37,11 @@ namespace OpenXcom
 /**
  * Initializes all the elements in the Prime Grenade window.
  * @param game Pointer to the core game.
- * @param action Pointer to  the action.
+ * @param action Pointer to the action.
+ * @param inInventoryView Called from inventory?
+ * @param grenadeInInventory Pointer to associated grenade.
  */
-PrimeGrenadeState::PrimeGrenadeState(Game *game, BattleAction *action, bool inInventoryView, BattleItem *grenadeInInventory) : State(game), _action(action), _inInventoryView(inInventoryView), _grenadeInInventory(grenadeInInventory)
+PrimeGrenadeState::PrimeGrenadeState(BattleAction *action, bool inInventoryView, BattleItem *grenadeInInventory) : _action(action), _inInventoryView(inInventoryView), _grenadeInInventory(grenadeInInventory)
 {
 	_screen = false;
 
@@ -57,51 +59,52 @@ PrimeGrenadeState::PrimeGrenadeState(Game *game, BattleAction *action, bool inIn
 	}
 
 	// Set palette
-	setPalette("PAL_BATTLESCAPE");
+	if (inInventoryView)
+	{
+		setPalette("PAL_BATTLESCAPE");
+	}
+	else
+	{
+		_game->getSavedGame()->getSavedBattle()->setPaletteByDepth(this);
+	}
+
+	Element *grenadeBackground = _game->getMod()->getInterface("battlescape")->getElement("grenadeBackground");
 
 	// Set up objects
-	SDL_Rect square;
-	square.x = 0;
-	square.y = 0;
-	square.w = _bg->getWidth();
-	square.h = _bg->getHeight();
 	add(_bg);
-	_bg->drawRect(&square, Palette::blockOffset(6)+9);
+	_bg->drawRect(0, 0, _bg->getWidth(), _bg->getHeight(), grenadeBackground->color);
 
-	add(_frame);
-	_frame->setColor(Palette::blockOffset(6)+3);
-	_frame->setBackground(Palette::blockOffset(6)+12);
+	add(_frame, "grenadeMenu", "battlescape");
 	_frame->setThickness(3);
 	_frame->setHighContrast(true);
 
-	add(_title);
+	add(_title, "grenadeMenu", "battlescape");
 	_title->setAlign(ALIGN_CENTER);
 	_title->setBig();
 	_title->setText(tr("STR_SET_TIMER"));
-	_title->setColor(Palette::blockOffset(1)-1);
 	_title->setHighContrast(true);
 
 	for (int i = 0; i < 24; ++i)
 	{
+		SDL_Rect square;
 		add(_button[i]);
 		_button[i]->onMouseClick((ActionHandler)&PrimeGrenadeState::btnClick);
 		square.x = 0;
 		square.y = 0;
 		square.w = _button[i]->getWidth();
 		square.h = _button[i]->getHeight();
-		_button[i]->drawRect(&square, Palette::blockOffset(0)+15);
-		square.x = 1;
-		square.y = 1;
-		square.w = _button[i]->getWidth()-2;
-		square.h = _button[i]->getHeight()-2;
-		_button[i]->drawRect(&square, Palette::blockOffset(6)+12);
+		_button[i]->drawRect(&square, grenadeBackground->border);
+		square.x++;
+		square.y++;
+		square.w -= 2;
+		square.h -= 2;
+		_button[i]->drawRect(&square, grenadeBackground->color2);
 
 		std::wostringstream ss;
 		ss << i;
-		add(_number[i]);
+		add(_number[i], "grenadeMenu", "battlescape");
 		_number[i]->setBig();
 		_number[i]->setText(ss.str());
-		_number[i]->setColor(Palette::blockOffset(1)-1);
 		_number[i]->setHighContrast(true);
 		_number[i]->setAlign(ALIGN_CENTER);
 		_number[i]->setVerticalAlign(ALIGN_MIDDLE);

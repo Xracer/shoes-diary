@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -32,6 +32,8 @@ class Surface;
 class InteractiveSurface;
 class Action;
 class LocalizedText;
+class SavedBattleGame;
+class RuleInterface;
 
 /**
  * A game state that receives user input and reacts accordingly.
@@ -46,18 +48,26 @@ class State
 	friend class Timer;
 
 protected:
-	Game *_game;
+	static Game *_game;
 	std::vector<Surface*> _surfaces;
 	bool _screen;
 	InteractiveSurface *_modal;
+	RuleInterface *_ruleInterface;
+	RuleInterface *_ruleInterfaceParent;
+
 	SDL_Color _palette[256];
+	Uint8 _cursorColor;
 public:
 	/// Creates a new state linked to a game.
-	State(Game* game);
+	State();
 	/// Cleans up the state.
 	virtual ~State();
+	/// Set interface rules.
+	void setInterface(const std::string &s, bool alterPal = false, SavedBattleGame *battleGame = 0);
 	/// Adds a child element to the state.
 	void add(Surface *surface);
+	/// Adds a child element to the state.
+	void add(Surface *surface, const std::string &id, const std::string &category, Surface *parent = 0);
 	/// Gets whether the state is a full-screen.
 	bool isScreen() const;
 	/// Toggles whether the state is a full-screen.
@@ -88,6 +98,8 @@ public:
 	void lowerAllSurfaces();
 	/// switch the colours to use the battlescape palette.
 	void applyBattlescapeTheme();
+	/// Sets game object pointer
+	static void setGamePtr(Game* game);
 	/// Sets a modal surface.
 	void setModal(InteractiveSurface *surface);
 	/// Changes a set of colors on the state's 8bpp palette.
@@ -95,7 +107,7 @@ public:
 	/// Changes the state's 8bpp palette with certain resources.
 	void setPalette(const std::string &palette, int backpals = -1);
 	/// Gets the state's 8bpp palette.
-	SDL_Color *const getPalette();
+	SDL_Color *getPalette();
 	/// Let the state know the window has been resized.
 	virtual void resize(int &dX, int &dY);
 	/// Re-orients all the surfaces in the state.

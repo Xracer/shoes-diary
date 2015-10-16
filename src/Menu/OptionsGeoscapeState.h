@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -47,17 +47,17 @@ private:
 	ToggleTextButton *_btnShowFunds;
 public:
 	/// Creates the Geoscape Options state.
-	OptionsGeoscapeState(Game *game, OptionsOrigin origin);
+	OptionsGeoscapeState(OptionsOrigin origin);
 	/// Cleans up the Geoscape Options state.
 	~OptionsGeoscapeState();
-    /// Handler for changing the Drag Scroll combobox.
-    void cbxDragScrollChange(Action *action);
+	/// Handler for changing the Drag Scroll combobox.
+	void cbxDragScrollChange(Action *action);
 	/// Handler for changing the scroll speed slider.
-    void slrScrollSpeedChange(Action *action);
-    /// Handler for changing the dogfight speed slider.
-    void slrDogfightSpeedChange(Action *action);
+	void slrScrollSpeedChange(Action *action);
+	/// Handler for changing the dogfight speed slider.
+	void slrDogfightSpeedChange(Action *action);
 	/// Handler for changing the clock speed slider.
-    void slrClockSpeedChange(Action *action);
+	void slrClockSpeedChange(Action *action);
 	/// Handler for clicking the Country Borders button.
 	void btnGlobeCountriesClick(Action *action);
 	/// Handler for clicking the Radar Ranges button.

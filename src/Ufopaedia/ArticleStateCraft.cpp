@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,29 +18,26 @@
  */
 
 #include <sstream>
-
-#include "Ufopaedia.h"
 #include "ArticleStateCraft.h"
-#include "../Ruleset/ArticleDefinition.h"
-#include "../Ruleset/Ruleset.h"
-#include "../Ruleset/RuleCraft.h"
+#include "../Mod/ArticleDefinition.h"
+#include "../Mod/Mod.h"
+#include "../Mod/RuleCraft.h"
 #include "../Engine/Game.h"
 #include "../Engine/Palette.h"
 #include "../Engine/Surface.h"
-#include "../Engine/Language.h"
-#include "../Resource/ResourcePack.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextButton.h"
 
 namespace OpenXcom
 {
 
-	ArticleStateCraft::ArticleStateCraft(Game *game, ArticleDefinitionCraft *defs) : ArticleState(game, defs->id)
+	ArticleStateCraft::ArticleStateCraft(ArticleDefinitionCraft *defs) : ArticleState(defs->id)
 	{
-		RuleCraft *craft = _game->getRuleset()->getCraft(defs->id);
+		RuleCraft *craft = _game->getMod()->getCraft(defs->id);
 
 		// add screen elements
-		_txtTitle = new Text(155, 32, 5, 24);
+		_txtTitle = new Text(210, 32, 5, 24);
 
 		// Set palette
 		setPalette("PAL_UFOPAEDIA");
@@ -51,7 +48,7 @@ namespace OpenXcom
 		add(_txtTitle);
 
 		// Set up objects
-		_game->getResourcePack()->getSurface(defs->image_id)->blit(_bg);
+		_game->getMod()->getSurface(defs->image_id)->blit(_bg);
 		_btnOk->setColor(Palette::blockOffset(15)-1);
 		_btnPrev->setColor(Palette::blockOffset(15)-1);
 		_btnNext->setColor(Palette::blockOffset(15)-1);
@@ -59,14 +56,14 @@ namespace OpenXcom
 		_txtTitle->setColor(Palette::blockOffset(14)+15);
 		_txtTitle->setBig();
 		_txtTitle->setWordWrap(true);
-		_txtTitle->setText(Ufopaedia::buildText(_game, defs->title));
+		_txtTitle->setText(tr(defs->title));
 
 		_txtInfo = new Text(defs->rect_text.width, defs->rect_text.height, defs->rect_text.x, defs->rect_text.y);
 		add(_txtInfo);
 
 		_txtInfo->setColor(Palette::blockOffset(14)+15);
 		_txtInfo->setWordWrap(true);
-		_txtInfo->setText(Ufopaedia::buildText(_game, defs->text));
+		_txtInfo->setText(tr(defs->text));
 
 		_txtStats = new Text(defs->rect_stats.width, defs->rect_stats.height, defs->rect_stats.x, defs->rect_stats.y);
 		add(_txtStats);

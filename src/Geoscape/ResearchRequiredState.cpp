@@ -1,32 +1,29 @@
 /*
-* Copyright 2010-2013 OpenXcom Developers.
-*
-* This file is part of OpenXcom.
-*
-* OpenXcom is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* OpenXcom is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ * Copyright 2010-2015 OpenXcom Developers.
+ *
+ * This file is part of OpenXcom.
+ *
+ * OpenXcom is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * OpenXcom is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #include "ResearchRequiredState.h"
 #include "../Engine/Game.h"
-#include "../Engine/Palette.h"
-#include "../Engine/Language.h"
-#include "../Resource/ResourcePack.h"
+#include "../Engine/LocalizedText.h"
+#include "../Mod/Mod.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
-#include "../Ruleset/Ruleset.h"
-#include "../Ruleset/RuleItem.h"
-#include "../Savegame/SavedGame.h"
+#include "../Mod/RuleItem.h"
 #include "../Engine/Options.h"
 
 namespace OpenXcom
@@ -36,7 +33,7 @@ namespace OpenXcom
  * @param game Pointer to the core game.
  * @param item Pointer to the researched weapon.
  */
-ResearchRequiredState::ResearchRequiredState(Game *game, RuleItem *item) : State(game)
+ResearchRequiredState::ResearchRequiredState(RuleItem *item)
 {
 	_screen = false;
 
@@ -46,11 +43,11 @@ ResearchRequiredState::ResearchRequiredState(Game *game, RuleItem *item) : State
 	_txtTitle = new Text(288, 80, 16, 50);
 
 	// Set palette
-	setPalette("PAL_GEOSCAPE", 0);
+	setInterface("geoResearch");
 
-	add(_window);
-	add(_btnOk);
-	add(_txtTitle);
+	add(_window, "window", "geoResearch");
+	add(_btnOk, "button", "geoResearch");
+	add(_txtTitle, "text1", "geoResearch");
 
 	centerAllSurfaces();
 
@@ -58,16 +55,13 @@ ResearchRequiredState::ResearchRequiredState(Game *game, RuleItem *item) : State
 	std::string clip = item->getCompatibleAmmo()->front();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(15)-1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK05.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK05.SCR"));
 
-	_btnOk->setColor(Palette::blockOffset(8)+5);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&ResearchRequiredState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&ResearchRequiredState::btnOkClick, Options::keyCancel);
 	_btnOk->onKeyboardPress((ActionHandler)&ResearchRequiredState::btnOkClick, Options::keyOk);
 
-	_txtTitle->setColor(Palette::blockOffset(15)-1);
 	_txtTitle->setBig();
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setVerticalAlign(ALIGN_MIDDLE);

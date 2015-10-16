@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -45,7 +45,7 @@ private:
 	Text *_txtTitle, *_txtMessage;
 public:
 	/// Creates the Low Fuel state.
-	LowFuelState(Game *game, Craft *craft, GeoscapeState *state);
+	LowFuelState(Craft *craft, GeoscapeState *state);
 	/// Cleans up the Low Fuel state.
 	~LowFuelState();
 	/// Handler for clicking the Ok button.

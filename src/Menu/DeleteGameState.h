@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -43,7 +43,7 @@ private:
 	OptionsOrigin _origin;
 public:
 	/// Creates the Confirm state.
-	DeleteGameState(Game *game, OptionsOrigin origin, const std::string &save);
+	DeleteGameState(OptionsOrigin origin, const std::string &save);
 	/// Cleans up the Confirm state.
 	~DeleteGameState();
 	/// Handler for clicking the confirm button.

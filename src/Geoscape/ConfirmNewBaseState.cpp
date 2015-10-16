@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,20 +18,19 @@
  */
 #include "ConfirmNewBaseState.h"
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
-#include "../Engine/Surface.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextButton.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Region.h"
-#include "../Ruleset/RuleRegion.h"
+#include "../Mod/RuleRegion.h"
 #include "../Savegame/Base.h"
 #include "BaseNameState.h"
 #include "../Menu/ErrorMessageState.h"
 #include "../Engine/Options.h"
+#include "../Mod/RuleInterface.h"
 
 namespace OpenXcom
 {
@@ -42,7 +41,7 @@ namespace OpenXcom
  * @param base Pointer to the base to place.
  * @param globe Pointer to the Geoscape globe.
  */
-ConfirmNewBaseState::ConfirmNewBaseState(Game *game, Base *base, Globe *globe) : State(game), _base(base), _globe(globe), _cost(0)
+ConfirmNewBaseState::ConfirmNewBaseState(Base *base, Globe *globe) : _base(base), _globe(globe), _cost(0)
 {
 	_screen = false;
 
@@ -54,26 +53,23 @@ ConfirmNewBaseState::ConfirmNewBaseState(Game *game, Base *base, Globe *globe) :
 	_txtArea = new Text(120, 9, 68, 90);
 
 	// Set palette
-	setPalette("PAL_GEOSCAPE", 0);
+	setInterface("geoscape");
 
-	add(_window);
-	add(_btnOk);
-	add(_btnCancel);
-	add(_txtCost);
-	add(_txtArea);
+	add(_window, "genericWindow", "geoscape");
+	add(_btnOk, "genericButton2", "geoscape");
+	add(_btnCancel, "genericButton2", "geoscape");
+	add(_txtCost, "genericText", "geoscape");
+	add(_txtArea, "genericText", "geoscape");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(15)-1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK01.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK01.SCR"));
 
-	_btnOk->setColor(Palette::blockOffset(15)-1);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&ConfirmNewBaseState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&ConfirmNewBaseState::btnOkClick, Options::keyOk);
 
-	_btnCancel->setColor(Palette::blockOffset(15)-1);
 	_btnCancel->setText(tr("STR_CANCEL_UC"));
 	_btnCancel->onMouseClick((ActionHandler)&ConfirmNewBaseState::btnCancelClick);
 	_btnCancel->onKeyboardPress((ActionHandler)&ConfirmNewBaseState::btnCancelClick, Options::keyCancel);
@@ -89,12 +85,8 @@ ConfirmNewBaseState::ConfirmNewBaseState(Game *game, Base *base, Globe *globe) :
 		}
 	}
 
-	_txtCost->setColor(Palette::blockOffset(15)-1);
-	_txtCost->setSecondaryColor(Palette::blockOffset(8)+10);
 	_txtCost->setText(tr("STR_COST_").arg(Text::formatFunding(_cost)));
 
-	_txtArea->setColor(Palette::blockOffset(15)-1);
-	_txtArea->setSecondaryColor(Palette::blockOffset(8)+10);
 	_txtArea->setText(tr("STR_AREA_").arg(area));
 }
 
@@ -116,11 +108,11 @@ void ConfirmNewBaseState::btnOkClick(Action *)
 	{
 		_game->getSavedGame()->setFunds(_game->getSavedGame()->getFunds() - _cost);
 		_game->getSavedGame()->getBases()->push_back(_base);
-		_game->pushState(new BaseNameState(_game, _base, _globe, false));
+		_game->pushState(new BaseNameState(_base, _globe, false));
 	}
 	else
 	{
-		_game->pushState(new ErrorMessageState(_game, "STR_NOT_ENOUGH_MONEY", _palette, Palette::blockOffset(8)+10, "BACK01.SCR", 0));
+		_game->pushState(new ErrorMessageState(tr("STR_NOT_ENOUGH_MONEY"), _palette, _game->getMod()->getInterface("geoscape")->getElement("genericWindow")->color, "BACK01.SCR", _game->getMod()->getInterface("geoscape")->getElement("palette")->color));
 	}
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -27,13 +27,14 @@ namespace OpenXcom
 {
 
 const int STANDOFF_DIST = 560;
+enum ColorNames { CRAFT_MIN, CRAFT_MAX, RADAR_MIN, RADAR_MAX, DAMAGE_MIN, DAMAGE_MAX, BLOB_MIN, RANGE_METER, DISABLED_WEAPON, DISABLED_AMMO, DISABLED_RANGE };
 
 class ImageButton;
 class Text;
 class Surface;
 class InteractiveSurface;
 class Timer;
-class Globe;
+class GeoscapeState;
 class Craft;
 class Ufo;
 class CraftWeaponProjectile;
@@ -45,31 +46,31 @@ class CraftWeaponProjectile;
 class DogfightState : public State
 {
 private:
-	Timer *_animTimer, *_moveTimer, *_w1Timer, *_w2Timer, *_ufoWtimer, *_ufoEscapeTimer, *_craftDamageAnimTimer;
+	GeoscapeState *_state;
+	Timer *_craftDamageAnimTimer;
 	Surface *_window, *_battle, *_range1, *_range2, *_damage;
 	InteractiveSurface *_btnMinimize, *_preview, *_weapon1, *_weapon2;
 	ImageButton *_btnStandoff, *_btnCautious, *_btnStandard, *_btnAggressive, *_btnDisengage, *_btnUfo;
 	ImageButton *_mode;
 	InteractiveSurface *_btnMinimizedIcon;
 	Text *_txtAmmo1, *_txtAmmo2, *_txtDistance, *_txtStatus, *_txtInterceptionNumber;
-	Globe *_globe;
 	Craft *_craft;
 	Ufo *_ufo;
-	int _timeout, _currentDist, _targetDist, _ufoFireInterval;
+	int _timeout, _currentDist, _targetDist, _w1FireInterval, _w2FireInterval, _w1FireCountdown, _w2FireCountdown;
 	bool _end, _destroyUfo, _destroyCraft, _ufoBreakingOff, _weapon1Enabled, _weapon2Enabled, _minimized, _endDogfight, _animatingHit;
 	std::vector<CraftWeaponProjectile*> _projectiles;
 	static const int _ufoBlobs[8][13][13];
 	static const int _projectileBlobs[4][6][3];
-	int _timeScale;
-	int _ufoSize, _craftHeight, _currentCraftDamageColor, _interceptionsCount, _interceptionNumber;
+	int _ufoSize, _craftHeight, _currentCraftDamageColor, _interceptionNumber;
+	size_t _interceptionsCount;
 	int _x, _y, _minimizedIconX, _minimizedIconY;
-
+	int _colors[11];
 	// Ends the dogfight.
 	void endDogfight();
 
 public:
 	/// Creates the Dogfight state.
-	DogfightState(Game *game, Globe *globe, Craft *craft, Ufo *ufo);
+	DogfightState(GeoscapeState *state, Craft *craft, Ufo *ufo);
 	/// Cleans up the Dogfight state.
 	~DogfightState();
 	/// Runs the timers.
@@ -77,7 +78,7 @@ public:
 	/// Animates the window.
 	void animate();
 	/// Moves the craft.
-	void move();
+	void update();
 	// Fires the first weapon.
 	void fireWeapon1();
 	// Fires the second weapon.
@@ -92,22 +93,20 @@ public:
 	void setStatus(const std::string &status);
 	/// Handler for clicking the Minimize button.
 	void btnMinimizeClick(Action *action);
-	/// Handler for clicking the Standoff button.
-	void btnStandoffClick(Action *action);
-	/// Handler for clicking the Cautious Attack button.
-	void btnCautiousClick(Action *action);
-	/// Handler for clicking the Standard Attack button.
-	void btnStandardClick(Action *action);
-	/// Handler for clicking the Aggressive Attack button.
-	void btnAggressiveClick(Action *action);
-	/// Handler for clicking the Disengage button.
-	void btnDisengageClick(Action *action);
+	/// Handler for pressing the Standoff button.
+	void btnStandoffPress(Action *action);
+	/// Handler for pressing the Cautious Attack button.
+	void btnCautiousPress(Action *action);
+	/// Handler for pressing the Standard Attack button.
+	void btnStandardPress(Action *action);
+	/// Handler for pressing the Aggressive Attack button.
+	void btnAggressivePress(Action *action);
+	/// Handler for pressing the Disengage button.
+	void btnDisengagePress(Action *action);
 	/// Handler for clicking the Ufo button.
 	void btnUfoClick(Action *action);
 	/// Handler for clicking the Preview graphic.
 	void previewClick(Action *action);
-	/// Makes the UFO break off the interception... or at least tries to.
-	void ufoBreakOff();
 	/// Draws UFO.
 	void drawUfo();
 	/// Draws projectiles.
@@ -133,7 +132,7 @@ public:
 	/// Sets interception number.
 	void setInterceptionNumber(const int number);
 	/// Sets interceptions count.
-	void setInterceptionsCount(const int count);
+	void setInterceptionsCount(const size_t count);
 	/// Calculates window position according to opened interception windows.
 	void calculateWindowPosition();
 	/// Moves window to new position.

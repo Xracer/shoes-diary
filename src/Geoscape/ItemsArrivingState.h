@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -46,7 +46,7 @@ private:
 	TextList *_lstTransfers;
 public:
 	/// Creates the ItemsArriving state.
-	ItemsArrivingState(Game *game, GeoscapeState *state);
+	ItemsArrivingState(GeoscapeState *state);
 	/// Cleans up the ItemsArriving state.
 	~ItemsArrivingState();
 	/// Handler for clicking the OK button.

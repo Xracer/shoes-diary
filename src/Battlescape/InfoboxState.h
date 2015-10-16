@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -41,7 +41,7 @@ private:
 public:
 	static const int INFOBOX_DELAY = 2000;
 	/// Creates the Infobox state.
-	InfoboxState(Game *game, const std::wstring &msg);
+	InfoboxState(const std::wstring &msg);
 	/// Cleans up the Infobox state.
 	~InfoboxState();
 	/// Handler for clicking anything.

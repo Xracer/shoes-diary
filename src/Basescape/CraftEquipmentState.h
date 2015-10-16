@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -48,11 +48,13 @@ private:
 	size_t _sel, _craft;
 	Base *_base;
 	std::vector<std::string> _items;
+	int _totalItems;
+	Uint8 _ammoColor;
 	/// Updates quantities of item.
 	void updateQuantity();
 public:
 	/// Creates the Craft Equipment state.
-	CraftEquipmentState(Game *game, Base *base, size_t craft);
+	CraftEquipmentState(Base *base, size_t craft);
 	/// Cleans up the Craft Equipment state.
 	~CraftEquipmentState();
 	/// Resets state.

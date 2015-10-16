@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -45,7 +45,7 @@ private:
 	Text *_txtTitle, *_txtTargetted, *_txtFollowers;
 public:
 	/// Creates the Target Info state.
-	TargetInfoState(Game *game, Target *target, Globe *globe);
+	TargetInfoState(Target *target, Globe *globe);
 	/// Cleans up the Target Info state.
 	~TargetInfoState();
 	/// Handler for clicking the Intercept button.

@@ -1,20 +1,20 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ *Copyright 2010-2015 OpenXcom Developers.
  *
- * This file is part of OpenXcom.
+ *This file is part of OpenXcom.
  *
- * OpenXcom is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *OpenXcom is free software: you can redistribute it and/or modify
+ *it under the terms of the GNU General Public License as published by
+ *the Free Software Foundation, either version 3 of the License, or
+ *(at your option) any later version.
  *
- * OpenXcom is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *OpenXcom is distributed in the hope that it will be useful,
+ *but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
+ *You should have received a copy of the GNU General Public License
+ *along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #ifndef OPENXCOM_SAVEDGAME_H
 #define OPENXCOM_SAVEDGAME_H
@@ -23,11 +23,14 @@
 #include <vector>
 #include <string>
 #include <time.h>
+#include <stdint.h>
+#include "CraftId.h"
+#include "../Mod/RuleAlienMission.h"
 
 namespace OpenXcom
 {
 
-class Ruleset;
+class Mod;
 class GameTime;
 class Country;
 class Base;
@@ -41,25 +44,26 @@ class RuleResearch;
 class ResearchProject;
 class Soldier;
 class RuleManufacture;
-class TerrorSite;
+class MissionSite;
 class AlienBase;
 class AlienStrategy;
 class AlienMission;
 class Target;
 class Soldier;
+class Craft;
 
 /**
- * Enumerator containing all the possible game difficulties.
+ *Enumerator containing all the possible game difficulties.
  */
 enum GameDifficulty { DIFF_BEGINNER = 0, DIFF_EXPERIENCED, DIFF_VETERAN, DIFF_GENIUS, DIFF_SUPERHUMAN };
 
 /**
- * Enumerator for the various save types.
+ *Enumerator for the various save types.
  */
 enum SaveType { SAVE_DEFAULT, SAVE_QUICK, SAVE_AUTO_GEOSCAPE, SAVE_AUTO_BATTLESCAPE, SAVE_IRONMAN, SAVE_IRONMAN_END };
 
 /**
- * Container for savegame info displayed on listings.
+ *Container for savegame info displayed on listings.
  */
 struct SaveInfo
 {
@@ -68,14 +72,22 @@ struct SaveInfo
 	time_t timestamp;
 	std::wstring isoDate, isoTime;
 	std::wstring details;
-	std::vector<std::string> rulesets;
+	std::vector<std::string> mods;
 	bool reserved;
 };
 
+struct PromotionInfo
+{
+	int totalCommanders;
+	int totalColonels;
+	int totalCaptains;
+	int totalSergeants;
+	PromotionInfo(): totalCommanders(0), totalColonels(0), totalCaptains(0), totalSergeants(0){}
+};
 /**
- * The game data that gets written to disk when the game is saved.
- * A saved game holds all the variable info in a game like funds,
- * game time, current bases and contents, world activities, score, etc.
+ *The game data that gets written to disk when the game is saved.
+ *A saved game holds all the variable info in a game like funds,
+ *game time, current bases and contents, world activities, score, etc.
  */
 class SavedGame
 {
@@ -84,7 +96,8 @@ private:
 	GameDifficulty _difficulty;
 	bool _ironman;
 	GameTime *_time;
-	std::vector<int> _funds, _maintenance, _researchScores, _incomes, _expenditures;
+	std::vector<int> _researchScores;
+	std::vector<int64_t> _funds, _maintenance, _incomes, _expenditures;
 	double _globeLon, _globeLat;
 	int _globeZoom;
 	std::map<std::string, int> _ids;
@@ -93,22 +106,23 @@ private:
 	std::vector<Base*> _bases;
 	std::vector<Ufo*> _ufos;
 	std::vector<Waypoint*> _waypoints;
-	std::vector<TerrorSite*> _terrorSites;
+	std::vector<MissionSite*> _missionSites;
 	std::vector<AlienBase*> _alienBases;
 	AlienStrategy *_alienStrategy;
 	SavedBattleGame *_battleGame;
-	std::vector<const RuleResearch *> _discovered;
+	std::vector<const RuleResearch*> _discovered;
 	std::vector<AlienMission*> _activeMissions;
 	bool _debug, _warned;
 	int _monthsPassed;
 	std::string _graphRegionToggles;
 	std::string _graphCountryToggles;
 	std::string _graphFinanceToggles;
-	std::vector<const RuleResearch *> _poppedResearch;
+	std::vector<const RuleResearch*> _poppedResearch;
 	std::vector<Soldier*> _deadSoldiers;
-	int _selectedBase;
+	size_t _selectedBase;
+	std::string _lastselectedArmor; //contains the last selected armour
 
-	void getDependableResearchBasic (std::vector<RuleResearch *> & dependables, const RuleResearch *research, const Ruleset * ruleset, Base * base) const;
+	void getDependableResearchBasic (std::vector<RuleResearch*> & dependables, const RuleResearch *research, const Mod *mod, Base *base) const;
 	static SaveInfo getSaveInfo(const std::string &file, Language *lang);
 public:
 	static const std::string AUTOSAVE_GEOSCAPE, AUTOSAVE_BATTLESCAPE, QUICKSAVE;
@@ -120,7 +134,7 @@ public:
 	/// Gets list of saves in the user directory.
 	static std::vector<SaveInfo> getList(Language *lang, bool autoquick);
 	/// Loads a saved game from YAML.
-	void load(const std::string &filename, Ruleset *rule);
+	void load(const std::string &filename, Mod *mod);
 	/// Saves a saved game to YAML.
 	void save(const std::string &filename) const;
 	/// Gets the game name.
@@ -129,6 +143,7 @@ public:
 	void setName(const std::wstring &name);
 	/// Gets the game difficulty.
 	GameDifficulty getDifficulty() const;
+	int getDifficultyCoefficient() const;
 	/// Sets the game difficulty.
 	void setDifficulty(GameDifficulty difficulty);
 	/// Gets if the game is in ironman mode.
@@ -136,11 +151,11 @@ public:
 	/// Sets if the game is in ironman mode.
 	void setIronman(bool ironman);
 	/// Gets the current funds.
-	int getFunds() const;
+	int64_t getFunds() const;
 	/// Gets the list of funds from previous months.
-	const std::vector<int> &getFundsList() const;
+	std::vector<int64_t> &getFundsList();
 	/// Sets new funds.
-	void setFunds(int funds);
+	void setFunds(int64_t funds);
 	/// Gets the current globe longitude.
 	double getGlobeLongitude() const;
 	/// Sets the new globe longitude.
@@ -161,6 +176,8 @@ public:
 	void setTime(GameTime time);
 	/// Gets the current ID for an object.
 	int getId(const std::string &name);
+	/// Resets the list of object IDs.
+	void setIds(const std::map<std::string, int> &ids);
 	/// Gets the list of countries.
 	std::vector<Country*> *getCountries();
 	/// Gets the total country funding.
@@ -177,26 +194,26 @@ public:
 	std::vector<Ufo*> *getUfos();
 	/// Gets the list of waypoints.
 	std::vector<Waypoint*> *getWaypoints();
-	/// Gets the list of terror sites.
-	std::vector<TerrorSite*> *getTerrorSites();
+	/// Gets the list of mission sites.
+	std::vector<MissionSite*> *getMissionSites();
 	/// Gets the current battle game.
 	SavedBattleGame *getSavedBattle();
 	/// Sets the current battle game.
 	void setBattleGame(SavedBattleGame *battleGame);
 	/// Add a finished ResearchProject
-	void addFinishedResearch (const RuleResearch * r, const Ruleset * ruleset = NULL);
+	void addFinishedResearch(const RuleResearch *r, const Mod *mod = 0, bool score = true);
 	/// Get the list of already discovered research projects
-	const std::vector<const RuleResearch *> & getDiscoveredResearch() const;
+	const std::vector<const RuleResearch*> & getDiscoveredResearch() const;
 	/// Get the list of ResearchProject which can be researched in a Base
-	void getAvailableResearchProjects (std::vector<RuleResearch *> & projects, const Ruleset * ruleset, Base * base) const;
+	void getAvailableResearchProjects(std::vector<RuleResearch*> & projects, const Mod *mod, Base *base) const;
 	/// Get the list of Productions which can be manufactured in a Base
-	void getAvailableProductions (std::vector<RuleManufacture *> & productions, const Ruleset * ruleset, Base * base) const;
+	void getAvailableProductions(std::vector<RuleManufacture*> & productions, const Mod *mod, Base *base) const;
 	/// Get the list of newly available research projects once a research has been completed.
-	void getDependableResearch (std::vector<RuleResearch *> & dependables, const RuleResearch *research, const Ruleset * ruleset, Base * base) const;
+	void getDependableResearch(std::vector<RuleResearch*> & dependables, const RuleResearch *research, const Mod *mod, Base *base) const;
 	/// Get the list of newly available manufacture projects once a research has been completed.
-	void getDependableManufacture (std::vector<RuleManufacture *> & dependables, const RuleResearch *research, const Ruleset * ruleset, Base * base) const;
+	void getDependableManufacture(std::vector<RuleManufacture*> & dependables, const RuleResearch *research, const Mod *mod, Base *base) const;
 	/// Check whether a ResearchProject can be researched
-	bool isResearchAvailable (RuleResearch * r, const std::vector<const RuleResearch *> & unlocked, const Ruleset * ruleset) const;
+	bool isResearchAvailable(RuleResearch *r, const std::vector<const RuleResearch*> & unlocked, const Mod *mod) const;
 	/// Gets if a research has been unlocked.
 	bool isResearched(const std::string &research) const;
 	/// Gets if a list of research has been unlocked.
@@ -205,8 +222,10 @@ public:
 	Soldier *getSoldier(int id) const;
 	/// Handles the higher promotions.
 	bool handlePromotions(std::vector<Soldier*> &participants);
+	/// Processes a soldier's promotion.
+	void processSoldier(Soldier *soldier, PromotionInfo &soldierData);
 	/// Checks how many soldiers of a rank exist and which one has the highest score.
-	void inspectSoldiers(Soldier **highestRanked, size_t *total, int rank);
+	Soldier *inspectSoldiers(std::vector<Soldier*> &soldiers, std::vector<Soldier*> &participants, int rank);
 	///  Returns the list of alien bases.
 	std::vector<AlienBase*> *getAlienBases();
 	/// Sets debug mode.
@@ -214,15 +233,15 @@ public:
 	/// Gets debug mode.
 	bool getDebugMode() const;
 	/// return a list of maintenance costs
-	std::vector<int> getMaintenances();
+	std::vector<int64_t> &getMaintenances();
 	/// sets the research score for the month
 	void addResearchScore(int score);
 	/// gets the list of research scores
 	std::vector<int> &getResearchScores();
 	/// gets the list of incomes.
-	std::vector<int> getIncomes();
+	std::vector<int64_t> &getIncomes();
 	/// gets the list of expenditures.
-	std::vector<int> getExpenditures();
+	std::vector<int64_t> &getExpenditures();
 	/// gets whether or not the player has been warned
 	bool getWarned() const;
 	/// sets whether or not the player has been warned
@@ -235,8 +254,8 @@ public:
 	std::vector<AlienMission*> &getAlienMissions() { return _activeMissions; }
 	/// Read-only access to the current alien missions.
 	const std::vector<AlienMission*> &getAlienMissions() const { return _activeMissions; }
-	/// Gets a mission matching region and type.
-	AlienMission *getAlienMission(const std::string &region, const std::string &type) const;
+	/// Finds a mission by region and objective.
+	AlienMission *findAlienMission(const std::string &region, MissionObjective objective) const;
 	/// Locate a region containing a position.
 	Region *locateRegion(double lon, double lat) const;
 	/// Locate a region containing a Target.
@@ -268,9 +287,15 @@ public:
 	/// Gets the last selected player base.
 	Base *getSelectedBase();
 	/// Set the last selected player base.
-	void setSelectedBase(int base);
+	void setSelectedBase(size_t base);
 	/// Evaluate the score of a soldier based on all of his stats, missions and kills.
 	int getSoldierScore(Soldier *soldier);
+	/// Sets the last selected armour
+	void setLastSelectedArmor(const std::string &value);
+	/// Gets the last selected armour
+	std::string getLastSelectedArmor();
+	/// Returns the craft corresponding to the specified unique id.
+	Craft *findCraftByUniqueId(const CraftId& craftId) const;
 };
 
 }

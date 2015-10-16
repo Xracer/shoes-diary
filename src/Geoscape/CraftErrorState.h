@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -43,7 +43,7 @@ private:
 	Text *_txtMessage;
 public:
 	/// Creates the Craft Error state.
-	CraftErrorState(Game *game, GeoscapeState *state, const std::wstring &msg);
+	CraftErrorState(GeoscapeState *state, const std::wstring &msg);
 	/// Cleans up the Craft Error state.
 	~CraftErrorState();
 	/// Handler for clicking the OK button.
