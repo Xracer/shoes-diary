@@ -856,6 +856,12 @@
     <ClCompile Include="Battlescape\DelayedSaveState.cpp">
       <Filter>Battlescape</Filter>
     </ClCompile>
+    <ClCompile Include="Basescape\SoldierDiaryMissionState.cpp" />
+    <ClCompile Include="Basescape\SoldierDiaryOverviewState.cpp" />
+    <ClCompile Include="Basescape\SoldierDiaryPerformanceState.cpp" />
+    <ClCompile Include="Battlescape\CommendationState.cpp" />
+    <ClCompile Include="Ruleset\RuleCommendations.cpp" />
+    <ClCompile Include="Savegame\SoldierDiary.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -1734,6 +1740,12 @@
     <ClInclude Include="Battlescape\DelayedSaveState.h">
       <Filter>Battlescape</Filter>
     </ClInclude>
+    <ClInclude Include="Basescape\SoldierDiaryMissionState.h" />
+    <ClInclude Include="Basescape\SoldierDiaryOverviewState.h" />
+    <ClInclude Include="Basescape\SoldierDiaryPerformanceState.h" />
+    <ClInclude Include="Battlescape\CommendationState.h" />
+    <ClInclude Include="Ruleset\RuleCommendations.h" />
+    <ClInclude Include="Savegame\SoldierDiary.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Geoscape">
