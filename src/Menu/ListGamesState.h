@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -48,9 +48,8 @@ protected:
 	TextList *_lstSaves;
 	ArrowButton *_sortName, *_sortDate;
 	OptionsOrigin _origin;
-	bool _showMsg, _noUI;
 	std::vector<SaveInfo> _saves;
-	int _firstValidRow;
+	unsigned int _firstValidRow;
 	bool _autoquick, _sortable;
 
 	void updateArrows();

@@ -1,5 +1,5 @@
 	/*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -46,7 +46,6 @@ private:
 	double _scaleX, _scaleY;
 	int _topBlackBand, _bottomBlackBand, _leftBlackBand, _rightBlackBand, _cursorTopBlackBand, _cursorLeftBlackBand;
 	Uint32 _flags;
-	int _zoomSurfaceY(SDL_Surface * src, SDL_Surface * dst, int flipx, int flipy);
 	SDL_Color deferredPalette[256];
 	int _numColors, _firstColor;
 	bool _pushPalette;
@@ -95,8 +94,8 @@ public:
 	int getCursorLeftBlackBand() const;
 	/// Takes a screenshot.
 	void screenshot(const std::string &filename) const;
-	/// Checks whether HQX is requested and works for the selected resolution
-	static bool isHQXEnabled();
+	/// Checks whether a 32bit scaler is requested and works for the selected resolution
+	static bool is32bitEnabled();
 	/// Checks whether OpenGL output is requested
 	static bool isOpenGLEnabled();
 	/// update the game scale as required.

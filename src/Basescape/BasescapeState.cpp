@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,9 +18,8 @@
  */
 #include "BasescapeState.h"
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Options.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Text.h"
@@ -30,10 +29,9 @@
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Base.h"
 #include "../Savegame/BaseFacility.h"
-#include "../Ruleset/RuleBaseFacility.h"
+#include "../Mod/RuleBaseFacility.h"
 #include "../Savegame/Region.h"
-#include "../Ruleset/RuleRegion.h"
-#include "../Geoscape/GeoscapeState.h"
+#include "../Mod/RuleRegion.h"
 #include "../Menu/ErrorMessageState.h"
 #include "DismantleFacilityState.h"
 #include "../Geoscape/BuildNewBaseState.h"
@@ -51,6 +49,7 @@
 #include "TransferBaseState.h"
 #include "CraftInfoState.h"
 #include "../Geoscape/AllocatePsiTrainingState.h"
+#include "../Mod/RuleInterface.h"
 
 namespace OpenXcom
 {
@@ -83,91 +82,73 @@ BasescapeState::BasescapeState(Base *base, Globe *globe) : _base(base), _globe(g
 	_btnGeoscape = new TextButton(128, 12, 192, 188);
 
 	// Set palette
-	setPalette("PAL_BASESCAPE");
+	setInterface("basescape");
 
-	add(_view);
-	add(_mini);
-	add(_txtFacility);
-	add(_edtBase);
-	add(_txtLocation);
-	add(_txtFunds);
-	add(_btnNewBase);
-	add(_btnBaseInfo);
-	add(_btnSoldiers);
-	add(_btnCrafts);
-	add(_btnFacilities);
-	add(_btnResearch);
-	add(_btnManufacture);
-	add(_btnTransfer);
-	add(_btnPurchase);
-	add(_btnSell);
-	add(_btnGeoscape);
+	add(_view, "baseView", "basescape");
+	add(_mini, "miniBase", "basescape");
+	add(_txtFacility, "textTooltip", "basescape");
+	add(_edtBase, "text1", "basescape");
+	add(_txtLocation, "text2", "basescape");
+	add(_txtFunds, "text3", "basescape");
+	add(_btnNewBase, "button", "basescape");
+	add(_btnBaseInfo, "button", "basescape");
+	add(_btnSoldiers, "button", "basescape");
+	add(_btnCrafts, "button", "basescape");
+	add(_btnFacilities, "button", "basescape");
+	add(_btnResearch, "button", "basescape");
+	add(_btnManufacture, "button", "basescape");
+	add(_btnTransfer, "button", "basescape");
+	add(_btnPurchase, "button", "basescape");
+	add(_btnSell, "button", "basescape");
+	add(_btnGeoscape, "button", "basescape");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_view->setTexture(_game->getResourcePack()->getSurfaceSet("BASEBITS.PCK"));
+	_view->setTexture(_game->getMod()->getSurfaceSet("BASEBITS.PCK"));
 	_view->onMouseClick((ActionHandler)&BasescapeState::viewLeftClick, SDL_BUTTON_LEFT);
 	_view->onMouseClick((ActionHandler)&BasescapeState::viewRightClick, SDL_BUTTON_RIGHT);
 	_view->onMouseOver((ActionHandler)&BasescapeState::viewMouseOver);
 	_view->onMouseOut((ActionHandler)&BasescapeState::viewMouseOut);
 
-	_mini->setTexture(_game->getResourcePack()->getSurfaceSet("BASEBITS.PCK"));
+	_mini->setTexture(_game->getMod()->getSurfaceSet("BASEBITS.PCK"));
 	_mini->setBases(_game->getSavedGame()->getBases());
 	_mini->onMouseClick((ActionHandler)&BasescapeState::miniClick);
 	_mini->onKeyboardPress((ActionHandler)&BasescapeState::handleKeyPress);
 
-	_txtFacility->setColor(Palette::blockOffset(13)+10);
-
-	_edtBase->setColor(Palette::blockOffset(15)+1);
 	_edtBase->setBig();
 	_edtBase->onChange((ActionHandler)&BasescapeState::edtBaseChange);
 
-	_txtLocation->setColor(Palette::blockOffset(15)+6);
-
-	_txtFunds->setColor(Palette::blockOffset(13)+10);
-
-	_btnNewBase->setColor(Palette::blockOffset(13)+5);
 	_btnNewBase->setText(tr("STR_BUILD_NEW_BASE_UC"));
 	_btnNewBase->onMouseClick((ActionHandler)&BasescapeState::btnNewBaseClick);
 
-	_btnBaseInfo->setColor(Palette::blockOffset(13)+5);
 	_btnBaseInfo->setText(tr("STR_BASE_INFORMATION"));
 	_btnBaseInfo->onMouseClick((ActionHandler)&BasescapeState::btnBaseInfoClick);
 
-	_btnSoldiers->setColor(Palette::blockOffset(13)+5);
 	_btnSoldiers->setText(tr("STR_SOLDIERS_UC"));
 	_btnSoldiers->onMouseClick((ActionHandler)&BasescapeState::btnSoldiersClick);
 
-	_btnCrafts->setColor(Palette::blockOffset(13)+5);
 	_btnCrafts->setText(tr("STR_EQUIP_CRAFT"));
 	_btnCrafts->onMouseClick((ActionHandler)&BasescapeState::btnCraftsClick);
 
-	_btnFacilities->setColor(Palette::blockOffset(13)+5);
 	_btnFacilities->setText(tr("STR_BUILD_FACILITIES"));
 	_btnFacilities->onMouseClick((ActionHandler)&BasescapeState::btnFacilitiesClick);
 
-	_btnResearch->setColor(Palette::blockOffset(13)+5);
 	_btnResearch->setText(tr("STR_RESEARCH"));
 	_btnResearch->onMouseClick((ActionHandler)&BasescapeState::btnResearchClick);
 
-	_btnManufacture->setColor(Palette::blockOffset(13)+5);
 	_btnManufacture->setText(tr("STR_MANUFACTURE"));
 	_btnManufacture->onMouseClick((ActionHandler)&BasescapeState::btnManufactureClick);
 
-	_btnTransfer->setColor(Palette::blockOffset(13)+5);
 	_btnTransfer->setText(tr("STR_TRANSFER_UC"));
 	_btnTransfer->onMouseClick((ActionHandler)&BasescapeState::btnTransferClick);
 
-	_btnPurchase->setColor(Palette::blockOffset(13)+5);
 	_btnPurchase->setText(tr("STR_PURCHASE_RECRUIT"));
 	_btnPurchase->onMouseClick((ActionHandler)&BasescapeState::btnPurchaseClick);
 
-	_btnSell->setColor(Palette::blockOffset(13)+5);
 	_btnSell->setText(tr("STR_SELL_SACK_UC"));
 	_btnSell->onMouseClick((ActionHandler)&BasescapeState::btnSellClick);
 
-	_btnGeoscape->setColor(Palette::blockOffset(13)+5);
 	_btnGeoscape->setText(tr("STR_GEOSCAPE_UC"));
 	_btnGeoscape->onMouseClick((ActionHandler)&BasescapeState::btnGeoscapeClick);
 	_btnGeoscape->onKeyboardPress((ActionHandler)&BasescapeState::btnGeoscapeClick, Options::keyCancel);
@@ -254,7 +235,7 @@ void BasescapeState::setBase(Base *base)
 	else
 	{
 		// Use a blank base for special case when player has no bases
-		_base = new Base(_game->getRuleset());
+		_base = new Base(_game->getMod());
 		_mini->setSelectedBase(0);
 		_game->getSavedGame()->setSelectedBase(0);
 	}
@@ -266,7 +247,7 @@ void BasescapeState::setBase(Base *base)
  */
 void BasescapeState::btnNewBaseClick(Action *)
 {
-	Base *base = new Base(_game->getRuleset());
+	Base *base = new Base(_game->getMod());
 	_game->popState();
 	_game->pushState(new BuildNewBaseState(base, _globe, false));
 }
@@ -373,12 +354,12 @@ void BasescapeState::viewLeftClick(Action *)
 		// Is facility in use?
 		if (fac->inUse())
 		{
-			_game->pushState(new ErrorMessageState(tr("STR_FACILITY_IN_USE"), _palette, Palette::blockOffset(15)+1, "BACK13.SCR", 6));
+			_game->pushState(new ErrorMessageState(tr("STR_FACILITY_IN_USE"), _palette, _game->getMod()->getInterface("basescape")->getElement("errorMessage")->color, "BACK13.SCR", _game->getMod()->getInterface("basescape")->getElement("errorPalette")->color));
 		}
 		// Would base become disconnected?
 		else if (!_base->getDisconnectedFacilities(fac).empty())
 		{
-			_game->pushState(new ErrorMessageState(tr("STR_CANNOT_DISMANTLE_FACILITY"), _palette, Palette::blockOffset(15)+1, "BACK13.SCR", 6));
+			_game->pushState(new ErrorMessageState(tr("STR_CANNOT_DISMANTLE_FACILITY"), _palette, _game->getMod()->getInterface("basescape")->getElement("errorMessage")->color, "BACK13.SCR", _game->getMod()->getInterface("basescape")->getElement("errorPalette")->color));
 		}
 		else
 		{
@@ -526,7 +507,7 @@ void BasescapeState::handleKeyPress(Action *action)
  * Changes the Base name.
  * @param action Pointer to an action.
  */
-void BasescapeState::edtBaseChange(Action *action)
+void BasescapeState::edtBaseChange(Action *)
 {
 	_base->setName(_edtBase->getText());
 }

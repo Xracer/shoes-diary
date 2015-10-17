@@ -25,9 +25,11 @@ endif
 
 # Compiler settings
 ifeq ($(TARGET),OSX)
-CXXFLAGS ?= -Wall -Wextra -O2
+CXXFLAGS ?= -O2
+CXXFLAGS += -Wall -Wextra
 else
-CXXFLAGS ?= -Wall -Wextra -O2 -rdynamic
+CXXFLAGS ?= -O2
+CXXFLAGS += -Wall -Wextra -rdynamic
 endif
 
 CXXFLAGS += $(addprefix -D,$(TARGET))
@@ -71,10 +73,7 @@ $(OBJDIR)%.o:: Interface/%.cpp
 $(OBJDIR)%.o:: Menu/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-$(OBJDIR)%.o:: Resource/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
-$(OBJDIR)%.o:: Ruleset/%.cpp
+$(OBJDIR)%.o:: Mod/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(OBJDIR)%.o:: Savegame/%.cpp

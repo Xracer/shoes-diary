@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,8 +18,6 @@
  */
 #ifndef OPENXCOM_WEAPONPROJECTILE_H
 #define OPENXCOM_WEAPONPROJECTILE_H
-
-#include <string>
 
 namespace OpenXcom {
 

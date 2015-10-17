@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -47,7 +47,7 @@ private:
 	TextList *_lstDefenses;
 	Base *_base;
 	Ufo *_ufo;
-	int _thinkcycles, _row, _passes, _gravShields, _defenses, _attacks;
+	int _thinkcycles, _row, _passes, _gravShields, _defenses, _attacks, _explosionCount;
 	BaseDefenseActionType _action;
 	Timer *_timer;
 	GeoscapeState *_state;

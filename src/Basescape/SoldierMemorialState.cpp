@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -20,10 +20,8 @@
 #include <sstream>
 #include <iomanip>
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Music.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Options.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
@@ -57,43 +55,35 @@ SoldierMemorialState::SoldierMemorialState()
 	_lstSoldiers = new TextList(288, 120, 8, 44);
 
 	// Set palette
-	setPalette("PAL_BASESCAPE", 7);
+	setInterface("soldierMemorial");
 
-	_game->getResourcePack()->playMusic("GMLOSE");
-
-	add(_window);
-	add(_btnOk);
-	add(_txtTitle);
-	add(_txtName);
-	add(_txtRank);
-	add(_txtDate);
-	add(_txtRecruited);
-	add(_txtLost);
-	add(_lstSoldiers);
+	add(_window, "window", "soldierMemorial");
+	add(_btnOk, "button", "soldierMemorial");
+	add(_txtTitle, "text", "soldierMemorial");
+	add(_txtName, "text", "soldierMemorial");
+	add(_txtRank, "text", "soldierMemorial");
+	add(_txtDate, "text", "soldierMemorial");
+	add(_txtRecruited, "text", "soldierMemorial");
+	add(_txtLost, "text", "soldierMemorial");
+	add(_lstSoldiers, "list", "soldierMemorial");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(13)+10);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK02.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK02.SCR"));
 
-	_btnOk->setColor(Palette::blockOffset(13)+10);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&SoldierMemorialState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&SoldierMemorialState::btnOkClick, Options::keyCancel);
 
-	_txtTitle->setColor(Palette::blockOffset(13)+10);
 	_txtTitle->setBig();
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setText(tr("STR_MEMORIAL"));
 
-	_txtName->setColor(Palette::blockOffset(13)+10);
 	_txtName->setText(tr("STR_NAME_UC"));
 
-	_txtRank->setColor(Palette::blockOffset(13)+10);
 	_txtRank->setText(tr("STR_RANK"));
 
-	_txtDate->setColor(Palette::blockOffset(13)+10);
 	_txtDate->setText(tr("STR_DATE_UC"));
 
 	size_t lost = _game->getSavedGame()->getDeadSoldiers()->size();
@@ -103,16 +93,10 @@ SoldierMemorialState::SoldierMemorialState()
 		recruited += (*i)->getTotalSoldiers();
 	}
 
-	_txtRecruited->setColor(Palette::blockOffset(13)+10);
-	_txtRecruited->setSecondaryColor(Palette::blockOffset(13));
 	_txtRecruited->setText(tr("STR_SOLDIERS_RECRUITED").arg(recruited));
 
-	_txtLost->setColor(Palette::blockOffset(13)+10);
-	_txtLost->setSecondaryColor(Palette::blockOffset(13));
 	_txtLost->setText(tr("STR_SOLDIERS_LOST").arg(lost));
 
-	_lstSoldiers->setColor(Palette::blockOffset(15)+6);
-	_lstSoldiers->setArrowColor(Palette::blockOffset(13)+10);
 	_lstSoldiers->setColumns(5, 114, 88, 30, 25, 35);
 	_lstSoldiers->setSelectable(true);
 	_lstSoldiers->setBackground(_window);
@@ -146,7 +130,7 @@ SoldierMemorialState::~SoldierMemorialState()
 void SoldierMemorialState::btnOkClick(Action *)
 {
 	_game->popState();
-	_game->getResourcePack()->playMusic("GMGEO", true);
+	_game->getMod()->playMusic("GMGEO");
 }
 
 /**

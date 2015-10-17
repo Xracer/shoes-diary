@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,6 +17,7 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "Frame.h"
+#include "../Engine/Palette.h"
 
 namespace OpenXcom
 {
@@ -48,6 +49,17 @@ void Frame::setColor(Uint8 color)
 	_color = color;
 	_redraw = true;
 }
+/**
+ * Changes the color used to draw the shaded border.
+ * only really to be used in conjunction with the State add()
+ * function as a convenience wrapper to avoid ugly hacks on that end
+ * better to have them here!
+ * @param color Color value.
+ */
+void Frame::setBorderColor(Uint8 color)
+{
+	setColor(color);
+}
 
 /**
  * Returns the color used to draw the shaded border.
@@ -59,20 +71,20 @@ Uint8 Frame::getColor() const
 }
 
 /**
-* Changes the color used to draw the background.
-* @param bg Color value.
-*/
-void Frame::setBackground(Uint8 bg)
+ * Changes the color used to draw the background.
+ * @param bg Color value.
+ */
+void Frame::setSecondaryColor(Uint8 bg)
 {
 	_bg = bg;
 	_redraw = true;
 }
 
 /**
-* Returns the color used to draw the background.
-* @return Color value.
-*/
-Uint8 Frame::getBackground() const
+ * Returns the color used to draw the background.
+ * @return Color value.
+ */
+Uint8 Frame::getSecondaryColor() const
 {
 	return _bg;
 }
@@ -89,9 +101,9 @@ void Frame::setHighContrast(bool contrast)
 }
 
 /**
-* Changes the thickness of the border to draw.
-* @param thickness Thickness in pixels.
-*/
+ * Changes the thickness of the border to draw.
+ * @param thickness Thickness in pixels.
+ */
 void Frame::setThickness(int thickness)
 {
 	_thickness = thickness;
@@ -119,11 +131,17 @@ void Frame::draw()
 	{
 		mul = 2;
 	}
-	Uint8 color = _color + 3 * mul;
 
+	// _color denotes our middle line color, so we start (half the thickness times the multiplier) steps darker and build up
+	Uint8 color = _color + ((1 + _thickness) * mul) / 2;
+	// we want the darkest version of this colour to outline any thick borders
+	Uint8 darkest = Palette::blockOffset(_color / 16) + 15;
 	for (int i = 0; i < _thickness; ++i)
 	{
-		drawRect(&square, color);
+		if (_thickness > 5 && (!i || i == _thickness -1))
+			drawRect(&square, darkest);
+		else
+			drawRect(&square, color);
 		if (i < _thickness / 2)
 			color -= 1 * mul;
 		else

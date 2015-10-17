@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,11 +17,9 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "CraftPatrolState.h"
-#include <string>
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
@@ -51,31 +49,27 @@ CraftPatrolState::CraftPatrolState(Craft *craft, Globe *globe) : _craft(craft), 
 	_txtPatrolling = new Text(224, 17, 16, 120);
 
 	// Set palette
-	setPalette("PAL_GEOSCAPE", 4);
+	setInterface("geoCraftScreens");
 
-	add(_window);
-	add(_btnOk);
-	add(_btnRedirect);
-	add(_txtDestination);
-	add(_txtPatrolling);
+	add(_window, "window", "geoCraftScreens");
+	add(_btnOk, "button", "geoCraftScreens");
+	add(_btnRedirect, "button", "geoCraftScreens");
+	add(_txtDestination, "text1", "geoCraftScreens");
+	add(_txtPatrolling, "text1", "geoCraftScreens");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(15)-1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK12.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK12.SCR"));
 
-	_btnOk->setColor(Palette::blockOffset(8)+5);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&CraftPatrolState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&CraftPatrolState::btnOkClick, Options::keyCancel);
 
-	_btnRedirect->setColor(Palette::blockOffset(8)+5);
 	_btnRedirect->setText(tr("STR_REDIRECT_CRAFT"));
 	_btnRedirect->onMouseClick((ActionHandler)&CraftPatrolState::btnRedirectClick);
 	_btnRedirect->onKeyboardPress((ActionHandler)&CraftPatrolState::btnRedirectClick, Options::keyOk);
 
-	_txtDestination->setColor(Palette::blockOffset(15)-1);
 	_txtDestination->setBig();
 	_txtDestination->setAlign(ALIGN_CENTER);
 	_txtDestination->setWordWrap(true);
@@ -83,7 +77,6 @@ CraftPatrolState::CraftPatrolState(Craft *craft, Globe *globe) : _craft(craft), 
 							 .arg(_craft->getName(_game->getLanguage()))
 							 .arg(_craft->getDestination()->getName(_game->getLanguage())));
 
-	_txtPatrolling->setColor(Palette::blockOffset(15)-1);
 	_txtPatrolling->setBig();
 	_txtPatrolling->setAlign(ALIGN_CENTER);
 	_txtPatrolling->setText(tr("STR_NOW_PATROLLING"));

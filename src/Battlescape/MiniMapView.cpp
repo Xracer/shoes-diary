@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -21,24 +21,21 @@
 #include "MiniMapView.h"
 #include "MiniMapState.h"
 #include "../Savegame/Tile.h"
-#include "Map.h"
 #include "Camera.h"
 #include "../Engine/Action.h"
 #include "../Interface/Cursor.h"
 #include "../Savegame/SavedBattleGame.h"
 #include "../Engine/Game.h"
 #include "../Engine/SurfaceSet.h"
-#include "../Resource/ResourcePack.h"
-#include "../Ruleset/Armor.h"
+#include "../Mod/Mod.h"
+#include "../Mod/Armor.h"
 #include "../Engine/Options.h"
 #include "../Engine/Screen.h"
-#include <sstream>
 
 namespace OpenXcom
 {
 const int CELL_WIDTH = 4;
 const int CELL_HEIGHT = 4;
-const int MAX_LEVEL = 3;
 const int MAX_FRAME = 2;
 
 /**
@@ -53,7 +50,7 @@ const int MAX_FRAME = 2;
  */
 MiniMapView::MiniMapView(int w, int h, int x, int y, Game * game, Camera * camera, SavedBattleGame * battleGame) : InteractiveSurface(w, h, x, y), _game(game), _camera(camera), _battleGame(battleGame), _frame(0), _isMouseScrolling(false), _isMouseScrolled(false), _xBeforeMouseScrolling(0), _yBeforeMouseScrolling(0), _mouseScrollX(0), _mouseScrollY(0), _totalMouseMoveX(0), _totalMouseMoveY(0), _mouseMovedOverThreshold(false)
 {
-	_set = _game->getResourcePack()->getSurfaceSet("SCANG.DAT");
+	_set = _game->getMod()->getSurfaceSet("SCANG.DAT");
 }
 
 /**
@@ -65,7 +62,7 @@ void MiniMapView::draw()
 	int _startY = _camera->getCenterPosition().y - ((getHeight() / CELL_HEIGHT) / 2);
 
 	InteractiveSurface::draw();
-	if(!_set)
+	if (!_set)
 	{
 		return;
 	}
@@ -74,10 +71,10 @@ void MiniMapView::draw()
 	for (int lvl = 0; lvl <= _camera->getCenterPosition().z; lvl++)
 	{
 		int py = _startY;
-		for (int y = Surface::getY(); y < getHeight () + Surface::getY(); y += CELL_HEIGHT)
+		for (int y = Surface::getY(); y < getHeight() + Surface::getY(); y += CELL_HEIGHT)
 		{
 			int px = _startX;
-			for (int x = Surface::getX(); x < getWidth () + Surface::getX(); x += CELL_WIDTH)
+			for (int x = Surface::getX(); x < getWidth() + Surface::getX(); x += CELL_WIDTH)
 			{
 				MapData * data = 0;
 				Tile * t = 0;
@@ -88,23 +85,21 @@ void MiniMapView::draw()
 					px++;
 					continue;
 				}
-				int tileShade = 16;
 				if (t->isDiscovered(2))
 				{
-					tileShade = t->getShade();
-				}
-				for(int i = 0; i < 4; i++)
-				{
-					data = t->getMapData(i);
+					for (int i = 0; i < 4; i++)
+					{
+						data = t->getMapData(i);
 
-					Surface * s = 0;
-					if(data && data->getMiniMapIndex())
-					{
-						s = _set->getFrame (data->getMiniMapIndex()+35);
-					}
-					if(s)
-					{
-						s->blitNShade(this, x, y, tileShade);
+						Surface * s = 0;
+						if (data && data->getMiniMapIndex())
+						{
+							s = _set->getFrame (data->getMiniMapIndex()+35);
+						}
+						if (s)
+						{
+							s->blitNShade(this, x, y, t->getShade());
+						}
 					}
 				}
 				// alive units
@@ -219,7 +214,7 @@ void MiniMapView::mouseClick(Action *action, State *state)
 		if (action->getDetails()->button.button != Options::battleDragScrollButton
 		&& 0==(SDL_GetMouseState(0,0)&SDL_BUTTON(Options::battleDragScrollButton))) { // so we missed again the mouse-release :(
 			// Check if we have to revoke the scrolling, because it was too short in time, so it was a click
-			if ((!_mouseMovedOverThreshold) && (SDL_GetTicks() - _mouseScrollingStartTime <= (Options::dragScrollTimeTolerance)))
+			if ((!_mouseMovedOverThreshold) && ((int)(SDL_GetTicks() - _mouseScrollingStartTime) <= (Options::dragScrollTimeTolerance)))
 				{ _camera->centerOnPosition(_posBeforeMouseScrolling); _redraw = true; }
 			_isMouseScrolled = _isMouseScrolling = false;
 			stopScrolling(action);
@@ -240,7 +235,7 @@ void MiniMapView::mouseClick(Action *action, State *state)
 			return;
 		}
 		// Check if we have to revoke the scrolling, because it was too short in time, so it was a click
-		if ((!_mouseMovedOverThreshold) && (SDL_GetTicks() - _mouseScrollingStartTime <= (Options::dragScrollTimeTolerance)))
+		if ((!_mouseMovedOverThreshold) && ((int)(SDL_GetTicks() - _mouseScrollingStartTime) <= (Options::dragScrollTimeTolerance)))
 		{
 			_isMouseScrolled = false;
 			stopScrolling(action);
@@ -288,7 +283,7 @@ void MiniMapView::mouseOver(Action *action, State *state)
 		// (checking: is the dragScroll-mouse-button still pressed?)
 		if (0==(SDL_GetMouseState(0,0)&SDL_BUTTON(Options::battleDragScrollButton))) { // so we missed again the mouse-release :(
 			// Check if we have to revoke the scrolling, because it was too short in time, so it was a click
-			if ((!_mouseMovedOverThreshold) && (SDL_GetTicks() - _mouseScrollingStartTime <= (Options::dragScrollTimeTolerance)))
+			if ((!_mouseMovedOverThreshold) && ((int)(SDL_GetTicks() - _mouseScrollingStartTime) <= (Options::dragScrollTimeTolerance)))
 			{
 					_camera->centerOnPosition(_posBeforeMouseScrolling);
 					_redraw = true;
@@ -388,7 +383,7 @@ void MiniMapView::mouseIn(Action *action, State *state)
 void MiniMapView::animate()
 {
 	_frame++;
-	if(_frame > MAX_FRAME)
+	if (_frame > MAX_FRAME)
 	{
 		_frame = 0;
 	}

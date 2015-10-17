@@ -1,7 +1,8 @@
 project ( OpenXcom )
 
-cmake_minimum_required ( VERSION 2.8 )
+cmake_minimum_required ( VERSION 2.8.5 )
 set ( CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules" )
+include(GNUInstallDirs)
 
 option ( DEV_BUILD "Development Build. Disable this for release builds" ON )
 option ( BUILD_PACKAGE "Prepares build for creation of a package with CPack" ON )
@@ -39,16 +40,11 @@ if ( IS_DIRECTORY ${DEPS_DIR} )
    set ( SDLMIXER_LIBRARY SDL_mixer )
    set ( SDLIMAGE_LIBRARY SDL_image )
    set ( YAMLCPP_LIBRARY yaml-cpp )
+   set ( YAMLCPP_LIBRARY_DEBUG yaml-cppd )
 else ( )
   find_package ( SDL2 COMPONENTS mixer gfx image)
   find_package ( Yaml_cpp 0.5.0)
-  find_package ( OpenGL )
-
-  if ( NOT OPENGL_FOUND )
-	  message ( FATAL_ERROR "Can't find OpenGL; how does that even happen?" )
-  else ()
-	  include_directories ( ${OPENGL_INCLUDE_DIR} )
-  endif ()
+  set ( YAMLCPP_LIBRARY_DEBUG ${YAMLCPP_LIBRARY} )
 
   if ( NOT SDL_FOUND )
     message ( FATAL_ERROR "Can't find SDL which is required" )
@@ -85,6 +81,15 @@ else ( )
     message ( "found yaml-cpp(${YAMLCPP_LIBRARY_DIRS}:${YAMLCPP_INCLUDE_DIR})" )
   endif ( NOT YAMLCPP_FOUND )
 endif()
+
+# Find OpenGL
+find_package ( OpenGL )
+if ( NOT OPENGL_FOUND )
+  message ( WARNING "Can't find OpenGL; how does that even happen?\n"
+    "Continuing building without OpenGL support."
+    )
+  add_definitions(-D__NO_OPENGL)
+endif ()
 
 # Read version number
 set ( file "${CMAKE_SOURCE_DIR}/src/version.h" )
@@ -130,7 +135,9 @@ if ( BUILD_PACKAGE )
     endif ()
   endif ( )
   set ( CPACK_PACKAGE_VENDOR "The OpenXcom project" )
-  set ( CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.txt" )
+  set ( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Open-source clone of UFO: Enemy Unknown" )
+  set ( CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/cmake/modules/Description.txt" )
+  set ( CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md" )
   if ( NOT APPLE )
     set ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.txt" )
   endif ()
@@ -143,6 +150,13 @@ if ( BUILD_PACKAGE )
   message ( "version:${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}"
 )
 endif()
+
+if ( NOT WIN32 )
+  install(FILES "${CMAKE_SOURCE_DIR}/res/linux/openxcom.desktop"     DESTINATION share/applications)
+  install(FILES "${CMAKE_SOURCE_DIR}/res/linux/icons/openxcom_48x48.png"   DESTINATION share/icons/hicolor/48x48/apps RENAME openxcom.png)
+  install(FILES "${CMAKE_SOURCE_DIR}/res/linux/icons/openxcom_128x128.png"   DESTINATION share/icons/hicolor/128x128/apps RENAME openxcom.png)
+  install(FILES "${CMAKE_SOURCE_DIR}/res/linux/icons/openxcom.svg"   DESTINATION share/icons/hicolor/scalable/apps)
+endif ()
 
 add_subdirectory ( docs )
 add_subdirectory ( src )

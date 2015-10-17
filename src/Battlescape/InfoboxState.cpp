@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,13 +17,13 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "InfoboxState.h"
-#include <string>
 #include "../Engine/Game.h"
-#include "../Engine/Palette.h"
 #include "../Engine/Timer.h"
 #include "../Interface/Text.h"
 #include "../Interface/Frame.h"
 #include "../Engine/Action.h"
+#include "../Savegame/SavedGame.h"
+#include "../Savegame/SavedBattleGame.h"
 
 namespace OpenXcom
 {
@@ -42,16 +42,14 @@ InfoboxState::InfoboxState(const std::wstring &msg)
 	_text = new Text(251, 112, 39, 15);
 
 	// Set palette
-	setPalette("PAL_BATTLESCAPE");
+	_game->getSavedGame()->getSavedBattle()->setPaletteByDepth(this);
 
-	add(_frame);
-	add(_text);
+	add(_frame, "infoBox", "battlescape");
+	add(_text, "infoBox", "battlescape");
 
 	centerAllSurfaces();
 
 	_frame->setHighContrast(true);
-	_frame->setColor(Palette::blockOffset(0) + 7);
-	_frame->setBackground(Palette::blockOffset(0) + 14);
 	_frame->setThickness(9);
 
 	_text->setAlign(ALIGN_CENTER);
@@ -59,9 +57,7 @@ InfoboxState::InfoboxState(const std::wstring &msg)
 	_text->setBig();
 	_text->setWordWrap(true);
 	_text->setText(msg);
-	_text->setColor(Palette::blockOffset(0)-1);
 	_text->setHighContrast(true);
-	_text->setPalette(_frame->getPalette());
 
 	_timer = new Timer(INFOBOX_DELAY);
 	_timer->onTimer((StateHandler)&InfoboxState::close);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -34,10 +34,10 @@ class UnitTurnBState : public BattleState
 {
 private:
 	BattleUnit *_unit;
-	bool _turret;
+	bool _turret, _chargeTUs;
 public:
 	/// Creates a new UnitTurnBState class
-	UnitTurnBState(BattlescapeGame *parent, BattleAction action);
+	UnitTurnBState(BattlescapeGame *parent, BattleAction action, bool chargeTUs = true);
 	/// Cleans up the UnitTurnBState.
 	~UnitTurnBState();
 	/// Initializes the state.
@@ -46,8 +46,6 @@ public:
 	void cancel();
 	/// Runs state functionality every cycle.
 	void think();
-	/// Gets the result of the state.
-	std::string getResult() const;
 };
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -20,9 +20,7 @@
 #include <sstream>
 #include <cmath>
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Action.h"
 #include "../Interface/Text.h"
 #include "../Interface/Frame.h"
@@ -30,6 +28,8 @@
 #include "../Savegame/BattleItem.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/SavedBattleGame.h"
+#include "../Mod/Mod.h"
+#include "../Mod/RuleInterface.h"
 
 namespace OpenXcom
 {
@@ -59,23 +59,29 @@ PrimeGrenadeState::PrimeGrenadeState(BattleAction *action, bool inInventoryView,
 	}
 
 	// Set palette
-	setPalette("PAL_BATTLESCAPE");
+	if (inInventoryView)
+	{
+		setPalette("PAL_BATTLESCAPE");
+	}
+	else
+	{
+		_game->getSavedGame()->getSavedBattle()->setPaletteByDepth(this);
+	}
+
+	Element *grenadeBackground = _game->getMod()->getInterface("battlescape")->getElement("grenadeBackground");
 
 	// Set up objects
 	add(_bg);
-	_bg->drawRect(0, 0, _bg->getWidth(), _bg->getHeight(), Palette::blockOffset(6)+9);
+	_bg->drawRect(0, 0, _bg->getWidth(), _bg->getHeight(), grenadeBackground->color);
 
-	add(_frame);
-	_frame->setColor(Palette::blockOffset(6)+3);
-	_frame->setBackground(Palette::blockOffset(6)+12);
+	add(_frame, "grenadeMenu", "battlescape");
 	_frame->setThickness(3);
 	_frame->setHighContrast(true);
 
-	add(_title);
+	add(_title, "grenadeMenu", "battlescape");
 	_title->setAlign(ALIGN_CENTER);
 	_title->setBig();
 	_title->setText(tr("STR_SET_TIMER"));
-	_title->setColor(Palette::blockOffset(1)-1);
 	_title->setHighContrast(true);
 
 	for (int i = 0; i < 24; ++i)
@@ -87,19 +93,18 @@ PrimeGrenadeState::PrimeGrenadeState(BattleAction *action, bool inInventoryView,
 		square.y = 0;
 		square.w = _button[i]->getWidth();
 		square.h = _button[i]->getHeight();
-		_button[i]->drawRect(&square, Palette::blockOffset(0)+15);
+		_button[i]->drawRect(&square, grenadeBackground->border);
 		square.x++;
 		square.y++;
 		square.w -= 2;
 		square.h -= 2;
-		_button[i]->drawRect(&square, Palette::blockOffset(6)+12);
+		_button[i]->drawRect(&square, grenadeBackground->color2);
 
 		std::wostringstream ss;
 		ss << i;
-		add(_number[i]);
+		add(_number[i], "grenadeMenu", "battlescape");
 		_number[i]->setBig();
 		_number[i]->setText(ss.str());
-		_number[i]->setColor(Palette::blockOffset(1)-1);
 		_number[i]->setHighContrast(true);
 		_number[i]->setAlign(ALIGN_CENTER);
 		_number[i]->setVerticalAlign(ALIGN_MIDDLE);

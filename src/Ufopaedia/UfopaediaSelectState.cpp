@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -19,22 +19,19 @@
 
 #include "Ufopaedia.h"
 #include "UfopaediaSelectState.h"
-#include "../Ruleset/ArticleDefinition.h"
-#include "ArticleState.h"
+#include "../Mod/ArticleDefinition.h"
 #include "../Engine/Game.h"
 #include "../Engine/Options.h"
-#include "../Engine/Palette.h"
-#include "../Engine/Surface.h"
-#include "../Engine/Language.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/TextList.h"
-#include "../Resource/ResourcePack.h"
+#include "../Mod/Mod.h"
 
 namespace OpenXcom
 {
-	UfopaediaSelectState::UfopaediaSelectState(std::string section) : _section(section)
+	UfopaediaSelectState::UfopaediaSelectState(const std::string &section) : _section(section)
 	{
 		_screen = false;
 
@@ -49,30 +46,25 @@ namespace OpenXcom
 		_lstSelection = new TextList(224, 104, 40, 50);
 
 		// Set palette
-		setPalette("PAL_GEOSCAPE", 0);
+		setInterface("ufopaedia");
 
-		add(_window);
-		add(_txtTitle);
-		add(_btnOk);
-		add(_lstSelection);
+		add(_window, "window", "ufopaedia");
+		add(_txtTitle, "text", "ufopaedia");
+		add(_btnOk, "button2", "ufopaedia");
+		add(_lstSelection, "list", "ufopaedia");
 
 		centerAllSurfaces();
 
-		_window->setColor(Palette::blockOffset(15)-1);
-		_window->setBackground(_game->getResourcePack()->getSurface("BACK01.SCR"));
+		_window->setBackground(_game->getMod()->getSurface("BACK01.SCR"));
 
-		_txtTitle->setColor(Palette::blockOffset(8)+10);
 		_txtTitle->setBig();
 		_txtTitle->setAlign(ALIGN_CENTER);
 		_txtTitle->setText(tr("STR_SELECT_ITEM"));
 
-		_btnOk->setColor(Palette::blockOffset(15)-1);
 		_btnOk->setText(tr("STR_OK"));
 		_btnOk->onMouseClick((ActionHandler)&UfopaediaSelectState::btnOkClick);
 		_btnOk->onKeyboardPress((ActionHandler)&UfopaediaSelectState::btnOkClick,Options::keyCancel);
 
-		_lstSelection->setColor(Palette::blockOffset(8)+5);
-		_lstSelection->setArrowColor(Palette::blockOffset(15)-1);
 		_lstSelection->setColumns(1, 206);
 		_lstSelection->setSelectable(true);
 		_lstSelection->setBackground(_window);
@@ -85,6 +77,14 @@ namespace OpenXcom
 
 	UfopaediaSelectState::~UfopaediaSelectState()
 	{}
+	
+	/**
+	 * Initializes the state.
+	 */
+	void UfopaediaSelectState::init()
+	{
+		State::init();
+	}
 
 	/**
 	 * Returns to the previous screen.
@@ -109,8 +109,8 @@ namespace OpenXcom
 		ArticleDefinitionList::iterator it;
 
 		_article_list.clear();
-		Ufopaedia::list(_game->getSavedGame(), _game->getRuleset(), _section, _article_list);
-		for(it = _article_list.begin(); it!=_article_list.end(); ++it)
+		Ufopaedia::list(_game->getSavedGame(), _game->getMod(), _section, _article_list);
+		for (it = _article_list.begin(); it!=_article_list.end(); ++it)
 		{
 			_lstSelection->addRow(1, tr((*it)->title).c_str());
 		}

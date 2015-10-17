@@ -18,8 +18,8 @@
  */
 #include "SoldierDiary.h"
 #include "GameTime.h"
-#include "../Ruleset/RuleCommendations.h"
-#include "../Ruleset/Ruleset.h"
+#include "../Mod/RuleCommendations.h"
+#include "../Mod/Mod.h"
 namespace OpenXcom
 {
 /**

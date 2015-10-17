@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -36,7 +36,7 @@ class InteractiveSurface;
 
 /**
  * Screen that allows changing of Production settings (assigned engineer, units to build).
-*/
+ */
 class ManufactureInfoState : public State
 {
 private:
@@ -111,6 +111,8 @@ public:
 	ManufactureInfoState(Base * base, RuleManufacture * _item);
 	/// Creates the State (modify production).
 	ManufactureInfoState(Base * base, Production * production);
+	/// Cleans up the state
+	~ManufactureInfoState();
 };
 }
 #endif

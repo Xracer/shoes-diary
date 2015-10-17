@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,7 +18,6 @@
  */
 #include "InteractiveSurface.h"
 #include "Action.h"
-#include "Options.h"
 
 namespace OpenXcom
 {
@@ -130,18 +129,18 @@ void InteractiveSurface::handle(Action *action, State *state)
 				_isHovered = true;
 				mouseIn(action, state);
 			}
-				if (_listButton && action->getDetails()->type == SDL_MOUSEMOTION)
+			if (_listButton && action->getDetails()->type == SDL_MOUSEMOTION)
+			{
+				_buttonsPressed = SDL_GetMouseState(0, 0);
+				for (Uint8 i = 1; i <= NUM_BUTTONS; ++i)
 				{
-					_buttonsPressed = SDL_GetMouseState(0, 0);
-					for (Uint8 i = 1; i <= NUM_BUTTONS; ++i)
+					if (isButtonPressed(i))
 					{
-						if (isButtonPressed(i))
-						{
-							action->getDetails()->button.button = i;
-							mousePress(action, state);
-						}
+						action->getDetails()->button.button = i;
+						mousePress(action, state);
 					}
 				}
+			}
 			mouseOver(action, state);
 		}
 		else

@@ -35,7 +35,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
 #include <math.h>
 //#include "driver.h"		/* use M.A.M.E. */
 #include "fmopl.h"
@@ -710,8 +709,8 @@ static void OPLCloseTable( void )
 	free(VIB_TABLE);
 }
 
-/* CSM Key Controll */
-INLINE void CSMKeyControll(OPL_CH *CH)
+/* CSM Key Control */
+INLINE void CSMKeyControl(OPL_CH *CH)
 {
 	OPL_SLOT *slot1 = &CH->SLOT[SLOT1];
 	OPL_SLOT *slot2 = &CH->SLOT[SLOT2];
@@ -753,7 +752,7 @@ static void OPLWriteReg(FM_OPL *OPL, int r, int v)
 {
 	OPL_CH *CH;
 	int slot;
-	int block_fnum;
+	unsigned int block_fnum;
 
 	switch(r&0xe0)
 	{
@@ -1351,9 +1350,13 @@ unsigned char OPLRead(FM_OPL *OPL,int a)
 		if(OPL->type&OPL_TYPE_KEYBOARD)
 		{
 			if(OPL->keyboardhandler_r)
+			{
 				return OPL->keyboardhandler_r(OPL->keyboard_param);
+			}
 			else
+			{
 				LOG(LOG_WAR,("OPL:read unmapped KEYBOARD port\n"));
+			}
 		}
 		return 0;
 #if 0
@@ -1364,9 +1367,13 @@ unsigned char OPLRead(FM_OPL *OPL,int a)
 		if(OPL->type&OPL_TYPE_IO)
 		{
 			if(OPL->porthandler_r)
+			{
 				return OPL->porthandler_r(OPL->port_param);
+			}
 			else
+			{
 				LOG(LOG_WAR,("OPL:read unmapped I/O port\n"));
+			}
 		}
 		return 0;
 	case 0x1a: /* PCM-DATA    */
@@ -1390,7 +1397,7 @@ int OPLTimerOver(FM_OPL *OPL,int c)
 			int ch;
 			if(OPL->UpdateHandler) OPL->UpdateHandler(OPL->UpdateParam,0);
 			for(ch=0;ch<9;ch++)
-				CSMKeyControll( &OPL->P_CH[ch] );
+				CSMKeyControl( &OPL->P_CH[ch] );
 		}
 	}
 	/* reload timer */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -80,7 +80,7 @@ struct GraphSubset
 	
 	static inline void intersection_range(int& begin_a, int& end_a, const int& begin_b, const int& end_b)
 	{
-		if(begin_a >= end_b || begin_b >= end_a)
+		if (begin_a >= end_b || begin_b >= end_a)
 		{			
 			//intersection is empty
 			end_a = begin_a;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -32,7 +32,7 @@ class Node;
 struct BattleAction;
 
 /**
- * This is the intial AI state of units, walking around and looking for intruders.
+ * This is the initial AI state of units, walking around and looking for intruders.
  */
 class CivilianBAIState : public BattleAIState
 {

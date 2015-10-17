@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -22,15 +22,14 @@
 #include "../Engine/InteractiveSurface.h"
 #include "../Engine/Options.h"
 #include "Position.h"
-#include <set>
 #include <vector>
 
 namespace OpenXcom
 {
 
-class ResourcePack;
 class SavedBattleGame;
 class Surface;
+class SurfaceSet;
 class BattleUnit;
 class Projectile;
 class Explosion;
@@ -51,7 +50,6 @@ private:
 	Timer *_scrollMouseTimer, *_scrollKeyTimer;
 	Game *_game;
 	SavedBattleGame *_save;
-	ResourcePack *_res;
 	Surface *_arrow;
 	int _spriteWidth, _spriteHeight;
 	int _selectorX, _selectorY;
@@ -67,15 +65,16 @@ private:
 	Camera *_camera;
 	int _visibleMapHeight;
 	std::vector<Position> _waypoints;
-	bool _unitDying, _smoothCamera, _smoothingEngaged;
+	bool _unitDying, _smoothCamera, _smoothingEngaged, _flashScreen;
 	PathPreview _previewSetting;
 	Text *_txtAccuracy;
+	SurfaceSet *_projectileSet;
 
 	void drawTerrain(Surface *surface);
 	int getTerrainLevel(Position pos, int size);
+	int _iconHeight, _iconWidth, _messageColor;
+	const std::vector<Uint8> *_transparencies;
 public:
-	static const int ICON_HEIGHT = 56;
-	static const int ICON_WIDTH = 320;
 	/// Creates a new map at the specified position and size.
 	Map(Game* game, int width, int height, int x, int y, int visibleMapHeight);
 	/// Cleans up the map.
@@ -140,6 +139,18 @@ public:
 	void setWidth(int width);
 	/// Get the vertical position of the hidden movement screen.
 	int getMessageY();
+	/// Get the icon height.
+	int getIconHeight();
+	/// Get the icon width.
+	int getIconWidth();
+	/// Convert a map position to a sound angle.
+	int getSoundAngle(Position pos);
+	/// Reset the camera smoothing bool.
+	void resetCameraSmoothing();
+	/// Set whether the screen should "flash" or not.
+	void setBlastFlash(bool flash);
+	/// Check if the screen is flashing this.
+	bool getBlastFlash();
 };
 
 }

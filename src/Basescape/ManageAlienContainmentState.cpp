@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,14 +17,13 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "ManageAlienContainmentState.h"
-#include <sstream>
 #include <climits>
-#include <cmath>
+#include <sstream>
+#include <algorithm>
 #include "../Engine/Action.h"
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
@@ -33,14 +32,14 @@
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Base.h"
 #include "../Savegame/ItemContainer.h"
-#include "../Ruleset/Ruleset.h"
-#include "../Ruleset/RuleItem.h"
-#include "../Ruleset/RuleResearch.h"
-#include "../Ruleset/Armor.h"
+#include "../Mod/RuleItem.h"
+#include "../Mod/RuleResearch.h"
+#include "../Mod/Armor.h"
 #include "../Engine/Timer.h"
 #include "../Engine/Options.h"
 #include "../Menu/ErrorMessageState.h"
 #include "SellState.h"
+#include "../Mod/RuleInterface.h"
 
 namespace OpenXcom
 {
@@ -51,108 +50,91 @@ namespace OpenXcom
  * @param base Pointer to the base to get info from.
  * @param origin Game section that originated this state.
  */
-ManageAlienContainmentState::ManageAlienContainmentState(Base *base, OptionsOrigin origin) : _base(base), _origin(origin), _qtys(), _aliens(), _sel(0), _aliensSold(0), _researchedAliens(0)
+ManageAlienContainmentState::ManageAlienContainmentState(Base *base, OptionsOrigin origin) : _base(base), _origin(origin), _sel(0), _aliensSold(0)
 {
-	_overCrowded = Options::storageLimitsEnforced && _base->getAvailableContainment() < _base->getUsedContainment();
-
-	for(std::vector<ResearchProject*>::const_iterator iter = _base->getResearch().begin (); iter != _base->getResearch().end (); ++iter)
+	bool overCrowded = Options::storageLimitsEnforced && _base->getFreeContainment() < 0;
+	std::vector<std::string> researchList;
+	for (std::vector<ResearchProject*>::const_iterator iter = _base->getResearch().begin(); iter != _base->getResearch().end(); ++iter)
 	{
 		const RuleResearch *research = (*iter)->getRules();
-		if (_game->getRuleset()->getUnit(research->getName()))
+		RuleItem *item = _game->getMod()->getItem(research->getName());
+		if (item && item->isAlien())
 		{
-			++_researchedAliens;
+			researchList.push_back(research->getName());
 		}
 	}
 
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
-	_btnOk = new TextButton(_overCrowded? 288:148, 16, _overCrowded? 16:8, 176);
+	_btnOk = new TextButton(overCrowded ? 288:148, 16, overCrowded ? 16:8, 176);
 	_btnCancel = new TextButton(148, 16, 164, 176);
 	_txtTitle = new Text(310, 17, 5, 8);
 	_txtAvailable =  new Text(190, 9, 10, 24);
 	_txtUsed = new Text(110, 9, 136, 24);
 	_txtItem = new Text(120, 9, 10, 41);
-	_txtLiveAliens = new Text(54, 18, 136, 32);
-	_txtDeadAliens = new Text(54, 18, 220, 32);
-	_lstAliens = new TextList(280, 112, 8, 53);
+	_txtLiveAliens = new Text(54, 18, 153, 32);
+	_txtDeadAliens = new Text(54, 18, 207, 32);
+	_txtInterrogatedAliens = new Text(54, 18, 261, 32);
+	_lstAliens = new TextList(286, 112, 8, 53);
 
 	// Set palette
-	if (origin == OPT_BATTLESCAPE)
-	{
-		setPalette("PAL_GEOSCAPE", 0);
-		_color  = Palette::blockOffset(15)-1;
-		_color2 = Palette::blockOffset(8)+10;
-	}
-	else
-	{
-		setPalette("PAL_BASESCAPE", 1);
-		_color  = Palette::blockOffset(13)+10;
-		_color2 = Palette::blockOffset(13);
-	}
+	setInterface("manageContainment");
 
-	add(_window);
-	add(_btnOk);
-	add(_btnCancel);
-	add(_txtTitle);
-	add(_txtAvailable);
-	add(_txtUsed);
-	add(_txtItem);
-	add(_txtLiveAliens);
-	add(_txtDeadAliens);
-	add(_lstAliens);
+	add(_window, "window", "manageContainment");
+	add(_btnOk, "button", "manageContainment");
+	add(_btnCancel, "button", "manageContainment");
+	add(_txtTitle, "text", "manageContainment");
+	add(_txtAvailable, "text", "manageContainment");
+	add(_txtUsed, "text", "manageContainment");
+	add(_txtItem, "text", "manageContainment");
+	add(_txtLiveAliens, "text", "manageContainment");
+	add(_txtDeadAliens, "text", "manageContainment");
+	add(_txtInterrogatedAliens, "text", "manageContainment");
+	add(_lstAliens, "list", "manageContainment");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(_color);
-	_window->setBackground(_game->getResourcePack()->getSurface((origin == OPT_BATTLESCAPE)? "BACK01.SCR" : "BACK05.SCR"));
+	_window->setBackground(_game->getMod()->getSurface((origin == OPT_BATTLESCAPE)? "BACK01.SCR" : "BACK05.SCR"));
 
-	_btnOk->setColor(_color);
 	_btnOk->setText(tr("STR_REMOVE_SELECTED"));
 	_btnOk->onMouseClick((ActionHandler)&ManageAlienContainmentState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&ManageAlienContainmentState::btnOkClick, Options::keyOk);
 
-	_btnCancel->setColor(_color);
 	_btnCancel->setText(tr("STR_CANCEL"));
 	_btnCancel->onMouseClick((ActionHandler)&ManageAlienContainmentState::btnCancelClick);
 	_btnCancel->onKeyboardPress((ActionHandler)&ManageAlienContainmentState::btnCancelClick, Options::keyCancel);
 
-	if (_overCrowded)
+	if (overCrowded)
 	{
 		_btnCancel->setVisible(false);
 		_btnOk->setVisible(false);
 	}
 
-	_txtTitle->setColor((origin == OPT_BATTLESCAPE)? Palette::blockOffset(8)+5 : _color);
 	_txtTitle->setBig();
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setText(tr("STR_MANAGE_CONTAINMENT"));
 
-	_txtItem->setColor(_color);
 	_txtItem->setText(tr("STR_ALIEN"));
 
-	_txtLiveAliens->setColor(_color);
 	_txtLiveAliens->setText(tr("STR_LIVE_ALIENS"));
 	_txtLiveAliens->setWordWrap(true);
 	_txtLiveAliens->setVerticalAlign(ALIGN_BOTTOM);
 
-	_txtDeadAliens->setColor(_color);
 	_txtDeadAliens->setText(tr("STR_DEAD_ALIENS"));
 	_txtDeadAliens->setWordWrap(true);
 	_txtDeadAliens->setVerticalAlign(ALIGN_BOTTOM);
 
-	_txtAvailable->setColor(_color);
-	_txtAvailable->setSecondaryColor(_color2);
-	_txtAvailable->setText(tr("STR_SPACE_AVAILABLE").arg(_base->getAvailableContainment() - _base->getUsedContainment()));
+	_txtInterrogatedAliens->setText(tr("STR_UNDER_INTERROGATION"));
+	_txtInterrogatedAliens->setWordWrap(true);
+	_txtInterrogatedAliens->setVerticalAlign(ALIGN_BOTTOM);
 
-	_txtUsed->setColor(_color);
-	_txtUsed->setSecondaryColor(_color2);
-	_txtUsed->setText(tr("STR_SPACE_USED").arg( _base->getUsedContainment() - _researchedAliens));
+	_txtAvailable->setText(tr("STR_SPACE_AVAILABLE").arg(_base->getFreeContainment()));
 
-	_lstAliens->setColor(_color2);
-	_lstAliens->setArrowColor(_color);
+	_txtUsed->setText(tr("STR_SPACE_USED").arg( _base->getUsedContainment()));
+
 	_lstAliens->setArrowColumn(184, ARROW_HORIZONTAL);
-	_lstAliens->setColumns(3, 150, 84, 46);
+	_lstAliens->setColumns(4, 160, 64, 46, 46);
 	_lstAliens->setSelectable(true);
 	_lstAliens->setBackground(_window);
 	_lstAliens->setMargin(2);
@@ -164,20 +146,38 @@ ManageAlienContainmentState::ManageAlienContainmentState(Base *base, OptionsOrig
 	_lstAliens->onRightArrowClick((ActionHandler)&ManageAlienContainmentState::lstItemsRightArrowClick);
 	_lstAliens->onMousePress((ActionHandler)&ManageAlienContainmentState::lstItemsMousePress);
 
-	const std::vector<std::string> &items = _game->getRuleset()->getItemsList();
+	const std::vector<std::string> &items = _game->getMod()->getItemsList();
 	for (std::vector<std::string>::const_iterator i = items.begin(); i != items.end(); ++i)
 	{
-		int qty = _base->getItems()->getItem(*i);
-		if (qty > 0 && _game->getRuleset()->getItem(*i)->getAlien())
+		int qty = _base->getStorageItems()->getItem(*i);
+		if (qty > 0 && _game->getMod()->getItem(*i)->isAlien())
 		{
 			_qtys.push_back(0);
 			_aliens.push_back(*i);
 			std::wostringstream ss;
 			ss << qty;
-			_lstAliens->addRow(3, tr(*i).c_str(), ss.str().c_str(), L"0");
+			std::wstring rqty;
+			std::vector<std::string>::iterator research = std::find(researchList.begin(), researchList.end(), *i);
+			if (research != researchList.end())
+			{
+				rqty = L"1";
+				researchList.erase(research);
+			}
+			else
+			{
+				rqty = L"0";
+			}
+			_lstAliens->addRow(4, tr(*i).c_str(), ss.str().c_str(), L"0", rqty.c_str());
 		}
 	}
 
+	for (std::vector<std::string>::const_iterator i = researchList.begin(); i != researchList.end(); ++i)
+	{
+		_aliens.push_back(*i);
+		_qtys.push_back(0);
+		_lstAliens->addRow(4, tr(*i).c_str(), L"0", L"0", L"1");
+		_lstAliens->setRowColor(_qtys.size() -1, _lstAliens->getSecondaryColor());
+	}
 	_timerInc = new Timer(250);
 	_timerInc->onTimer((StateHandler)&ManageAlienContainmentState::increase);
 	_timerDec = new Timer(250);
@@ -215,18 +215,18 @@ void ManageAlienContainmentState::btnOkClick(Action *)
 		if (_qtys[i] > 0)
 		{
 			// remove the aliens
-			_base->getItems()->removeItem(_aliens[i], _qtys[i]);
+			_base->getStorageItems()->removeItem(_aliens[i], _qtys[i]);
 
 			if (Options::canSellLiveAliens)
 			{
-				_game->getSavedGame()->setFunds(_game->getSavedGame()->getFunds() + _game->getRuleset()->getItem(_aliens[i])->getSellCost() * _qtys[i]);
+				_game->getSavedGame()->setFunds(_game->getSavedGame()->getFunds() + _game->getMod()->getItem(_aliens[i])->getSellCost() * _qtys[i]);
 			}
 			else
-			{				
+			{
 				// add the corpses
-				_base->getItems()->addItem(
-					_game->getRuleset()->getArmor(
-						_game->getRuleset()->getUnit(
+				_base->getStorageItems()->addItem(
+					_game->getMod()->getArmor(
+						_game->getMod()->getUnit(
 							_aliens[i]
 						)->getArmor()
 					)->getCorpseGeoscape(), _qtys[i]
@@ -240,9 +240,9 @@ void ManageAlienContainmentState::btnOkClick(Action *)
 	{
 		_game->pushState(new SellState(_base, _origin));
 		if (_origin == OPT_BATTLESCAPE)
-			_game->pushState(new ErrorMessageState(tr("STR_STORAGE_EXCEEDED").arg(_base->getName()).c_str(), _palette, Palette::blockOffset(8)+5, "BACK01.SCR", 0));
+			_game->pushState(new ErrorMessageState(tr("STR_STORAGE_EXCEEDED").arg(_base->getName()).c_str(), _palette, _game->getMod()->getInterface("manageContainment")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("manageContainment")->getElement("errorPalette")->color));
 		else
-			_game->pushState(new ErrorMessageState(tr("STR_STORAGE_EXCEEDED").arg(_base->getName()).c_str(), _palette, Palette::blockOffset(15)+1, "BACK13.SCR", 6));
+			_game->pushState(new ErrorMessageState(tr("STR_STORAGE_EXCEEDED").arg(_base->getName()).c_str(), _palette, _game->getMod()->getInterface("manageContainment")->getElement("errorMessage")->color, "BACK13.SCR", _game->getMod()->getInterface("manageContainment")->getElement("errorPalette")->color));
  	}
 }
 
@@ -366,7 +366,7 @@ void ManageAlienContainmentState::lstItemsMousePress(Action *action)
  */
 int ManageAlienContainmentState::getQuantity()
 {
-	return _base->getItems()->getItem(_aliens[_sel]);
+	return _base->getStorageItems()->getItem(_aliens[_sel]);
 }
 
 /**
@@ -386,7 +386,7 @@ void ManageAlienContainmentState::increase()
 void ManageAlienContainmentState::increaseByValue(int change)
 {
 	int qty = getQuantity() - _qtys[_sel];
-	if (0 >= change || qty <= 0) return;
+	if (change <= 0 || qty <= 0) return;
 
 	change = std::min(qty, change);
 	_qtys[_sel] += change;
@@ -410,7 +410,7 @@ void ManageAlienContainmentState::decrease()
  */
 void ManageAlienContainmentState::decreaseByValue(int change)
 {
-	if (0 >= change || 0 >= _qtys[_sel]) return;
+	if (change <= 0 || _qtys[_sel] <= 0) return;
 	change = std::min(_qtys[_sel], change);
 	_qtys[_sel] -= change;
 	_aliensSold -= change;
@@ -427,16 +427,16 @@ void ManageAlienContainmentState::updateStrings()
 	ss << qty;
 	ss2 << _qtys[_sel];
 
-	_lstAliens->setRowColor(_sel, (qty != 0)? _color2 : _color);
+	_lstAliens->setRowColor(_sel, (qty == 0)? _lstAliens->getSecondaryColor() : _lstAliens->getColor());
 	_lstAliens->setCellText(_sel, 1, ss.str());
 	_lstAliens->setCellText(_sel, 2, ss2.str());
 
-	int aliens = _base->getUsedContainment() - _aliensSold - _researchedAliens;
-	int spaces = _base->getAvailableContainment() - _base->getUsedContainment() + _aliensSold;
-	bool enoughSpace = Options::storageLimitsEnforced ? spaces >= 0 : true;
-
-	_btnCancel->setVisible(!_overCrowded);
-	_btnOk->setVisible(enoughSpace);
+	int aliens = _base->getUsedContainment() - _aliensSold;
+	int spaces = _base->getAvailableContainment() - aliens;
+	if (Options::storageLimitsEnforced)
+	{
+		_btnOk->setVisible(spaces >= 0);
+	}
 	_txtAvailable->setText(tr("STR_SPACE_AVAILABLE").arg(spaces));
 	_txtUsed->setText(tr("STR_SPACE_USED").arg(aliens));
 }

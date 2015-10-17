@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -24,7 +24,7 @@
 
 template <class _Tx>
 inline bool AreSame(const _Tx& l, const _Tx& r) {
-  return std::fabs(l-r) <= std::numeric_limits<_Tx>::epsilon();
+	return std::fabs(l-r) <= std::numeric_limits<_Tx>::epsilon();
 }
 
 template <class _Tx>
@@ -33,5 +33,10 @@ inline _Tx Round(const _Tx& x)
 	return x < static_cast<_Tx>(0) ? std::ceil(x - static_cast<_Tx>(0.5)) : std::floor(x + static_cast<_Tx>(0.5));
 }
 
+template <class _Tx>
+inline _Tx Sqr(const _Tx& x)
+{
+	return x * x;
+}
 #endif
 

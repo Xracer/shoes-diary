@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -52,6 +52,8 @@ public:
 	void setId(int id);
 	/// Gets the alien base's name.
 	std::wstring getName(Language *lang) const;
+	/// Gets the alien base's marker.
+	int getMarker() const;
 	/// Gets the alien base's amount of active hours..
 	std::string getAlienRace() const;
 	/// Sets the alien base's alien race.

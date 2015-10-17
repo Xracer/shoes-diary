@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -19,7 +19,6 @@
 #include "Timer.h"
 #include "Game.h"
 #include "Options.h"
-#include <assert.h>
 
 namespace OpenXcom
 {

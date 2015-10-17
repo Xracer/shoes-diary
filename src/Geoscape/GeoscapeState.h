@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -24,7 +24,6 @@
 
 namespace OpenXcom
 {
-
 class Surface;
 class Globe;
 class TextButton;
@@ -33,8 +32,9 @@ class Text;
 class Timer;
 class DogfightState;
 class Ufo;
-class TerrorSite;
+class MissionSite;
 class Base;
+class RuleMissionScript;
 
 /**
  * Geoscape screen which shows an overview of
@@ -51,7 +51,7 @@ private:
 	TextButton *_sideTop, *_sideBottom;
 	InteractiveSurface *_btnRotateLeft, *_btnRotateRight, *_btnRotateUp, *_btnRotateDown, *_btnZoomIn, *_btnZoomOut;
 	Text *_txtFunds, *_txtHour, *_txtHourSep, *_txtMin, *_txtMinSep, *_txtSec, *_txtWeekday, *_txtDay, *_txtMonth, *_txtYear;
-	Timer *_gameTimer, *_zoomInEffectTimer, *_zoomOutEffectTimer, *_dogfightStartTimer;
+	Timer *_gameTimer, *_zoomInEffectTimer, *_zoomOutEffectTimer, *_dogfightStartTimer, *_dogfightTimer;
 	bool _pause, _zoomInEffectDone, _zoomOutEffectDone;
 	Text *_txtDebug;
 	std::list<State*> _popups;
@@ -144,17 +144,17 @@ public:
 	int getFirstFreeDogfightSlot();
 	/// Handler for clicking the timer button.
 	void btnTimerClick(Action *action);
-	/// Process a terror site
-	bool processTerrorSite(TerrorSite *ts) const;
+	/// Process a mission site
+	bool processMissionSite(MissionSite *site) const;
 	/// Handles base defense
 	void handleBaseDefense(Base *base, Ufo *ufo);
 	/// Update the resolution settings, we just resized the window.
 	void resize(int &dX, int &dY);
 private:
 	/// Handle alien mission generation.
-	void determineAlienMissions(bool atGameStart = false);
-	/// Handle Terror mission generation.
-	void setupTerrorMission();
+	void determineAlienMissions();
+	/// Process each individual mission script command.
+	bool processCommand(RuleMissionScript *command);
 };
 
 }

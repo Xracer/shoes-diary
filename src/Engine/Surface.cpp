@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,7 +17,6 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "Surface.h"
-#include "Screen.h"
 #include "ShaderDraw.h"
 #include <vector>
 #include <fstream>
@@ -26,6 +25,7 @@
 #include <SDL_endian.h>
 #include "Palette.h"
 #include "Exception.h"
+#include "Logger.h"
 #include "ShaderMove.h"
 #include <stdlib.h>
 #ifdef _WIN32
@@ -134,7 +134,7 @@ inline void DeleteAligned(void* buffer)
  * @param y Y position in pixels.
  * @param bpp Bits-per-pixel depth.
  */
-Surface::Surface(int width, int height, int x, int y, int bpp) : _x(x), _y(y), _visible(true), _hidden(false), _redraw(false), _alignedBuffer(0)
+Surface::Surface(int width, int height, int x, int y, int bpp) : _x(x), _y(y), _visible(true), _hidden(false), _redraw(false), _tftdMode(false), _alignedBuffer(0)
 {
 	_alignedBuffer = NewAligned(bpp, width, height);
 	_surface = SDL_CreateRGBSurfaceFrom(_alignedBuffer, width, height, bpp, GetPitch(bpp, width), 0, 0, 0, 0);
@@ -163,7 +163,7 @@ Surface::Surface(int width, int height, int x, int y, int bpp) : _x(x), _y(y), _
 Surface::Surface(const Surface& other)
 {
 	//if is native OpenXcom aligned surface
-	if(other._alignedBuffer)
+	if (other._alignedBuffer)
 	{
 		Uint8 bpp = other._surface->format->BitsPerPixel;
 		int width = other.getWidth();
@@ -260,7 +260,9 @@ void Surface::loadImage(const std::string &filename)
 	std::string utf8 = Language::wstrToUtf8(Language::fsToWstr(filename));
 
 	// Load file
+	Log(LOG_VERBOSE) << "Loading image: " << utf8;
 	_surface = IMG_Load(utf8.c_str());
+
 	if (!_surface)
 	{
 		std::string err = filename + ":" + IMG_GetError();
@@ -383,12 +385,13 @@ void Surface::loadBdy(const std::string &filename)
 
 /**
  * Clears the entire contents of the surface, resulting
- * in a blank image.
+ * in a blank image of the specified color. (0 for transparent)
+ * @param color the colour for the background of the surface.
  */
-void Surface::clear()
+void Surface::clear(Uint32 color)
 {
-	if (_surface->flags & SDL_SWSURFACE) memset(_surface->pixels, 0, _surface->h*_surface->pitch);
-	else SDL_FillRect(_surface, &_clear, 0);
+	if (_surface->flags & SDL_SWSURFACE) memset(_surface->pixels, color, _surface->h*_surface->pitch);
+	else SDL_FillRect(_surface, &_clear, color);
 }
 
 /**
@@ -483,7 +486,7 @@ void Surface::think()
  * Draws the graphic that the surface contains before it
  * gets blitted onto other surfaces. The surface is only
  * redrawn if the flag is set by a property change, to
- * avoid unecessary drawing.
+ * avoid unnecessary drawing.
  */
 void Surface::draw()
 {
@@ -530,12 +533,31 @@ void Surface::blit(Surface *surface)
  */
 void Surface::copy(Surface *surface)
 {
+	/*
+	SDL_BlitSurface uses colour matching,
+	and is therefor unreliable as a means
+	to copy the contents of one surface to another
+	instead we have to do this manually 
+
 	SDL_Rect from;
 	from.x = getX() - surface->getX();
 	from.y = getY() - surface->getY();
 	from.w = getWidth();
 	from.h = getHeight();
 	SDL_BlitSurface(surface->getSurface(), &from, _surface, 0);
+	*/
+	const int from_x = getX() - surface->getX();
+	const int from_y = getY() - surface->getY();
+
+	lock();
+
+	for (int x = 0, y = 0; x < getWidth() && y < getHeight();)
+	{
+		Uint8 pixel = surface->getPixel(from_x + x, from_y + y);
+		setPixelIterative(&x, &y, pixel);
+	}
+
+	unlock();
 }
 
 /**
@@ -747,7 +769,7 @@ struct ColorReplace
 	*/
 	static inline void func(Uint8& dest, const Uint8& src, const int& shade, const int& newColor, const int&)
 	{
-		if(src)
+		if (src)
 		{
 			const int newShade = (src&15) + shade;
 			if (newShade > 15)
@@ -763,7 +785,7 @@ struct ColorReplace
 /**
  * help class used for Surface::blitNShade
  */
-struct StandartShade
+struct StandardShade
 {
 	/**
 	* Function used by ShaderDraw in Surface::blitNShade
@@ -776,7 +798,7 @@ struct StandartShade
 	*/
 	static inline void func(Uint8& dest, const Uint8& src, const int& shade, const int&, const int&)
 	{
-		if(src)
+		if (src)
 		{
 			const int newShade = (src&15) + shade;
 			if (newShade > 15)
@@ -805,29 +827,30 @@ struct StandartShade
 void Surface::blitNShade(Surface *surface, int x, int y, int off, bool half, int newBaseColor)
 {
 	ShaderMove<Uint8> src(this, x, y);
-	if(half)
+	if (half)
 	{
 		GraphSubset g = src.getDomain();
 		g.beg_x = g.end_x/2;
 		src.setDomain(g);
 	}
-	if(newBaseColor)
+	if (newBaseColor)
 	{
 		--newBaseColor;
 		newBaseColor <<= 4;
 		ShaderDraw<ColorReplace>(ShaderSurface(surface), src, ShaderScalar(off), ShaderScalar(newBaseColor));
 	}
 	else
-		ShaderDraw<StandartShade>(ShaderSurface(surface), src, ShaderScalar(off));
+		ShaderDraw<StandardShade>(ShaderSurface(surface), src, ShaderScalar(off));
 
 }
 
 /**
- * Set the surface to be redrawn
+ * Set the surface to be redrawn.
+ * @param valid true means redraw.
  */
-void Surface::invalidate()
+void Surface::invalidate(bool valid)
 {
-	_redraw = true;
+	_redraw = valid;
 }
 
 /**
@@ -841,10 +864,10 @@ std::string Surface::getTooltip() const
 }
 
 /**
-* Changes the help description of this surface,
-* for example for showing in tooltips.
-* @param tooltip String ID.
-*/
+ * Changes the help description of this surface,
+ * for example for showing in tooltips.
+ * @param tooltip String ID.
+ */
 void Surface::setTooltip(const std::string &tooltip)
 {
 	_tooltip = tooltip;
@@ -872,7 +895,7 @@ void Surface::resize(int width, int height)
 
 	// Copy old contents
 	SDL_SetColorKey(surface, SDL_SRCCOLORKEY, 0);
-	SDL_SetColors(surface, getPalette(), 0, 255);
+	SDL_SetColors(surface, getPalette(), 0, 256);
 	SDL_BlitSurface(_surface, 0, surface, 0);
 
 	// Delete old surface
@@ -909,4 +932,21 @@ void Surface::setHeight(int height)
 	_redraw = true;
 }
 
+/**
+ * TFTD mode: much like click inversion, but does a colour swap rather than a palette shift.
+ * @param mode set TFTD mode to this.
+ */
+void Surface::setTFTDMode(bool mode)
+{
+	_tftdMode = mode;
+}
+
+/**
+ * checks TFTD mode.
+ * @return TFTD mode.
+ */
+bool Surface::isTFTDMode()
+{
+	return _tftdMode;
+}
 }

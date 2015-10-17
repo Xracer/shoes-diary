@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -33,15 +33,14 @@ class SavedBattleGame;
 class BattleItem;
 class BattleState;
 class BattlescapeState;
-class ResourcePack;
 class Map;
 class TileEngine;
 class Pathfinding;
-class Ruleset;
+class Mod;
 class InfoboxOKState;
 class SoldierDiary;
 
-enum BattleActionType { BA_NONE, BA_TURN, BA_WALK, BA_PRIME, BA_THROW, BA_AUTOSHOT, BA_SNAPSHOT, BA_AIMEDSHOT, BA_STUN, BA_HIT, BA_USE, BA_LAUNCH, BA_MINDCONTROL, BA_PANIC, BA_RETHINK };
+enum BattleActionType { BA_NONE, BA_TURN, BA_WALK, BA_PRIME, BA_THROW, BA_AUTOSHOT, BA_SNAPSHOT, BA_AIMEDSHOT, BA_HIT, BA_USE, BA_LAUNCH, BA_MINDCONTROL, BA_PANIC, BA_RETHINK };
 
 struct BattleAction
 {
@@ -62,7 +61,7 @@ struct BattleAction
 	int finalFacing;
 	bool finalAction;
     int number; // first action of turn, second, etc.?
-	BattleAction() : type(BA_NONE), actor(0), weapon(0), TU(0), targeting(false), value(0), result(""), strafe(false), run(false), diff(0), autoShotCounter(0), cameraPosition(0, 0, -1), desperate(false), finalFacing(-1), finalAction(false), number(0) { }
+	BattleAction() : type(BA_NONE), actor(0), weapon(0), TU(0), targeting(false), value(0), strafe(false), run(false), diff(0), autoShotCounter(0), cameraPosition(0, 0, -1), desperate(false), finalFacing(-1), finalAction(false), number(0) { }
 };
 
 /**
@@ -74,11 +73,11 @@ private:
 	SavedBattleGame *_save;
 	BattlescapeState *_parentState;
 	std::list<BattleState*> _states, _deleted;
-	BattleActionType _tuReserved, _playerTUReserved;
 	bool _playerPanicHandled;
 	int _AIActionCounter;
 	BattleAction _currentAction;
-	bool _AISecondMove;
+	bool _AISecondMove, _playedAggroSound;
+	bool _endTurnRequested, _endTurnProcessed;
 
 	/// Ends the turn.
 	void endTurn();
@@ -91,8 +90,10 @@ private:
 	std::vector<InfoboxOKState*> _infoboxQueue;
 	/// Shows the infoboxes in the queue (if any).
 	void showInfoBoxQueue();
-	bool _playedAggroSound, _endTurnRequested, _kneelReserved;
 public:
+	/// is debug mode enabled in the battlescape?
+	static bool _debugPlay;
+
 	/// Creates the BattlescapeGame state.
 	BattlescapeGame(SavedBattleGame *save, BattlescapeState *parentState);
 	/// Cleans up the BattlescapeGame state.
@@ -119,8 +120,6 @@ public:
 	void setStateInterval(Uint32 interval);
 	/// Checks for casualties in battle.
 	void checkForCasualties(BattleItem *murderweapon, BattleUnit *murderer, bool hiddenExplosion = false, bool terrainExplosion = false);
-	/// Checks if a unit panics.
-	void checkForPanic(BattleUnit *unit);
 	/// Checks reserved tu.
 	bool checkReservedTU(BattleUnit *bu, int tu, bool justChecking = false);
 	/// Handles unit AI.
@@ -128,7 +127,7 @@ public:
 	/// Drops an item and affects it with gravity.
 	void dropItem(const Position &position, BattleItem *item, bool newItem = false, bool removeItem = false);
 	/// Converts a unit into a unit of another type.
-	BattleUnit *convertUnit(BattleUnit *unit, std::string newType);
+	BattleUnit *convertUnit(BattleUnit *unit);
 	/// Handles kneeling action.
 	bool kneel(BattleUnit *bu);
 	/// Cancels the current action.
@@ -150,7 +149,7 @@ public:
 	/// Requests the end of the turn (wait for explosions etc to really end the turn).
 	void requestEndTurn();
 	/// Sets the TU reserved type.
-	void setTUReserved(BattleActionType tur, bool player);
+	void setTUReserved(BattleActionType tur);
 	/// Sets up the cursor taking into account the action.
 	void setupCursor();
 	/// Gets the map.
@@ -161,11 +160,8 @@ public:
 	TileEngine *getTileEngine();
 	/// Gets the pathfinding.
 	Pathfinding *getPathfinding();
-	/// Gets the resourcepack.
-	ResourcePack *getResourcePack();
-	/// Gets the ruleset.
-	const Ruleset *getRuleset() const;
-	static bool _debugPlay;
+	/// Gets the mod.
+	Mod *getMod();
 	/// Returns whether panic has been handled.
 	bool getPanicHandled() { return _playerPanicHandled; }
 	/// Tries to find an item and pick it up if possible.
@@ -181,14 +177,20 @@ public:
 	/// Returns the type of action that is reserved.
 	BattleActionType getReservedAction();
 	/// Tallies the living units, converting them if necessary.
-	void tallyUnits(int &liveAliens, int &liveSoldiers, bool convert);
+	void tallyUnits(int &liveAliens, int &liveSoldiers);
+	bool convertInfected();
 	/// Sets the kneel reservation setting.
 	void setKneelReserved(bool reserved);
 	/// Checks the kneel reservation setting.
 	bool getKneelReserved();
 	/// Checks for and triggers proximity grenades.
 	bool checkForProximityGrenades(BattleUnit *unit);
+	/// Cleans up all the deleted states.
 	void cleanupDeleted();
+	/// Get the depth of the saved game.
+	int getDepth() const;
+	/// Sets up a mission complete notification.
+	void missionComplete();
 };
 
 }

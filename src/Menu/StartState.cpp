@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -23,23 +23,18 @@
 #include "../Engine/Screen.h"
 #include "../Engine/Action.h"
 #include "../Engine/Surface.h"
-#include "../Engine/Exception.h"
 #include "../Engine/Options.h"
 #include "../Engine/Language.h"
-#include "../Engine/Palette.h"
 #include "../Engine/Sound.h"
 #include "../Engine/Music.h"
 #include "../Engine/Font.h"
 #include "../Engine/Timer.h"
 #include "../Engine/CrossPlatform.h"
-#include "../Ruleset/Ruleset.h"
 #include "../Interface/FpsCounter.h"
 #include "../Interface/Cursor.h"
 #include "../Interface/Text.h"
-#include "../Resource/XcomResourcePack.h"
 #include "MainMenuState.h"
-#include "IntroState.h"
-#include "ErrorMessageState.h"
+#include "CutsceneState.h"
 #include <SDL_mixer.h>
 #include <SDL_thread.h>
 
@@ -132,7 +127,6 @@ void StartState::init()
 	// Silence!
 	Sound::stop();
 	Music::stop();
-	_game->setResourcePack(0);
 	if (!Options::mute && Options::reload)
 	{
 		Mix_CloseAudio();
@@ -171,33 +165,13 @@ void StartState::think()
 	case LOADING_SUCCESSFUL:
 		CrossPlatform::flashWindow();
 		Log(LOG_INFO) << "OpenXcom started successfully!";
+		_game->setState(new GoToMainMenuState);
 		if (!Options::reload && Options::playIntro)
 		{
-			bool letterbox = Options::keepAspectRatio;
-			Options::keepAspectRatio = true;
-			Options::baseXResolution = Screen::ORIGINAL_WIDTH;
-			Options::baseYResolution = Screen::ORIGINAL_HEIGHT;
-			_game->getScreen()->resetDisplay(false);
-			_game->setState(new IntroState(letterbox));
+			_game->pushState(new CutsceneState("intro"));
 		}
 		else
 		{
-			Screen::updateScale(Options::geoscapeScale, Options::geoscapeScale, Options::baseXGeoscape, Options::baseYGeoscape, true);
-			_game->getScreen()->resetDisplay(false);
-			State *state = new MainMenuState;
-			_game->setState(state);
-			// Check for mod loading errors
-			if (!Options::badMods.empty())
-			{
-				std::wostringstream error;
-				error << tr("STR_MOD_UNSUCCESSFUL") << L'\x02';
-				for (std::vector<std::string>::iterator i = Options::badMods.begin(); i != Options::badMods.end(); ++i)
-				{
-					error << Language::fsToWstr(*i) << L'\n';
-				}
-				Options::badMods.clear();
-				_game->pushState(new ErrorMessageState(error.str(), state->getPalette(), Palette::blockOffset(8)+10, "BACK01.SCR", 6));
-			}
 			Options::reload = false;
 		}
 		_game->getCursor()->setVisible(true);
@@ -304,24 +278,15 @@ int StartState::load(void *game_ptr)
 	Game *game = (Game*)game_ptr;
 	try
 	{
-		Log(LOG_INFO) << "Loading ruleset...";
-		game->loadRuleset();
-		Log(LOG_INFO) << "Ruleset loaded successfully.";
-		Log(LOG_INFO) << "Loading resources...";
-		game->setResourcePack(new XcomResourcePack(game->getRuleset()->getExtraSprites(), game->getRuleset()->getExtraSounds()));
-		Log(LOG_INFO) << "Resources loaded successfully.";
+		Log(LOG_INFO) << "Loading data...";
+		game->loadMods();
+		Log(LOG_INFO) << "Data loaded successfully.";
 		Log(LOG_INFO) << "Loading language...";
 		game->defaultLanguage();
 		Log(LOG_INFO) << "Language loaded successfully.";
 		loading = LOADING_SUCCESSFUL;
 	}
-	catch (Exception &e)
-	{
-		error = e.what();
-		Log(LOG_ERROR) << error;
-		loading = LOADING_FAILED;
-	}
-	catch (YAML::Exception &e)
+	catch (std::exception &e)
 	{
 		error = e.what();
 		Log(LOG_ERROR) << error;

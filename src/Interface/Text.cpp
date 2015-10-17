@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,7 +17,6 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "Text.h"
-#include <cctype>
 #include <cmath>
 #include <sstream>
 #include "../Engine/Font.h"
@@ -36,7 +35,7 @@ namespace OpenXcom
  * @param x X position in pixels.
  * @param y Y position in pixels.
  */
-Text::Text(int width, int height, int x, int y) : Surface(width, height, x, y), _big(0), _small(0), _font(0), _lang(0), _text(L""), _wrap(false), _invert(false), _contrast(false), _indent(false), _align(ALIGN_LEFT), _valign(ALIGN_TOP), _color(0), _color2(0)
+Text::Text(int width, int height, int x, int y) : Surface(width, height, x, y), _big(0), _small(0), _font(0), _lang(0), _wrap(false), _invert(false), _contrast(false), _indent(false), _align(ALIGN_LEFT), _valign(ALIGN_TOP), _color(0), _color2(0)
 {
 }
 
@@ -54,7 +53,7 @@ Text::~Text()
  * @param currency Currency symbol.
  * @return The formatted string.
  */
-std::wstring Text::formatNumber(int value, std::wstring currency)
+std::wstring Text::formatNumber(int64_t value, const std::wstring &currency)
 {
 	// In the future, the whole setlocale thing should be removed from here.
 	// It is inconsistent with the in-game language selection: locale-specific
@@ -92,7 +91,7 @@ std::wstring Text::formatNumber(int value, std::wstring currency)
  * @param funds The funding value.
  * @return The formatted string.
  */
-std::wstring Text::formatFunding(int funds)
+std::wstring Text::formatFunding(int64_t funds)
 {
 	return formatNumber(funds, L"$");
 }
@@ -291,6 +290,11 @@ void Text::setSecondaryColor(Uint8 color)
 Uint8 Text::getSecondaryColor() const
 {
 	return _color2;
+}
+
+int Text::getNumLines() const
+{
+	return _wrap ? _lineHeight.size() : 1;
 }
 
 /**
@@ -503,7 +507,7 @@ struct PaletteShift
 {
 	static inline void func(Uint8& dest, Uint8& src, int off, int mul, int mid)
 	{
-		if(src)
+		if (src)
 		{
 			int inverseOffset = mid ? 2 * (mid - src) : 0;
 			dest = off + src * mul + inverseOffset;

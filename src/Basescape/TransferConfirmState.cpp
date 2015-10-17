@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -16,11 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <sstream>
 #include "TransferConfirmState.h"
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Options.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
@@ -50,43 +50,40 @@ TransferConfirmState::TransferConfirmState(Base *base, TransferItemsState *state
 	_txtTotal = new Text(100, 17, 170, 95);
 
 	// Set palette
-	setPalette("PAL_BASESCAPE", 6);
+	setInterface("transferConfirm");
 
-	add(_window);
-	add(_btnCancel);
-	add(_btnOk);
-	add(_txtTitle);
-	add(_txtCost);
-	add(_txtTotal);
+	add(_window, "window", "transferConfirm");
+	add(_btnCancel, "button", "transferConfirm");
+	add(_btnOk, "button", "transferConfirm");
+	add(_txtTitle, "text", "transferConfirm");
+	add(_txtCost, "text", "transferConfirm");
+	add(_txtTotal, "text", "transferConfirm");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(13)+5);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK13.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK13.SCR"));
 
-	_btnCancel->setColor(Palette::blockOffset(15)+6);
 	_btnCancel->setText(tr("STR_CANCEL_UC"));
 	_btnCancel->onMouseClick((ActionHandler)&TransferConfirmState::btnCancelClick);
 	_btnCancel->onKeyboardPress((ActionHandler)&TransferConfirmState::btnCancelClick, Options::keyCancel);
 
-	_btnOk->setColor(Palette::blockOffset(15)+6);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&TransferConfirmState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&TransferConfirmState::btnOkClick, Options::keyOk);
 
-	_txtTitle->setColor(Palette::blockOffset(13)+10);
 	_txtTitle->setBig();
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setText(tr("STR_TRANSFER_ITEMS_TO").arg(_base->getName()));
 
-	_txtCost->setColor(Palette::blockOffset(13)+10);
 	_txtCost->setBig();
 	_txtCost->setText(tr("STR_COST"));
 
-	_txtTotal->setColor(Palette::blockOffset(15)+1);
+	std::wostringstream ss;
+	ss << L'\x01' << Text::formatFunding(_state->getTotal());
+
 	_txtTotal->setBig();
-	_txtTotal->setText(Text::formatFunding(_state->getTotal()));
+	_txtTotal->setText(ss.str().c_str());
 }
 
 /**

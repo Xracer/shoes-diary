@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -43,7 +43,7 @@ private:
 	Text *_txtText;
 public:
 	/// Creates a new confirmation state.
-	ConfirmLoadState(OptionsOrigin origin, std::string fileName);
+	ConfirmLoadState(OptionsOrigin origin, const std::string &fileName);
 	/// Cleans up the confirmation state.
 	virtual ~ConfirmLoadState();
 	/// Handler for clicking the Yes button.

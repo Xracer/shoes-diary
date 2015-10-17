@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -20,23 +20,23 @@
 #include "BattlescapeState.h"
 #include "AliensCrashState.h"
 #include "../Engine/Game.h"
-#include "../Engine/Language.h"
-#include "../Engine/Music.h"
-#include "../Engine/Palette.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Text.h"
 #include "../Interface/Window.h"
 #include "InventoryState.h"
 #include "NextTurnState.h"
-#include "../Resource/ResourcePack.h"
+#include "../Mod/Mod.h"
 #include "../Savegame/Base.h"
 #include "../Savegame/Craft.h"
 #include "../Savegame/SavedBattleGame.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Ufo.h"
-#include <sstream>
+#include "../Mod/AlienDeployment.h"
+#include "../Mod/RuleUfo.h"
 #include "../Engine/Options.h"
 #include "../Engine/Screen.h"
+#include "../Menu/CutsceneState.h"
 
 namespace OpenXcom
 {
@@ -53,66 +53,71 @@ BriefingState::BriefingState(Craft *craft, Base *base)
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
 	_btnOk = new TextButton(120, 18, 100, 164);
-	_txtTitle = new Text(300, 17, 16, 24);
+	_txtTitle = new Text(300, 32, 16, 24);
 	_txtTarget = new Text(300, 17, 16, 40);
 	_txtCraft = new Text(300, 17, 16, 56);
 	_txtBriefing = new Text(274, 64, 16, 72);
 
 	std::string mission = _game->getSavedGame()->getSavedBattle()->getMissionType();
-
-	// Set palette
-	if (mission == "STR_TERROR_MISSION" || mission == "STR_BASE_DEFENSE")
+	AlienDeployment *deployment = _game->getMod()->getDeployment(mission);
+	Ufo * ufo = 0;
+	if (!deployment && craft)
 	{
-		setPalette("PAL_GEOSCAPE", 2);
-		_game->getResourcePack()->playMusic("GMENBASE");
+		ufo = dynamic_cast <Ufo*> (craft->getDestination());
+		if (ufo) // landing site or crash site.
+		{
+			deployment = _game->getMod()->getDeployment(ufo->getRules()->getType());
+		}
 	}
-	else if (mission == "STR_MARS_CYDONIA_LANDING" || mission == "STR_MARS_THE_FINAL_ASSAULT")
+
+	std::string title = mission;
+	std::string desc = title + "_BRIEFING";
+	if (!deployment) // none defined - should never happen, but better safe than sorry i guess.
 	{
-		setPalette("PAL_GEOSCAPE", 6);
-		_game->getResourcePack()->playMusic("GMNEWMAR");
+		setPalette("PAL_GEOSCAPE", 0);
+		_musicId = "GMDEFEND";
+		_window->setBackground(_game->getMod()->getSurface("BACK16.SCR"));
 	}
 	else
 	{
-		setPalette("PAL_GEOSCAPE", 0);
-		_game->getResourcePack()->playMusic("GMDEFEND");
+		BriefingData data = deployment->getBriefingData();
+		setPalette("PAL_GEOSCAPE", data.palette);
+		_window->setBackground(_game->getMod()->getSurface(data.background));
+		_txtCraft->setY(56 + data.textOffset);
+		_txtBriefing->setY(72 + data.textOffset);
+		_txtTarget->setVisible(data.showTarget);
+		_txtCraft->setVisible(data.showCraft);
+		_cutsceneId = data.cutscene;
+		_musicId = data.music;
+		if (!data.title.empty())
+		{
+			title = data.title;
+		}
+		if (!data.desc.empty())
+		{
+			desc = data.desc;
+		}
 	}
 
-	add(_window);
-	add(_btnOk);
-	add(_txtTitle);
-	if (mission == "STR_ALIEN_BASE_ASSAULT" || mission == "STR_MARS_CYDONIA_LANDING")
-	{
-		_txtCraft->setY(40);
-		_txtBriefing->setY(56);
-		_txtTarget->setVisible(false);
-	}
-	add(_txtTarget);
-	if (mission == "STR_MARS_THE_FINAL_ASSAULT")
-	{
-		_txtCraft->setVisible(false);
-	}
-	add(_txtCraft);
-	add(_txtBriefing);
+	add(_window, "window", "briefing");
+	add(_btnOk, "button", "briefing");
+	add(_txtTitle, "text", "briefing");
+	add(_txtTarget, "text", "briefing");
+	add(_txtCraft, "text", "briefing");
+	add(_txtBriefing, "text", "briefing");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(15)-1);
-
-	_btnOk->setColor(Palette::blockOffset(8)+5);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&BriefingState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&BriefingState::btnOkClick, Options::keyOk);
 	_btnOk->onKeyboardPress((ActionHandler)&BriefingState::btnOkClick, Options::keyCancel);
 
-	_txtTitle->setColor(Palette::blockOffset(8)+5);
 	_txtTitle->setBig();
-
-	_txtTarget->setColor(Palette::blockOffset(8)+5);
 	_txtTarget->setBig();
-
-	_txtCraft->setColor(Palette::blockOffset(8)+5);
 	_txtCraft->setBig();
+
 	std::wstring s;
 	if (craft)
 	{
@@ -129,23 +134,10 @@ BriefingState::BriefingState(Craft *craft, Base *base)
 	}
 	_txtCraft->setText(s);
 
-	_txtBriefing->setColor(Palette::blockOffset(8)+5);
+	_txtTitle->setText(tr(title));
+
 	_txtBriefing->setWordWrap(true);
-
-	// Show respective mission briefing
-	if (mission == "STR_ALIEN_BASE_ASSAULT" || mission == "STR_MARS_THE_FINAL_ASSAULT")
-	{
-		_window->setBackground(_game->getResourcePack()->getSurface("BACK01.SCR"));
-	}
-	else
-	{
-		_window->setBackground(_game->getResourcePack()->getSurface("BACK16.SCR"));
-	}
-
-	_txtTitle->setText(tr(mission));
-	std::ostringstream briefingtext;
-	briefingtext << mission.c_str() << "_BRIEFING";
-	_txtBriefing->setText(tr(briefingtext.str()));
+	_txtBriefing->setText(tr(desc));
 
 	if (mission == "STR_BASE_DEFENSE")
 	{
@@ -162,6 +154,23 @@ BriefingState::~BriefingState()
 
 }
 
+void BriefingState::init()
+{
+	State::init();
+
+	if (!_cutsceneId.empty())
+	{
+		_game->pushState(new CutsceneState(_cutsceneId));
+
+		// don't play the cutscene again when we return to this state
+		_cutsceneId = "";
+	}
+	else
+	{
+		_game->getMod()->playMusic(_musicId);
+	}
+}
+
 /**
  * Closes the window.
  * @param action Pointer to an action.
@@ -174,7 +183,7 @@ void BriefingState::btnOkClick(Action *)
 	_game->getScreen()->resetDisplay(false);
 	BattlescapeState *bs = new BattlescapeState;
 	int liveAliens = 0, liveSoldiers = 0;
-	bs->getBattleGame()->tallyUnits(liveAliens, liveSoldiers, false);
+	bs->getBattleGame()->tallyUnits(liveAliens, liveSoldiers);
 	if (liveAliens > 0)
 	{
 		_game->pushState(bs);

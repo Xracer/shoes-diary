@@ -117,6 +117,8 @@ set ( battlescape_src
   Battlescape/Camera.cpp
   Battlescape/Projectile.cpp
   Battlescape/Projectile.h
+  Battlescape/Particle.cpp
+  Battlescape/Particle.h
   Battlescape/UnitDieBState.h
   Battlescape/UnitDieBState.cpp
   Battlescape/Explosion.cpp
@@ -153,8 +155,6 @@ set ( battlescape_src
   Battlescape/AbortMissionState.h
   Battlescape/DebriefingState.cpp
   Battlescape/DebriefingState.h
-  Battlescape/DelayedSaveState.cpp
-  Battlescape/DelayedSaveState.h
   Battlescape/InfoboxState.cpp
   Battlescape/InfoboxState.h
   Battlescape/InfoboxOKState.cpp
@@ -169,12 +169,16 @@ set ( battlescape_src
   Battlescape/MedikitState.h
   Battlescape/MedikitView.cpp
   Battlescape/MedikitView.h
+  Battlescape/MeleeAttackBState.cpp
+  Battlescape/MeleeAttackBState.h
   Battlescape/ScannerState.cpp
   Battlescape/ScannerState.h
   Battlescape/ScannerView.cpp
   Battlescape/ScannerView.h
   Battlescape/PromotionsState.cpp
   Battlescape/PromotionsState.h
+  Battlescape/PsiAttackBState.cpp
+  Battlescape/PsiAttackBState.h
   Battlescape/BattlescapeGame.cpp
   Battlescape/BattlescapeGame.h
   Battlescape/CannotReequipState.cpp
@@ -186,6 +190,8 @@ set ( battlescape_src
 )
 
 set ( engine_src
+  Engine/FileMap.h
+  Engine/FileMap.cpp
   Engine/State.h
   Engine/State.cpp
   Engine/CatFile.cpp
@@ -202,6 +208,8 @@ set ( engine_src
   Engine/Language.h
   Engine/LanguagePlurality.cpp
   Engine/LanguagePlurality.h
+  Engine/ModInfo.cpp
+  Engine/ModInfo.h
   Engine/Game.cpp
   Engine/Game.h
   Engine/Action.cpp
@@ -238,8 +246,8 @@ set ( engine_src
   Engine/LocalizedText.h
   Engine/FastLineClip.cpp
   Engine/FastLineClip.h
-  Engine/Flc.cpp
-  Engine/Flc.h
+  Engine/FlcPlayer.cpp
+  Engine/FlcPlayer.h
   Engine/Zoom.cpp
   Engine/Zoom.h
   Engine/ShaderDraw.h
@@ -258,6 +266,9 @@ set ( engine_src
   Engine/Scalers/hq3x.cpp
   Engine/Scalers/hq4x.cpp
   Engine/Scalers/init.cpp
+  Engine/Scalers/config.h
+  Engine/Scalers/xbrz.h  
+  Engine/Scalers/xbrz.cpp
   Engine/Adlib/adlplayer.cpp
   Engine/Adlib/adlplayer.h
   Engine/Adlib/fmopl.cpp
@@ -273,8 +284,6 @@ set ( geoscape_src
   Geoscape/UfoDetectedState.cpp
   Geoscape/InterceptState.h
   Geoscape/InterceptState.cpp
-  Geoscape/Polyline.h
-  Geoscape/Polyline.cpp
   Geoscape/ConfirmNewBaseState.h
   Geoscape/ConfirmNewBaseState.cpp
   Geoscape/ConfirmDestinationState.h
@@ -299,8 +308,6 @@ set ( geoscape_src
   Geoscape/LowFuelState.cpp
   Geoscape/CraftPatrolState.cpp
   Geoscape/CraftPatrolState.h
-  Geoscape/Polygon.h
-  Geoscape/Polygon.cpp
   Geoscape/UfoLostState.cpp
   Geoscape/UfoLostState.h
   Geoscape/GraphsState.cpp
@@ -333,16 +340,14 @@ set ( geoscape_src
   Geoscape/PsiTrainingState.cpp
   Geoscape/AlienBaseState.h
   Geoscape/AlienBaseState.cpp
-  Geoscape/AlienTerrorState.h
-  Geoscape/AlienTerrorState.cpp
+  Geoscape/MissionDetectedState.h
+  Geoscape/MissionDetectedState.cpp
   Geoscape/NewPossibleManufactureState.h
   Geoscape/NewPossibleManufactureState.cpp
-  Geoscape/VictoryState.h
-  Geoscape/VictoryState.cpp
-  Geoscape/DefeatState.h
-  Geoscape/DefeatState.cpp
   Geoscape/ResearchRequiredState.h
   Geoscape/ResearchRequiredState.cpp
+  Geoscape/DogfightErrorState.cpp
+  Geoscape/DogfightErrorState.h
 )
 
 set ( interface_src
@@ -352,6 +357,8 @@ set ( interface_src
   Interface/NumberText.h
   Interface/ArrowButton.cpp
   Interface/ArrowButton.h
+  Interface/BattlescapeButton.cpp
+  Interface/BattlescapeButton.h
   Interface/TextButton.cpp
   Interface/TextButton.h
   Interface/ToggleTextButton.cpp
@@ -383,8 +390,10 @@ set ( interface_src
 set ( menu_src
   Menu/StartState.cpp
   Menu/StartState.h
-  Menu/IntroState.cpp
-  Menu/IntroState.h
+  Menu/CutsceneState.h
+  Menu/CutsceneState.cpp
+  Menu/SlideshowState.h
+  Menu/SlideshowState.cpp
   Menu/MainMenuState.cpp
   Menu/MainMenuState.h
   Menu/TestState.h
@@ -435,78 +444,95 @@ set ( menu_src
   Menu/LoadGameState.h
   Menu/SaveGameState.cpp
   Menu/SaveGameState.h
+  Menu/ListLoadOriginalState.cpp
+  Menu/ListLoadOriginalState.h
+  Menu/VideoState.cpp
+  Menu/VideoState.h
 )
 
-set ( resource_src
-  Resource/ResourcePack.h
-  Resource/ResourcePack.cpp
-  Resource/XcomResourcePack.cpp
-  Resource/XcomResourcePack.h
-)
-
-set ( ruleset_src
-  Ruleset/RuleCraft.cpp
-  Ruleset/RuleCraft.h
-  Ruleset/Armor.cpp
-  Ruleset/Armor.h
-  Ruleset/MapDataSet.h
-  Ruleset/MapDataSet.cpp
-  Ruleset/RuleSoldier.h
-  Ruleset/RuleSoldier.cpp
-  Ruleset/RuleRegion.cpp
-  Ruleset/RuleRegion.h
-  Ruleset/RuleItem.h
-  Ruleset/RuleItem.cpp
-  Ruleset/RuleCraftWeapon.cpp
-  Ruleset/RuleCraftWeapon.h
-  Ruleset/RuleInventory.h
-  Ruleset/RuleInventory.cpp
-  Ruleset/MapBlock.h
-  Ruleset/MapBlock.cpp
-  Ruleset/MCDPatch.h
-  Ruleset/MCDPatch.cpp
-  Ruleset/RuleBaseFacility.cpp
-  Ruleset/RuleBaseFacility.h
-  Ruleset/SoldierNamePool.h
-  Ruleset/SoldierNamePool.cpp
-  Ruleset/Ruleset.h
-  Ruleset/Ruleset.cpp
-  Ruleset/RuleCountry.cpp
-  Ruleset/RuleCountry.h
-  Ruleset/RuleUfo.h
-  Ruleset/RuleUfo.cpp
-  Ruleset/ArticleDefinition.cpp
-  Ruleset/ArticleDefinition.h
-  Ruleset/City.cpp
-  Ruleset/City.h
-  Ruleset/ExtraSprites.cpp
-  Ruleset/ExtraSprites.h
-  Ruleset/ExtraSounds.cpp
-  Ruleset/ExtraSounds.h
-  Ruleset/ExtraStrings.cpp
-  Ruleset/ExtraStrings.h
-  Ruleset/RuleTerrain.cpp
-  Ruleset/RuleTerrain.h
-  Ruleset/MapData.cpp
-  Ruleset/MapData.h
-  Ruleset/RuleResearch.h
-  Ruleset/RuleResearch.cpp
-  Ruleset/RuleManufacture.h
-  Ruleset/RuleManufacture.cpp
-  Ruleset/AlienDeployment.h
-  Ruleset/AlienDeployment.cpp
-  Ruleset/AlienRace.h
-  Ruleset/AlienRace.cpp
-  Ruleset/Unit.h
-  Ruleset/Unit.cpp
-  Ruleset/UfoTrajectory.cpp
-  Ruleset/UfoTrajectory.h
-  Ruleset/RuleAlienMission.cpp
-  Ruleset/RuleAlienMission.h
-  Ruleset/StatString.h
-  Ruleset/StatString.cpp
-  Ruleset/StatStringCondition.h
-  Ruleset/StatStringCondition.cpp
+set ( mod_src
+  Mod/RuleCraft.cpp
+  Mod/RuleCraft.h
+  Mod/Armor.cpp
+  Mod/Armor.h
+  Mod/MapDataSet.h
+  Mod/MapDataSet.cpp
+  Mod/RuleSoldier.h
+  Mod/RuleSoldier.cpp
+  Mod/RuleRegion.cpp
+  Mod/RuleRegion.h
+  Mod/RuleItem.h
+  Mod/RuleItem.cpp
+  Mod/RuleCraftWeapon.cpp
+  Mod/RuleCraftWeapon.h
+  Mod/RuleInterface.h
+  Mod/RuleInterface.cpp
+  Mod/RuleInventory.h
+  Mod/RuleInventory.cpp
+  Mod/MapBlock.h
+  Mod/MapBlock.cpp
+  Mod/MapScript.h
+  Mod/MapScript.cpp
+  Mod/MCDPatch.h
+  Mod/MCDPatch.cpp
+  Mod/RuleBaseFacility.cpp
+  Mod/RuleBaseFacility.h
+  Mod/SoldierNamePool.h
+  Mod/SoldierNamePool.cpp
+  Mod/Mod.h
+  Mod/Mod.cpp
+  Mod/RuleCountry.cpp
+  Mod/RuleCountry.h
+  Mod/RuleUfo.h
+  Mod/RuleUfo.cpp
+  Mod/ArticleDefinition.cpp
+  Mod/ArticleDefinition.h
+  Mod/City.cpp
+  Mod/City.h
+  Mod/ExtraSprites.cpp
+  Mod/ExtraSprites.h
+  Mod/ExtraSounds.cpp
+  Mod/ExtraSounds.h
+  Mod/ExtraStrings.cpp
+  Mod/ExtraStrings.h
+  Mod/RuleTerrain.cpp
+  Mod/RuleTerrain.h
+  Mod/MapData.cpp
+  Mod/MapData.h
+  Mod/RuleResearch.h
+  Mod/RuleResearch.cpp
+  Mod/RuleManufacture.h
+  Mod/RuleManufacture.cpp
+  Mod/RuleMissionScript.h
+  Mod/RuleMissionScript.cpp
+  Mod/AlienDeployment.h
+  Mod/AlienDeployment.cpp
+  Mod/AlienRace.h
+  Mod/AlienRace.cpp
+  Mod/Unit.h
+  Mod/Unit.cpp
+  Mod/UfoTrajectory.cpp
+  Mod/UfoTrajectory.h
+  Mod/RuleAlienMission.cpp
+  Mod/RuleAlienMission.h
+  Mod/StatString.h
+  Mod/StatString.cpp
+  Mod/StatStringCondition.h
+  Mod/StatStringCondition.cpp
+  Mod/SoundDefinition.h
+  Mod/SoundDefinition.cpp
+  Mod/Polygon.h
+  Mod/Polygon.cpp
+  Mod/Polyline.h
+  Mod/Polyline.cpp
+  Mod/RuleGlobe.h
+  Mod/RuleGlobe.cpp
+  Mod/RuleVideo.h
+  Mod/RuleVideo.cpp
+  Mod/RuleMusic.h
+  Mod/RuleMusic.cpp
+  Mod/Texture.h
+  Mod/Texture.cpp
 )
 
 set ( savegame_src
@@ -560,8 +586,8 @@ set ( savegame_src
   Savegame/ResearchProject.cpp
   Savegame/Production.h
   Savegame/Production.cpp
-  Savegame/TerrorSite.h
-  Savegame/TerrorSite.cpp
+  Savegame/MissionSite.h
+  Savegame/MissionSite.cpp
   Savegame/Vehicle.h
   Savegame/Vehicle.cpp
   Savegame/EquipmentLayoutItem.h
@@ -574,6 +600,9 @@ set ( savegame_src
   Savegame/SerializationHelper.h
   Savegame/SoldierDeath.h
   Savegame/SoldierDeath.cpp
+  Savegame/SaveConverter.cpp
+  Savegame/SaveConverter.h
+  Savegame/SaveConverterXcom1.h
 )
 
 set ( ufopedia_src
@@ -599,6 +628,22 @@ set ( ufopedia_src
   Ufopaedia/ArticleStateCraftWeapon.cpp
   Ufopaedia/ArticleStateTextImage.cpp
   Ufopaedia/ArticleStateTextImage.h
+  Ufopaedia/ArticleStateTFTD.cpp
+  Ufopaedia/ArticleStateTFTD.h
+  Ufopaedia/ArticleStateTFTDArmor.cpp
+  Ufopaedia/ArticleStateTFTDArmor.h
+  Ufopaedia/ArticleStateTFTDCraft.cpp
+  Ufopaedia/ArticleStateTFTDCraft.h
+  Ufopaedia/ArticleStateTFTDCraftWeapon.cpp
+  Ufopaedia/ArticleStateTFTDCraftWeapon.h
+  Ufopaedia/ArticleStateTFTDFacility.cpp
+  Ufopaedia/ArticleStateTFTDFacility.h
+  Ufopaedia/ArticleStateTFTDItem.cpp
+  Ufopaedia/ArticleStateTFTDItem.h
+  Ufopaedia/ArticleStateTFTDUso.cpp
+  Ufopaedia/ArticleStateTFTDUso.h
+  Ufopaedia/ArticleStateTFTDVehicle.cpp
+  Ufopaedia/ArticleStateTFTDVehicle.h
   Ufopaedia/ArticleStateArmor.cpp
   Ufopaedia/ArticleStateArmor.h
   Ufopaedia/ArticleStateVehicle.cpp
@@ -609,7 +654,7 @@ set ( data_install_dir bin )
 if ( CMAKE_COMPILER_IS_GNUCXX AND "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
   add_definitions ( -D_DEBUG )
 endif ()
-if ( CMAKE_COMPILER_IS_GNUCXX AND ( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR ENABLE_WARNING) )
+if ( ( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) AND ( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR ENABLE_WARNING ) )
     # Enable more GCC warnings if requested or we are doing a Debug build.
     add_definitions ( -Wall
       -Winit-self
@@ -619,23 +664,29 @@ if ( CMAKE_COMPILER_IS_GNUCXX AND ( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR EN
       -Wredundant-decls
       -Wformat-security
       -Wtype-limits
-      -Wclobbered
       -Wempty-body
-      -Wlogical-op
       -Wuninitialized
+      -Wignored-qualifiers
 # These warning options actually generate way too many warnings. Should be enabled later.
-#      -Wignored-qualifiers
+      -Wno-unused-function
 #      -Weffc++
-      -Wno-sign-compare
 #      -Winline
 #      -Wshadow
       )
+    if ( CMAKE_COMPILER_IS_GNUCXX )
+      # add warning flags recognized by g++ but not by clang
+      add_definitions ( -Wclobbered -Wlogical-op )
+    endif ()
+    if ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
+      # add warning flags recognized by clang but not by g++
+      add_definitions ( -Wno-overloaded-virtual )
+    endif ()
     if ( FATAL_WARNING )
       add_definitions ( -Werror )
-    endif ( FATAL_WARNING )
-endif()
+    endif ()
+endif ()
 
-if ( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
+if ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
   add_definitions ( -Qunused-arguments -pipe )
   if ( ENABLE_CLANG_ANALYSIS )
     add_definitions ( --analyze )
@@ -659,18 +710,14 @@ if ( WIN32 )
   set ( application_type WIN32 )
 endif ()
 
-set ( openxcom_src ${root_src} ${basescape_src} ${battlescape_src} ${engine_src} ${geoscape_src} ${interface_src} ${menu_src} ${resource_src} ${ruleset_src} ${savegame_src} ${ufopedia_src} )
+set ( openxcom_src ${root_src} ${basescape_src} ${battlescape_src} ${engine_src} ${geoscape_src} ${interface_src} ${menu_src} ${mod_src} ${savegame_src} ${ufopedia_src} )
 
 set ( install_dest RUNTIME )
 set ( set_exec_path ON )
 set ( install_dest_dir bin )
 if ( UNIX AND NOT APPLE )
-  if ( "${DATADIR}" STREQUAL "" )
-    set ( data_install_dir "share/openxcom" )
-  else ()
-    set ( data_install_dir ${DATADIR} )
-    add_definitions( -DDATADIR="${data_install_dir}/" )
-  endif ()
+  set ( data_install_dir "${CMAKE_INSTALL_FULL_DATADIR}/openxcom" )
+  add_definitions( -DDATADIR="${data_install_dir}/" )
 endif ()
 if ( APPLE )
   set ( openxcom_src ${openxcom_src} ${MACOS_SDLMAIN_M_PATH} )
@@ -682,12 +729,8 @@ if ( APPLE )
     set ( install_dest_dir "" )
     set ( data_install_dir bin )
   else ()
-    if ( "${DATADIR}" STREQUAL "" )
-      set ( data_install_dir "share/openxcom" )
-    else ()
-      set ( data_install_dir ${DATADIR} )
-      add_definitions( -DDATADIR="${data_install_dir}/" )
-    endif ()
+    set ( data_install_dir "${CMAKE_INSTALL_FULL_DATADIR}/openxcom" )
+    add_definitions( -DDATADIR="${data_install_dir}/" )
   endif ()
 endif ()
 if ( set_exec_path )
@@ -699,7 +742,7 @@ if ( FORCE_INSTALL_DATA_TO_BIN )
 endif ()
 
 add_executable ( openxcom  ${application_type} ${openxcom_src} )
-install ( TARGETS openxcom ${install_dest} DESTINATION bin )
+install ( TARGETS openxcom ${install_dest} DESTINATION ${CMAKE_INSTALL_BINDIR} )
 # Extra link flags for Windows. They need to be set before the SDL/YAML link flags, otherwise you will get strange link errors ('Undefined reference to WinMain@16')
 if ( WIN32 )
   set ( basic_windows_libs advapi32.lib shell32.lib shlwapi.lib )
@@ -714,12 +757,15 @@ if ( WIN32 )
   endif ()
   set ( system_libs ${basic_windows_libs} SDLmain ${static_flags} )
 endif ()
-target_link_libraries ( openxcom ${system_libs} ${SDLIMAGE_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLGFX_LIBRARY} ${SDL_LIBRARY} ${YAMLCPP_LIBRARY} ${OPENGL_gl_LIBRARY} )
+target_link_libraries ( openxcom ${system_libs} ${SDLIMAGE_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLGFX_LIBRARY} ${SDL_LIBRARY} ${OPENGL_gl_LIBRARY} debug ${YAMLCPP_LIBRARY_DEBUG} optimized ${YAMLCPP_LIBRARY} )
 
-add_custom_command ( TARGET openxcom
-  POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/bin/data ${EXECUTABLE_OUTPUT_PATH}/data )
-install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/data DESTINATION ${data_install_dir} )
+set ( bin_data_dirs TFTD UFO common standard )
+foreach ( binpath ${bin_data_dirs} )
+  add_custom_command ( TARGET openxcom
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/bin/${binpath} ${EXECUTABLE_OUTPUT_PATH}/${binpath} )
+  install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/${binpath} DESTINATION ${data_install_dir} )
+endforeach()
 
 # Copy Windows DLLs to bin folder
 if ( WIN32 )

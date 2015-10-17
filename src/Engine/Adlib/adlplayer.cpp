@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -21,7 +21,6 @@
  * X-COM Adlib Player by Volutar
  */
 
-#include <stdio.h>
 #include <stdint.h>
 #include <math.h>
 #include <memory.h>
@@ -60,6 +59,7 @@ const int8_t adl_gv_detune_table[] = { // 9 * 12 -- pitch bend scale values depe
 	3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5,
 	3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5};
 
+/*
 const uint8_t percus_samples[] = { // 16 * 11  //there was another 13 bytes of 0
 	0x0F,0x42,0x3F,0x3F,0xFA,0xFA,0x41,0x44,2,3,0x0F,
 	0x0F,0x02,0x3F,0x3F,0xFA,0xFA,0x51,0x44,2,3,0x0F,
@@ -88,6 +88,7 @@ const uint8_t percus_mapping[] = { // 32 * 3 -- percussion channel 9 map of buil
 	0x00,0x41,0x64, 0x0B,0x0C,0x4D, 0x00,0x3E,0x64, 0xFF,0xFF,0xFF,
 	0x01,0x3F,0x4D, 0x0D,0x43,0x55, 0x0D,0x3D,0x55, 0x0E,0x3E,0x64,
 	0x0F,0x31,0x64, 0x0F,0x2C,0x55, 0x10,0x36,0x4D, 0x10,0x31,0x4D};
+*/
 
 const int8_t adl_gv_instr_order[] = {0,1,2,3,4,5,6,7,8,10,11,12,13,14,15,9};
 
@@ -146,8 +147,8 @@ int adl_gv_tempo_run = 60;
 int adl_gv_tempo_inc = 70;
 unsigned char* adl_gv_samples_addr = 0;
 unsigned char* adl_gv_subtracks[128];
-int adl_gv_instruments_count = 0;
-int adl_gv_subtracks_count = 0;
+unsigned int adl_gv_instruments_count = 0;
+unsigned int adl_gv_subtracks_count = 0;
 int adl_gv_polyphony_level = 0;
 unsigned char adl_gv_chorus_instruments[16];
 int adl_gv_FORMAT = 0;//0 = without title, 1=with title
@@ -401,7 +402,7 @@ void adlib_set_instrument_pitch(int instrument, int pitch)
 int adlib_get_unused_channel(int sample_id, bool* same_sample)
 {
 	int maxchan=0, maxdur=0, i;
-	bool empty=false;
+	//bool empty=false;
 
 	for (i=0; i<12; ++i)
 		++adlib_channels[i].duration;
@@ -416,7 +417,7 @@ int adlib_get_unused_channel(int sample_id, bool* same_sample)
 		if (adlib_channels[i].cur_note == 0) //empty channel
 		{
 			maxchan = i;
-			empty = true;
+			//empty = true;
 			break;
 		}
 	}
@@ -697,7 +698,7 @@ int decode_op(int instrument, bool* another_loop)
 }
 
 // music initialization function, sets up subblock array,
-// tempo, instrument addreses and samples
+// tempo, instrument addresses and samples
 void init_music_data(unsigned char* music_ptr,int length)
 {
 	unsigned int i, to_add, j;

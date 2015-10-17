@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -26,9 +26,9 @@ namespace OpenXcom
 {
 
 /**
-* This class is the interface used to find plural forms for the different languages.
-* Derived classes implement getSuffix() according to the specific language's rules.
-*/
+ * This class is the interface used to find plural forms for the different languages.
+ * Derived classes implement getSuffix() according to the specific language's rules.
+ */
 class LanguagePlurality
 {
 public:

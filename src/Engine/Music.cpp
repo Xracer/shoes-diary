@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -91,10 +91,13 @@ void Music::play(int loop) const
 #ifndef __NO_MUSIC
 	if (!Options::mute)
 	{
-		stop();
-		if (_music != 0 && Mix_PlayMusic(_music, loop) == -1)
+		if (_music != 0)
 		{
-			Log(LOG_WARNING) << Mix_GetError();
+			stop();
+			if (Mix_PlayMusic(_music, loop) == -1)
+			{
+				Log(LOG_WARNING) << Mix_GetError();
+			}
 		}
 	}
 #endif
@@ -143,6 +146,20 @@ void Music::resume()
 			Mix_HookMusic(AdlibMusic::player, NULL);
 	}
 #endif
+}
+
+/**
+ * Checks if any music is playing.
+ */
+bool Music::isPlaying()
+{
+#ifndef __NO_MUSIC
+	if (!Options::mute)
+	{
+		return Mix_Playing(-1);
+	}
+#endif
+	return false;
 }
 
 }

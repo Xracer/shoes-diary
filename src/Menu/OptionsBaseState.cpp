@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -20,10 +20,9 @@
 #include <SDL.h>
 #include "../Engine/Game.h"
 #include "../Engine/Options.h"
-#include "../Engine/Palette.h"
-#include "../Engine/Language.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Screen.h"
-#include "../Resource/ResourcePack.h"
+#include "../Mod/Mod.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/SavedBattleGame.h"
 #include "../Interface/Window.h"
@@ -65,7 +64,7 @@ OptionsBaseState::OptionsBaseState(OptionsOrigin origin) : _origin(origin)
 	_btnBattlescape = new TextButton(80, 16, 8, 88);
 	_btnAdvanced = new TextButton(80, 16, 8, 108);
 	_btnMods = new TextButton(80, 16, 8, 128);
-	
+
 	_btnOk = new TextButton(100, 16, 8, 176);
 	_btnCancel = new TextButton(100, 16, 110, 176);
 	_btnDefault = new TextButton(100, 16, 212, 176);
@@ -73,79 +72,60 @@ OptionsBaseState::OptionsBaseState(OptionsOrigin origin) : _origin(origin)
 	_txtTooltip = new Text(305, 25, 8, 148);
 
 	// Set palette
-	if (_origin == OPT_BATTLESCAPE)
-	{
-		setPalette("PAL_BATTLESCAPE");
-	}
-	else
-	{
-		setPalette("PAL_GEOSCAPE", 0);
-	}
+	setInterface("optionsMenu", false, _game->getSavedGame() ? _game->getSavedGame()->getSavedBattle() : 0);
 
-	add(_window);
+	add(_window, "window", "optionsMenu");
 
-	add(_btnVideo);
-	add(_btnAudio);
-	add(_btnControls);
-	add(_btnGeoscape);
-	add(_btnBattlescape);
-	add(_btnAdvanced);
-	add(_btnMods);
+	add(_btnVideo, "button", "optionsMenu");
+	add(_btnAudio, "button", "optionsMenu");
+	add(_btnControls, "button", "optionsMenu");
+	add(_btnGeoscape, "button", "optionsMenu");
+	add(_btnBattlescape, "button", "optionsMenu");
+	add(_btnAdvanced, "button", "optionsMenu");
+	add(_btnMods, "button", "optionsMenu");
 
-	add(_btnOk);
-	add(_btnCancel);
-	add(_btnDefault);
+	add(_btnOk, "button", "optionsMenu");
+	add(_btnCancel, "button", "optionsMenu");
+	add(_btnDefault, "button", "optionsMenu");
 
-	add(_txtTooltip);
+	add(_txtTooltip, "tooltip", "optionsMenu");
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(8)+5);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK01.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK01.SCR"));
 
-	_btnVideo->setColor(Palette::blockOffset(8)+5);
 	_btnVideo->setText(tr("STR_VIDEO"));
 	_btnVideo->onMousePress((ActionHandler)&OptionsBaseState::btnGroupPress, SDL_BUTTON_LEFT);
 
-	_btnAudio->setColor(Palette::blockOffset(8)+5);
 	_btnAudio->setText(tr("STR_AUDIO"));
 	_btnAudio->onMousePress((ActionHandler)&OptionsBaseState::btnGroupPress, SDL_BUTTON_LEFT);
 
-	_btnControls->setColor(Palette::blockOffset(8)+5);
 	_btnControls->setText(tr("STR_CONTROLS"));
 	_btnControls->onMousePress((ActionHandler)&OptionsBaseState::btnGroupPress, SDL_BUTTON_LEFT);
 
-	_btnGeoscape->setColor(Palette::blockOffset(8)+5);
 	_btnGeoscape->setText(tr("STR_GEOSCAPE_UC"));
 	_btnGeoscape->onMousePress((ActionHandler)&OptionsBaseState::btnGroupPress, SDL_BUTTON_LEFT);
 
-	_btnBattlescape->setColor(Palette::blockOffset(8)+5);
 	_btnBattlescape->setText(tr("STR_BATTLESCAPE_UC"));
 	_btnBattlescape->onMousePress((ActionHandler)&OptionsBaseState::btnGroupPress, SDL_BUTTON_LEFT);
 
-	_btnAdvanced->setColor(Palette::blockOffset(8)+5);
 	_btnAdvanced->setText(tr("STR_ADVANCED"));
 	_btnAdvanced->onMousePress((ActionHandler)&OptionsBaseState::btnGroupPress, SDL_BUTTON_LEFT);
 
-	_btnMods->setColor(Palette::blockOffset(8)+5);
 	_btnMods->setText(tr("STR_MODS"));
 	_btnMods->onMousePress((ActionHandler)&OptionsBaseState::btnGroupPress, SDL_BUTTON_LEFT);
 	_btnMods->setVisible(_origin == OPT_MENU); // Mods require a restart, don't enable them in-game
 
-	_btnOk->setColor(Palette::blockOffset(8)+5);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&OptionsBaseState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&OptionsBaseState::btnOkClick, Options::keyOk);
 
-	_btnCancel->setColor(Palette::blockOffset(8)+5);
 	_btnCancel->setText(tr("STR_CANCEL"));
 	_btnCancel->onMouseClick((ActionHandler)&OptionsBaseState::btnCancelClick);
 	_btnCancel->onKeyboardPress((ActionHandler)&OptionsBaseState::btnCancelClick, Options::keyCancel);
 
-	_btnDefault->setColor(Palette::blockOffset(8)+5);
 	_btnDefault->setText(tr("STR_RESTORE_DEFAULTS"));
 	_btnDefault->onMouseClick((ActionHandler)&OptionsBaseState::btnDefaultClick);
 
-	_txtTooltip->setColor(Palette::blockOffset(8)+5);
 	_txtTooltip->setWordWrap(true);
 }
 
@@ -219,6 +199,10 @@ void OptionsBaseState::btnOkClick(Action *)
 	recenter(dX, dY);
 	Options::switchDisplay();
 	Options::save();
+	if (Options::reload && _origin == OPT_MENU)
+	{
+		Options::mapResources();
+	}
 	_game->loadLanguage(Options::language);
 	SDL_WM_GrabInput(Options::captureMouse);
 	_game->getScreen()->resetDisplay();
@@ -265,7 +249,7 @@ void OptionsBaseState::btnCancelClick(Action *)
  * Restores the Options to default settings.
  * @param action Pointer to an action.
  */
-void OptionsBaseState::btnDefaultClick(Action *action)
+void OptionsBaseState::btnDefaultClick(Action *)
 {
 	_game->pushState(new OptionsDefaultsState(_origin, this));
 }
@@ -315,9 +299,9 @@ void OptionsBaseState::btnGroupPress(Action *action)
 }
 
 /**
-* Shows a tooltip for the appropriate button.
-* @param action Pointer to an action.
-*/
+ * Shows a tooltip for the appropriate button.
+ * @param action Pointer to an action.
+ */
 void OptionsBaseState::txtTooltipIn(Action *action)
 {
 	_currentTooltip = action->getSender()->getTooltip();
@@ -325,9 +309,9 @@ void OptionsBaseState::txtTooltipIn(Action *action)
 }
 
 /**
-* Clears the tooltip text.
-* @param action Pointer to an action.
-*/
+ * Clears the tooltip text.
+ * @param action Pointer to an action.
+ */
 void OptionsBaseState::txtTooltipOut(Action *action)
 {
 	if (_currentTooltip == action->getSender()->getTooltip())

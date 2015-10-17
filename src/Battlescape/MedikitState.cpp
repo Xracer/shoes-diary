@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -20,19 +20,19 @@
 #include "MedikitView.h"
 #include "../Engine/InteractiveSurface.h"
 #include "../Engine/Game.h"
-#include "../Engine/Language.h"
-#include "../Engine/CrossPlatform.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Action.h"
 #include "../Engine/Palette.h"
 #include "../Interface/Text.h"
 #include "../Engine/Screen.h"
 #include "../Savegame/BattleItem.h"
 #include "../Savegame/BattleUnit.h"
-#include "../Ruleset/RuleItem.h"
-#include "../Resource/ResourcePack.h"
-#include <iostream>
+#include "../Mod/RuleItem.h"
+#include "../Mod/Mod.h"
 #include <sstream>
 #include "../Engine/Options.h"
+#include "../Savegame/SavedGame.h"
+#include "../Savegame/SavedBattleGame.h"
 
 namespace OpenXcom
 {
@@ -132,7 +132,7 @@ MedikitState::MedikitState (BattleUnit *targetUnit, BattleAction *action) : _tar
 	_bg = new Surface(320, 200);
 
 	// Set palette
-	setPalette("PAL_BATTLESCAPE");
+	_game->getSavedGame()->getSavedBattle()->setPaletteByDepth(this);
 
 	if (_game->getScreen()->getDY() > 50)
 	{
@@ -150,29 +150,27 @@ MedikitState::MedikitState (BattleUnit *targetUnit, BattleAction *action) : _tar
 	_stimulantTxt = new MedikitTxt (88);
 	_healTxt = new MedikitTxt (124);
 	add(_bg);
-	add(_medikitView);
-	add(_endButton);
-	add(new MedikitTitle (37, tr("STR_PAIN_KILLER")));
-	add(new MedikitTitle (73, tr("STR_STIMULANT")));
-	add(new MedikitTitle (109, tr("STR_HEAL")));
-	add(_healButton);
-	add(_stimulantButton);
-	add(_pkButton);
-	add(_pkText);
-	add(_stimulantTxt);
-	add(_healTxt);
-	add(_partTxt);
-	add(_woundTxt);
+	add(_medikitView, "body", "medikit", _bg);
+	add(_endButton, "buttonEnd", "medikit", _bg);
+	add(new MedikitTitle (37, tr("STR_PAIN_KILLER")), "textPK", "medikit", _bg);
+	add(new MedikitTitle (73, tr("STR_STIMULANT")), "textStim", "medikit", _bg);
+	add(new MedikitTitle (109, tr("STR_HEAL")), "textHeal", "medikit", _bg);
+	add(_healButton, "buttonHeal", "medikit", _bg);
+	add(_stimulantButton, "buttonStim", "medikit", _bg);
+	add(_pkButton, "buttonPK", "medikit", _bg);
+	add(_pkText, "numPK", "medikit", _bg);
+	add(_stimulantTxt, "numStim", "medikit", _bg);
+	add(_healTxt, "numHeal", "medikit", _bg);
+	add(_partTxt, "textPart", "medikit", _bg);
+	add(_woundTxt, "numWounds", "medikit", _bg);
 
 	centerAllSurfaces();
 
-	_game->getResourcePack()->getSurface("MEDIBORD.PCK")->blit(_bg);
+	_game->getMod()->getSurface("MEDIBORD.PCK")->blit(_bg);
 	_pkText->setBig();
 	_stimulantTxt->setBig();
 	_healTxt->setBig();
-	_partTxt->setColor(Palette::blockOffset(2));
 	_partTxt->setHighContrast(true);
-	_woundTxt->setColor(Palette::blockOffset(2));
 	_woundTxt->setHighContrast(true);
 	_endButton->onMouseClick((ActionHandler)&MedikitState::onEndClick);
 	_endButton->onKeyboardPress((ActionHandler)&MedikitState::onEndClick, Options::keyCancel);
@@ -306,6 +304,7 @@ void MedikitState::update()
 	_pkText->setText(toString(_item->getPainKillerQuantity()));
 	_stimulantTxt->setText(toString(_item->getStimulantQuantity()));
 	_healTxt->setText(toString(_item->getHealQuantity()));
+	_medikitView->invalidate();
 }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -21,12 +21,14 @@
 #include <locale>
 #include <fstream>
 #include <cassert>
+#include <set>
 #include "CrossPlatform.h"
+#include "FileMap.h"
 #include "Logger.h"
 #include "Exception.h"
 #include "Options.h"
 #include "LanguagePlurality.h"
-#include "../Ruleset/ExtraStrings.h"
+#include "../Mod/ExtraStrings.h"
 #include "../Interface/TextList.h"
 #ifdef _WIN32
 #ifndef NOMINMAX
@@ -45,36 +47,39 @@ std::vector<std::string> Language::_rtl, Language::_cjk;
 /**
  * Initializes an empty language file.
  */
-Language::Language() : _id(""), _strings(), _handler(0), _direction(DIRECTION_LTR), _wrap(WRAP_WORDS)
+Language::Language() : _handler(0), _direction(DIRECTION_LTR), _wrap(WRAP_WORDS)
 {
 	// maps don't have initializers :(
 	if (_names.empty())
 	{
+		// names are in all lower case to support case insensitivity
 		_names["en-US"] = utf8ToWstr("English (US)");
 		_names["en-GB"] = utf8ToWstr("English (UK)");
-		_names["bg-BG"] = utf8ToWstr("Български");
-		_names["cs-CZ"] = utf8ToWstr("Česky");
+		_names["bg"] = utf8ToWstr("Български");
+		_names["cs"] = utf8ToWstr("Česky");
 		_names["da"] = utf8ToWstr("Dansk");
 		_names["de"] = utf8ToWstr("Deutsch");
-		_names["es"] = utf8ToWstr("Español (ES)");
+		_names["el"] = utf8ToWstr("Ελληνικά");
+		_names["es-ES"] = utf8ToWstr("Español (ES)");
 		_names["es-419"] = utf8ToWstr("Español (AL)");
 		_names["fr"] = utf8ToWstr("Français");
 		_names["fi"] = utf8ToWstr("Suomi");
-		_names["grk"] = utf8ToWstr("Ελληνικά");
-		_names["hu-HU"] = utf8ToWstr("Magyar");
+		_names["hr"] = utf8ToWstr("Hrvatski");
+		_names["hu"] = utf8ToWstr("Magyar");
 		_names["it"] = utf8ToWstr("Italiano");
-		_names["ja-JP"] = utf8ToWstr("日本語");
+		_names["ja"] = utf8ToWstr("日本語");
 		_names["ko"] = utf8ToWstr("한국어");
 		_names["nl"] = utf8ToWstr("Nederlands");
 		_names["no"] = utf8ToWstr("Norsk");
-		_names["pl-PL"] = utf8ToWstr("Polski");
+		_names["pl"] = utf8ToWstr("Polski");
 		_names["pt-BR"] = utf8ToWstr("Português (BR)");
 		_names["pt-PT"] = utf8ToWstr("Português (PT)");
 		_names["ro"] = utf8ToWstr("Română");
 		_names["ru"] = utf8ToWstr("Русский");
-		_names["sk-SK"] = utf8ToWstr("Slovenčina");
+		_names["sk"] = utf8ToWstr("Slovenčina");
 		_names["sv"] = utf8ToWstr("Svenska");
-		_names["tr-TR"] = utf8ToWstr("Türkçe");
+		_names["th"] = utf8ToWstr("ไทย");
+		_names["tr"] = utf8ToWstr("Türkçe");
 		_names["uk"] = utf8ToWstr("Українська");
 		_names["zh-CN"] = utf8ToWstr("中文");
 		_names["zh-TW"] = utf8ToWstr("文言");
@@ -85,7 +90,7 @@ Language::Language() : _id(""), _strings(), _handler(0), _direction(DIRECTION_LT
 	}
 	if (_cjk.empty())
 	{
-		_cjk.push_back("ja-JP");
+		_cjk.push_back("ja");
 		//_cjk.push_back("ko");  has spacing between words
 		_cjk.push_back("zh-CN");
 		_cjk.push_back("zh-TW");
@@ -344,7 +349,7 @@ void Language::replace(std::wstring &str, const std::wstring &find, const std::w
  */
 void Language::getList(std::vector<std::string> &files, std::vector<std::wstring> &names)
 {
-	files = CrossPlatform::getFolderContents(CrossPlatform::getDataFolder("Language/"), "yml");
+	files = CrossPlatform::getFolderContents(CrossPlatform::searchDataFolder("common/Language"), "yml");
 	names.clear();
 
 	for (std::vector<std::string>::iterator i = files.begin(); i != files.end(); ++i)
@@ -369,12 +374,9 @@ void Language::getList(std::vector<std::string> &files, std::vector<std::wstring
  * Not that this has anything to do with Ruby, but since it's a
  * widely-supported format and we already have YAML, it was convenient.
  * @param filename Filename of the YAML file.
- * @param extras Pointer to extra strings from ruleset.
  */
-void Language::load(const std::string &filename, ExtraStrings *extras)
+void Language::load(const std::string &filename)
 {
-	_strings.clear();
-
 	YAML::Node doc = YAML::LoadFile(filename);
 	_id = doc.begin()->first.as<std::string>();
 	YAML::Node lang = doc.begin()->second;
@@ -393,13 +395,6 @@ void Language::load(const std::string &filename, ExtraStrings *extras)
 				std::string s = i->first.as<std::string>() + "_" + j->first.as<std::string>();
 				_strings[s] = loadString(j->second.as<std::string>());
 			}
-		}
-	}
-	if (extras)
-	{
-		for (std::map<std::string, std::string>::const_iterator i = extras->getStrings()->begin(); i != extras->getStrings()->end(); ++i)
-		{
-			_strings[i->first] = loadString(i->second);
 		}
 	}
 	delete _handler;
@@ -423,11 +418,26 @@ void Language::load(const std::string &filename, ExtraStrings *extras)
 }
 
 /**
-* Replaces all special string markers with the approriate characters
-* and converts the string encoding.
-* @param string Original UTF-8 string.
-* @return New widechar string.
-*/
+ * Loads a language file from a mod's ExtraStrings.
+ * @param extras Pointer to extra strings from ruleset.
+ */
+void Language::load(ExtraStrings *extras)
+{
+	if (extras)
+	{
+		for (std::map<std::string, std::string>::const_iterator i = extras->getStrings()->begin(); i != extras->getStrings()->end(); ++i)
+		{
+			_strings[i->first] = loadString(i->second);
+		}
+	}
+}
+
+/**
+ * Replaces all special string markers with the appropriate characters
+ * and converts the string encoding.
+ * @param string Original UTF-8 string.
+ * @return New widechar string.
+ */
 std::wstring Language::loadString(const std::string &string) const
 {
 	std::string s = string;
@@ -464,12 +474,21 @@ std::wstring Language::getName() const
 const LocalizedText &Language::getString(const std::string &id) const
 {
 	static LocalizedText hack(L"");
+	static std::set<std::string> notFoundIds;
 	if (id.empty())
+	{
+		hack = LocalizedText(L"");
 		return hack;
+	}
 	std::map<std::string, LocalizedText>::const_iterator s = _strings.find(id);
 	if (s == _strings.end())
 	{
-		Log(LOG_WARNING) << id << " not found in " << Options::language;
+		// only output the warning once so as not to spam the logs
+		if (notFoundIds.end() == notFoundIds.find(id))
+		{
+			notFoundIds.insert(id);
+			Log(LOG_WARNING) << id << " not found in " << Options::language;
+		}
 		hack = LocalizedText(utf8ToWstr(id));
 		return hack;
 	}
@@ -491,16 +510,22 @@ LocalizedText Language::getString(const std::string &id, unsigned n) const
 {
 	assert(!id.empty());
 	std::map<std::string, LocalizedText>::const_iterator s = _strings.end();
-	if (0 == n)
+	// Try specialized form.
+	if (n == 0)
 	{
-		// Try specialized form.
 		s = _strings.find(id + "_zero");
 	}
+	// Try proper form by language
 	if (s == _strings.end())
 	{
-		// Try proper form by language
 		s = _strings.find(id + _handler->getSuffix(n));
 	}
+	// Try default form
+	if (s == _strings.end())
+	{
+		s = _strings.find(id + "_other");
+	}
+	// Give up
 	if (s == _strings.end())
 	{
 		Log(LOG_WARNING) << id << " not found in " << Options::language;
@@ -629,4 +654,4 @@ STR_ENEMIES:
   other: "There are {N} enemies left."
 </pre>
 
-*/
+ */

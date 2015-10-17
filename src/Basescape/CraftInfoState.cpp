@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -19,9 +19,8 @@
 #include "CraftInfoState.h"
 #include <sstream>
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Options.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
@@ -30,9 +29,9 @@
 #include "../Engine/SurfaceSet.h"
 #include "../Engine/Action.h"
 #include "../Savegame/Craft.h"
-#include "../Ruleset/RuleCraft.h"
+#include "../Mod/RuleCraft.h"
 #include "../Savegame/CraftWeapon.h"
-#include "../Ruleset/RuleCraftWeapon.h"
+#include "../Mod/RuleCraftWeapon.h"
 #include "../Savegame/Base.h"
 #include "../Savegame/SavedGame.h"
 #include "CraftSoldiersState.h"
@@ -69,9 +68,9 @@ CraftInfoState::CraftInfoState(Base *base, size_t craftId) : _base(base), _craft
 	_edtCraft = new TextEdit(this, 140, 16, 80, 8);
 	_txtDamage = new Text(100, 17, 14, 24);
 	_txtFuel = new Text(82, 17, 228, 24);
-	_txtW1Name = new Text(75, 16, 46, 48);
+	_txtW1Name = new Text(95, 16, 46, 48);
 	_txtW1Ammo = new Text(75, 24, 46, 64);
-	_txtW2Name = new Text(75, 16, 204, 48);
+	_txtW2Name = new Text(95, 16, 184, 48);
 	_txtW2Ammo = new Text(75, 24, 204, 64);
 	_sprite = new Surface(32, 40, 144, 52);
 	_weapon1 = new Surface(15, 17, 121, 63);
@@ -80,22 +79,22 @@ CraftInfoState::CraftInfoState(Base *base, size_t craftId) : _base(base), _craft
 	_equip = new Surface(220, 18, 85, 121);
 
 	// Set palette
-	setPalette("PAL_BASESCAPE", 3);
+	setInterface("craftInfo");
 
-	add(_window);
-	add(_btnOk);
-	add(_btnW1);
-	add(_btnW2);
-	add(_btnCrew);
-	add(_btnEquip);
-	add(_btnArmor);
-	add(_edtCraft);
-	add(_txtDamage);
-	add(_txtFuel);
-	add(_txtW1Name);
-	add(_txtW1Ammo);
-	add(_txtW2Name);
-	add(_txtW2Ammo);
+	add(_window, "window", "craftInfo");
+	add(_btnOk, "button", "craftInfo");
+	add(_btnW1, "button", "craftInfo");
+	add(_btnW2, "button", "craftInfo");
+	add(_btnCrew, "button", "craftInfo");
+	add(_btnEquip, "button", "craftInfo");
+	add(_btnArmor, "button", "craftInfo");
+	add(_edtCraft, "text1", "craftInfo");
+	add(_txtDamage, "text1", "craftInfo");
+	add(_txtFuel, "text1", "craftInfo");
+	add(_txtW1Name, "text2", "craftInfo");
+	add(_txtW1Ammo, "text2", "craftInfo");
+	add(_txtW2Name, "text2", "craftInfo");
+	add(_txtW2Ammo, "text2", "craftInfo");
 	add(_sprite);
 	add(_weapon1);
 	add(_weapon2);
@@ -105,56 +104,34 @@ CraftInfoState::CraftInfoState(Base *base, size_t craftId) : _base(base), _craft
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(13)+10);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK14.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK14.SCR"));
 
-	_btnOk->setColor(Palette::blockOffset(13)+10);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&CraftInfoState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&CraftInfoState::btnOkClick, Options::keyCancel);
 
-	_btnW1->setColor(Palette::blockOffset(13)+10);
 	_btnW1->setText(L"1");
 	_btnW1->onMouseClick((ActionHandler)&CraftInfoState::btnW1Click);
 
-	_btnW2->setColor(Palette::blockOffset(13)+10);
 	_btnW2->setText(L"2");
 	_btnW2->onMouseClick((ActionHandler)&CraftInfoState::btnW2Click);
 
-	_btnCrew->setColor(Palette::blockOffset(13)+10);
 	_btnCrew->setText(tr("STR_CREW"));
 	_btnCrew->onMouseClick((ActionHandler)&CraftInfoState::btnCrewClick);
 
-	_btnEquip->setColor(Palette::blockOffset(13)+10);
 	_btnEquip->setText(tr("STR_EQUIPMENT_UC"));
 	_btnEquip->onMouseClick((ActionHandler)&CraftInfoState::btnEquipClick);
 
-	_btnArmor->setColor(Palette::blockOffset(13)+10);
 	_btnArmor->setText(tr("STR_ARMOR"));
 	_btnArmor->onMouseClick((ActionHandler)&CraftInfoState::btnArmorClick);
 
-	_edtCraft->setColor(Palette::blockOffset(13)+10);
 	_edtCraft->setBig();
 	_edtCraft->setAlign(ALIGN_CENTER);
 	_edtCraft->onChange((ActionHandler)&CraftInfoState::edtCraftChange);
 
-	_txtDamage->setColor(Palette::blockOffset(13)+10);
-	_txtDamage->setSecondaryColor(Palette::blockOffset(13));
-
-	_txtFuel->setColor(Palette::blockOffset(13)+10);
-	_txtFuel->setSecondaryColor(Palette::blockOffset(13));
-
-	_txtW1Name->setColor(Palette::blockOffset(13)+5);
 	_txtW1Name->setWordWrap(true);
 
-	_txtW1Ammo->setColor(Palette::blockOffset(13)+10);
-	_txtW1Ammo->setSecondaryColor(Palette::blockOffset(13)+5);
-
-	_txtW2Name->setColor(Palette::blockOffset(13)+5);
 	_txtW2Name->setWordWrap(true);
-
-	_txtW2Ammo->setColor(Palette::blockOffset(13)+10);
-	_txtW2Ammo->setSecondaryColor(Palette::blockOffset(13)+5);
 }
 
 /**
@@ -177,7 +154,8 @@ void CraftInfoState::init()
 
 	_edtCraft->setText(_craft->getName(_game->getLanguage()));
 
-	SurfaceSet *texture = _game->getResourcePack()->getSurfaceSet("BASEBITS.PCK");
+	_sprite->clear();
+	SurfaceSet *texture = _game->getMod()->getSurfaceSet("BASEBITS.PCK");
 	texture->getFrame(_craft->getRules()->getSprite() + 33)->setX(0);
 	texture->getFrame(_craft->getRules()->getSprite() + 33)->setY(0);
 	texture->getFrame(_craft->getRules()->getSprite() + 33)->blit(_sprite);
@@ -241,6 +219,7 @@ void CraftInfoState::init()
 	{
 		CraftWeapon *w1 = _craft->getWeapons()->at(0);
 
+		_weapon1->clear();
 		if (w1 != 0)
 		{
 			Surface *frame = texture->getFrame(w1->getRules()->getSprite() + 48);
@@ -248,8 +227,10 @@ void CraftInfoState::init()
 			frame->setY(0);
 			frame->blit(_weapon1);
 
-			_txtW1Name->setText(tr(w1->getRules()->getType()));
 			std::wostringstream ss;
+			ss << L'\x01' << tr(w1->getRules()->getType());
+			_txtW1Name->setText(ss.str());
+			ss.str(L"");
 			ss << tr("STR_AMMO_").arg(w1->getAmmo()) << L"\n\x01";
 			ss << tr("STR_MAX").arg(w1->getRules()->getAmmoMax());
 			if (_craft->getStatus() == "STR_REARMING" && w1->getAmmo() < w1->getRules()->getAmmoMax())
@@ -261,7 +242,6 @@ void CraftInfoState::init()
 		}
 		else
 		{
-			_weapon1->clear();
 			_txtW1Name->setText(L"");
 			_txtW1Ammo->setText(L"");
 		}
@@ -278,6 +258,7 @@ void CraftInfoState::init()
 	{
 		CraftWeapon *w2 = _craft->getWeapons()->at(1);
 
+		_weapon2->clear();
 		if (w2 != 0)
 		{
 			Surface *frame = texture->getFrame(w2->getRules()->getSprite() + 48);
@@ -285,8 +266,10 @@ void CraftInfoState::init()
 			frame->setY(0);
 			frame->blit(_weapon2);
 
-			_txtW2Name->setText(tr(w2->getRules()->getType()));
 			std::wostringstream ss;
+			ss << L'\x01' << tr(w2->getRules()->getType());
+			_txtW2Name->setText(ss.str());
+			ss.str(L"");
 			ss << tr("STR_AMMO_").arg(w2->getAmmo()) << L"\n\x01";
 			ss << tr("STR_MAX").arg(w2->getRules()->getAmmoMax());
 			if (_craft->getStatus() == "STR_REARMING" && w2->getAmmo() < w2->getRules()->getAmmoMax())
@@ -298,7 +281,6 @@ void CraftInfoState::init()
 		}
 		else
 		{
-			_weapon2->clear();
 			_txtW2Name->setText(L"");
 			_txtW2Ammo->setText(L"");
 		}
@@ -316,7 +298,7 @@ void CraftInfoState::init()
 /**
  * Turns an amount of time into a
  * day/hour string.
- * @param total 
+ * @param total
  */
 std::wstring CraftInfoState::formatTime(int total)
 {

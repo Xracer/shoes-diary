@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -20,12 +20,11 @@
 #include <sstream>
 #include <SDL_mixer.h>
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/ComboBox.h"
-#include "../Interface/Window.h"
 #include "../Interface/Text.h"
+#include "../Interface/TextButton.h"
 #include "../Interface/Slider.h"
 #include "../Engine/Action.h"
 #include "../Engine/Options.h"
@@ -67,34 +66,32 @@ OptionsAudioState::OptionsAudioState(OptionsOrigin origin) : OptionsBaseState(or
 	_cbxSoundFormat = new ComboBox(this, 104, 16, 206, 82);
 	_txtCurrentSound = new Text(114, 9, 206, 100);
 
-	add(_txtMusicVolume);
-	add(_slrMusicVolume);
+	add(_txtMusicVolume, "text", "audioMenu");
+	add(_slrMusicVolume, "button", "audioMenu");
 
-	add(_txtSoundVolume);
-	add(_slrSoundVolume);
+	add(_txtSoundVolume, "text", "audioMenu");
+	add(_slrSoundVolume, "button", "audioMenu");
 
-	add(_txtUiVolume);
-	add(_slrUiVolume);
+	add(_txtUiVolume, "text", "audioMenu");
+	add(_slrUiVolume, "button", "audioMenu");
 
-	add(_txtSampleRate);
+	add(_txtSampleRate, "text", "audioMenu");
 
-	add(_txtMusicFormat);
-	add(_txtCurrentMusic);
-	add(_txtSoundFormat);
-	add(_txtCurrentSound);
+	add(_txtMusicFormat, "text", "audioMenu");
+	add(_txtCurrentMusic, "text", "audioMenu");
+	add(_txtSoundFormat, "text", "audioMenu");
+	add(_txtCurrentSound, "text", "audioMenu");
 
-	add(_cbxMusicFormat);
-	add(_cbxSoundFormat);
+	add(_cbxMusicFormat, "button", "audioMenu");
+	add(_cbxSoundFormat, "button", "audioMenu");
 
-	add(_cbxSampleRate);
+	add(_cbxSampleRate, "button", "audioMenu");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_txtMusicVolume->setColor(Palette::blockOffset(8)+10);
 	_txtMusicVolume->setText(tr("STR_MUSIC_VOLUME"));
 
-	_slrMusicVolume->setColor(Palette::blockOffset(15)-1);
 	_slrMusicVolume->setRange(0, SDL_MIX_MAXVOLUME);
 	_slrMusicVolume->setValue(Options::musicVolume);
 	_slrMusicVolume->onChange((ActionHandler)&OptionsAudioState::slrMusicVolumeChange);
@@ -102,10 +99,8 @@ OptionsAudioState::OptionsAudioState(OptionsOrigin origin) : OptionsBaseState(or
 	_slrMusicVolume->onMouseIn((ActionHandler)&OptionsAudioState::txtTooltipIn);
 	_slrMusicVolume->onMouseOut((ActionHandler)&OptionsAudioState::txtTooltipOut);
 
-	_txtSoundVolume->setColor(Palette::blockOffset(8)+10);
 	_txtSoundVolume->setText(tr("STR_SFX_VOLUME"));
 
-	_slrSoundVolume->setColor(Palette::blockOffset(15)-1);
 	_slrSoundVolume->setRange(0, SDL_MIX_MAXVOLUME);
 	_slrSoundVolume->setValue(Options::soundVolume);
 	_slrSoundVolume->onChange((ActionHandler)&OptionsAudioState::slrSoundVolumeChange);
@@ -114,10 +109,8 @@ OptionsAudioState::OptionsAudioState(OptionsOrigin origin) : OptionsBaseState(or
 	_slrSoundVolume->onMouseIn((ActionHandler)&OptionsAudioState::txtTooltipIn);
 	_slrSoundVolume->onMouseOut((ActionHandler)&OptionsAudioState::txtTooltipOut);
 
-	_txtUiVolume->setColor(Palette::blockOffset(8)+10);
 	_txtUiVolume->setText(tr("STR_UI_VOLUME"));
 
-	_slrUiVolume->setColor(Palette::blockOffset(15)-1);
 	_slrUiVolume->setRange(0, SDL_MIX_MAXVOLUME);
 	_slrUiVolume->setValue(Options::uiVolume);
 	_slrUiVolume->onChange((ActionHandler)&OptionsAudioState::slrUiVolumeChange);
@@ -130,7 +123,7 @@ OptionsAudioState::OptionsAudioState(OptionsOrigin origin) : OptionsBaseState(or
 	std::vector<std::wstring> samplesText;
 
 	int samples[] = {8000, 11025, 16000, 22050, 32000, 44100, 48000};
-	for (int i = 0; i < sizeof(samples) / sizeof(samples[0]); ++i)
+	for (unsigned int i = 0; i < sizeof(samples) / sizeof(samples[0]); ++i)
 	{
 		_sampleRates.push_back(samples[i]);
 		ss << samples[i] << L" Hz";
@@ -142,10 +135,8 @@ OptionsAudioState::OptionsAudioState(OptionsOrigin origin) : OptionsBaseState(or
 		}
 	}
 
-	_txtSampleRate->setColor(Palette::blockOffset(8)+10);
 	_txtSampleRate->setText(tr("STR_AUDIO_SAMPLE_RATE"));
 
-	_cbxSampleRate->setColor(Palette::blockOffset(15)-1);
 	_cbxSampleRate->setOptions(samplesText);
 	_cbxSampleRate->setTooltip("STR_AUDIO_SAMPLE_RATE_DESC");
 	_cbxSampleRate->onChange((ActionHandler)&OptionsAudioState::cbxSampleRateChange);
@@ -167,10 +158,8 @@ OptionsAudioState::OptionsAudioState(OptionsOrigin origin) : OptionsBaseState(or
 	soundText.push_back(L"1.4");
 	soundText.push_back(L"1.0");
 
-	_txtMusicFormat->setColor(Palette::blockOffset(8)+10);
 	_txtMusicFormat->setText(tr("STR_PREFERRED_MUSIC_FORMAT"));
 
-	_cbxMusicFormat->setColor(Palette::blockOffset(15)-1);
 	_cbxMusicFormat->setOptions(musicText);
 	_cbxMusicFormat->setSelected(Options::preferredMusic);
 	_cbxMusicFormat->setTooltip("STR_PREFERRED_MUSIC_FORMAT_DESC");
@@ -178,14 +167,11 @@ OptionsAudioState::OptionsAudioState(OptionsOrigin origin) : OptionsBaseState(or
 	_cbxMusicFormat->onMouseIn((ActionHandler)&OptionsAudioState::txtTooltipIn);
 	_cbxMusicFormat->onMouseOut((ActionHandler)&OptionsAudioState::txtTooltipOut);
 
-	_txtCurrentMusic->setColor(Palette::blockOffset(8)+10);
 	std::wstring curMusic = musFormats[Mix_GetMusicType(0)];
 	_txtCurrentMusic->setText(tr("STR_CURRENT_FORMAT").arg(curMusic));
 
-	_txtSoundFormat->setColor(Palette::blockOffset(8)+10);
 	_txtSoundFormat->setText(tr("STR_PREFERRED_SFX_FORMAT"));
 
-	_cbxSoundFormat->setColor(Palette::blockOffset(15)-1);
 	_cbxSoundFormat->setOptions(soundText);
 	_cbxSoundFormat->setSelected(Options::preferredSound);
 	_cbxSoundFormat->setTooltip("STR_PREFERRED_SFX_FORMAT_DESC");
@@ -193,7 +179,6 @@ OptionsAudioState::OptionsAudioState(OptionsOrigin origin) : OptionsBaseState(or
 	_cbxSoundFormat->onMouseIn((ActionHandler)&OptionsAudioState::txtTooltipIn);
 	_cbxSoundFormat->onMouseOut((ActionHandler)&OptionsAudioState::txtTooltipOut);
 
-	_txtCurrentSound->setColor(Palette::blockOffset(8)+10);
 	std::wstring curSound = sndFormats[Options::currentSound];
 	_txtCurrentSound->setText(tr("STR_CURRENT_FORMAT").arg(curSound));
 
@@ -203,9 +188,11 @@ OptionsAudioState::OptionsAudioState(OptionsOrigin origin) : OptionsBaseState(or
 	_txtMusicFormat->setVisible(_origin == OPT_MENU);
 	_cbxMusicFormat->setVisible(_origin == OPT_MENU);
 	_txtCurrentMusic->setVisible(_origin == OPT_MENU);
-	_txtSoundFormat->setVisible(_origin == OPT_MENU);
-	_cbxSoundFormat->setVisible(_origin == OPT_MENU);
-	_txtCurrentSound->setVisible(_origin == OPT_MENU);
+
+	// These options only apply to UFO
+	_txtSoundFormat->setVisible(_origin == OPT_MENU && _game->getMod()->getSoundDefinitions()->empty());
+	_cbxSoundFormat->setVisible(_origin == OPT_MENU && _game->getMod()->getSoundDefinitions()->empty());
+	_txtCurrentSound->setVisible(_origin == OPT_MENU && _game->getMod()->getSoundDefinitions()->empty());
 }
 
 /**
@@ -242,7 +229,7 @@ void OptionsAudioState::slrSoundVolumeChange(Action *)
  */
 void OptionsAudioState::slrSoundVolumeRelease(Action *)
 {
-	_game->getResourcePack()->getSound("GEO.CAT", 5)->play();
+	_game->getMod()->getSound("GEO.CAT", Mod::UFO_FIRE)->play();
 }
 
 /**
@@ -261,7 +248,7 @@ void OptionsAudioState::slrUiVolumeChange(Action *)
  */
 void OptionsAudioState::slrUiVolumeRelease(Action *)
 {
-	_game->getResourcePack()->getSound("GEO.CAT", 0)->play(Mix_GroupAvailable(0));
+	TextButton::soundPress->play(Mix_GroupAvailable(0));
 }
 
 /**

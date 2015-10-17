@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -79,9 +79,9 @@ ComboBox::~ComboBox()
 }
 
 /**
-* Changes the position of the surface in the X axis.
-* @param x X position in pixels.
-*/
+ * Changes the position of the surface in the X axis.
+ * @param x X position in pixels.
+ */
 void ComboBox::setX(int x)
 {
 	Surface::setX(x);
@@ -92,9 +92,9 @@ void ComboBox::setX(int x)
 }
 
 /**
-* Changes the position of the surface in the Y axis.
-* @param y Y position in pixels.
-*/
+ * Changes the position of the surface in the Y axis.
+ * @param y Y position in pixels.
+ */
 void ComboBox::setY(int y)
 {
 	Surface::setY(y);
@@ -233,6 +233,20 @@ void ComboBox::setArrowColor(Uint8 color)
 size_t ComboBox::getSelected() const
 {
 	return _sel;
+}
+
+size_t ComboBox::getHoveredListIdx() const
+{
+	size_t ret = -1;
+	if (_list->getVisible())
+	{
+		ret = _list->getSelectedRow();
+	}
+	if ((size_t)-1 == ret)
+	{
+		ret = _sel;
+	}
+	return ret;
 }
 
 /**
@@ -385,6 +399,33 @@ void ComboBox::toggle(bool first)
 void ComboBox::onChange(ActionHandler handler)
 {
 	_change = handler;
+}
+
+/**
+ * Sets a function to be called every time the mouse moves in to the listbox surface.
+ * @param handler Action handler.
+ */
+void ComboBox::onListMouseIn(ActionHandler handler)
+{
+	_list->onMouseIn(handler);
+}
+
+/**
+ * Sets a function to be called every time the mouse moves out of the listbox surface.
+ * @param handler Action handler.
+ */
+void ComboBox::onListMouseOut(ActionHandler handler)
+{
+	_list->onMouseOut(handler);
+}
+
+/**
+ * Sets a function to be called every time the mouse moves over the listbox surface.
+ * @param handler Action handler.
+ */
+void ComboBox::onListMouseOver(ActionHandler handler)
+{
+	_list->onMouseOver(handler);
 }
 
 }

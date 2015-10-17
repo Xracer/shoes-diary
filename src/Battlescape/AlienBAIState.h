@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -20,6 +20,7 @@
 #define OPENXCOM_ALIENBAISTATE_H
 
 #include "BattleAIState.h"
+#include "BattlescapeGame.h"
 #include "Position.h"
 #include <vector>
 
@@ -42,10 +43,11 @@ protected:
 	int _escapeTUs, _ambushTUs, _reserveTUs;
 	BattleAction *_escapeAction, *_ambushAction, *_attackAction, *_patrolAction, *_psiAction;
 	bool _rifle, _melee, _blaster;
-	bool _traceAI, _wasHit, _didPsi;
+	bool _traceAI, _didPsi;
 	int _AIMode, _intelligence, _closestDist;
 	Node *_fromNode, *_toNode;
-	std::vector<int> _reachable, _reachableWithAttack;
+	std::vector<int> _reachable, _reachableWithAttack, _wasHitBy;
+	BattleActionType _reserve;
 public:
 	/// Creates a new AlienBAIState linked to the game and a certain unit.
 	AlienBAIState(SavedBattleGame *save, BattleUnit *unit, Node *node);
@@ -62,9 +64,9 @@ public:
 	/// Runs state functionality every AI cycle.
 	void think(BattleAction *action);
 	/// Sets the "unit was hit" flag true.
-	void setWasHit();
+	void setWasHitBy(BattleUnit *attacker);
 	/// Gets whether the unit was hit.
-	bool getWasHit() const;
+	bool getWasHitBy(int attacker) const;
 	/// setup a patrol objective.
 	void setupPatrol();
 	/// setup an ambush objective.
@@ -91,6 +93,7 @@ public:
 	bool findFirePoint();
 	/// Decides if we should throw a grenade/launch a missile to this position.
 	bool explosiveEfficacy(Position targetPos, BattleUnit *attackingUnit, int radius, int diff, bool grenade = false) const;
+	bool getNodeOfBestEfficacy(BattleAction *action);
 	/// Attempts to take a melee attack/charge an enemy we can see.
 	void meleeAction();
 	/// Attempts to fire a waypoint projectile at an enemy we, or one of our teammates sees.
@@ -105,7 +108,13 @@ public:
 	bool psiAction();
 	/// Performs a melee attack action.
 	void meleeAttack();
+	/// Checks to make sure a target is valid, given the parameters
 	bool validTarget(BattleUnit* unit, bool assessDanger, bool includeCivs) const;
+	/// Checks the alien's TU reservation setting.
+	BattleActionType getReserveMode();
+	/// Assuming we have both a ranged and a melee weapon, we have to select one.
+	void selectMeleeOrRanged();
+	BattleUnit* getTarget();
 };
 
 }

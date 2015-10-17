@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -19,9 +19,6 @@
 
 #include "Zoom.h"
 
-//#include "Scalers/hq2x.hpp"
-
-#include "Exception.h"
 #include "Surface.h"
 #include "Logger.h"
 #include "Options.h"
@@ -34,9 +31,11 @@
 
 // HQX
 
-#include "Scalers/common.h"
 #include "Scalers/hqx.h"
 
+// xBRZ
+
+#include "Scalers/xbrz.h"
 
 #if (_MSC_VER >= 1400) || (defined(__MINGW32__) && defined(__SSE2__))
 
@@ -72,6 +71,7 @@ namespace OpenXcom
  * @param dst The zoomed surface (output).
  * @return 0 for success or -1 for error.
  */
+/*
 static int zoomSurface2X_64bit(SDL_Surface *src, SDL_Surface *dst)
 {
 	Uint64 dataSrc;
@@ -96,13 +96,15 @@ static int zoomSurface2X_64bit(SDL_Surface *src, SDL_Surface *dst)
 			dataSrc = *((Uint64*) pixelSrc);
 			// boo
 			(void)SDL_SwapLE64(dataSrc);
-/* expanded form of of data shift: 
+ */
+/* expanded form of data shift: 
 			dataDst = (dataSrc & 0xFF) | ((dataSrc & 0xFF) << 8) | 
 				((dataSrc & 0xFF00 ) << 8) | ((dataSrc & 0xFF00)) << 16)  | 
 				((dataSrc & 0xFF0000) << 16) | ((dataSrc & 0xFF0000) << 24) |
 				((dataSrc & 0xFF000000) << 24) | ((dataSrc & 0xFF000000) << 32);
-*/
+ */
 			// compact form, combining terms with equal multipliers (shifts)
+/*
 			dataDst = (dataSrc & 0xFF) | ((dataSrc & 0xFFFF) << 8) | 
 				((dataSrc & 0xFFFF00) << 16)  | 
 				((dataSrc & 0xFFFF0000) << 24) |
@@ -128,6 +130,7 @@ static int zoomSurface2X_64bit(SDL_Surface *src, SDL_Surface *dst)
 	
 	return 0;
 }
+ */
 
 
 #if defined(__WORDSIZE) && (__WORDSIZE == 64) || defined(SIZE_MAX) && (SIZE_MAX > 0xFFFFFFFF)
@@ -143,6 +146,7 @@ static int zoomSurface2X_64bit(SDL_Surface *src, SDL_Surface *dst)
  * @param dst The zoomed surface (output).
  * @return 0 for success or -1 for error.
  */
+/*
 static int zoomSurface2X_32bit(SDL_Surface *src, SDL_Surface *dst)
 {
 	Uint32 dataSrc;
@@ -193,6 +197,7 @@ static int zoomSurface2X_32bit(SDL_Surface *src, SDL_Surface *dst)
 	
 	return 0;
 }
+ */
 #endif
 
 /**
@@ -204,6 +209,7 @@ static int zoomSurface2X_32bit(SDL_Surface *src, SDL_Surface *dst)
  * @param dst The zoomed surface (output).
  * @return 0 for success or -1 for error.
  */
+/*
 static int zoomSurface4X_64bit(SDL_Surface *src, SDL_Surface *dst)
 {
 	Uint64 dataSrc;
@@ -228,12 +234,14 @@ static int zoomSurface4X_64bit(SDL_Surface *src, SDL_Surface *dst)
 			dataSrc = *((Uint64*) pixelSrc);
 			// boo
 			(void)SDL_SwapLE64(dataSrc);
-			/* expanded form of of data shift:
+ */
+			/* expanded form of data shift:
 			dataDst = (dataSrc & 0xFF) | ((dataSrc & 0xFF) << 8) | 
 				((dataSrc & 0xFF) << 16 | ((datasrc & 0xFF) << 24) |
 				((dataSrc & 0xFF00 ) << 24) | ((dataSrc & 0xFF00) << 32)  | 
 				((dataSrc & 0xFF00 ) << 40) | ((dataSrc & 0xFF00) << 48) ;
 				 */
+/*
 			for (int i = 0; i < 4; ++i)
 			{
 				// compact form, combining terms with equal multipliers (shifts)
@@ -254,6 +262,7 @@ static int zoomSurface4X_64bit(SDL_Surface *src, SDL_Surface *dst)
 	
 	return 0;
 }
+ */
 
 
 #if defined(__WORDSIZE) && (__WORDSIZE == 64) || defined(SIZE_MAX) && (SIZE_MAX > 0xFFFFFFFF)
@@ -268,6 +277,7 @@ static int zoomSurface4X_64bit(SDL_Surface *src, SDL_Surface *dst)
  * @param dst The zoomed surface (output).
  * @return 0 for success or -1 for error.
  */
+/*
 static int zoomSurface4X_32bit(SDL_Surface *src, SDL_Surface *dst)
 {
 	Uint32 dataSrc;
@@ -315,6 +325,7 @@ static int zoomSurface4X_32bit(SDL_Surface *src, SDL_Surface *dst)
 	
 	return 0;
 }
+ */
 #endif
 
 /**
@@ -327,6 +338,7 @@ static int zoomSurface4X_32bit(SDL_Surface *src, SDL_Surface *dst)
  * @param dst The zoomed surface (output).
  * @return 0 for success or -1 for error.
  */
+/*
 static int zoomSurface2X_XAxis_32bit(SDL_Surface *src, SDL_Surface *dst)
 {
 	Uint32 dataSrc;
@@ -391,7 +403,7 @@ static int zoomSurface2X_XAxis_32bit(SDL_Surface *src, SDL_Surface *dst)
 					if (dsty + j >= dst->h) break;
 
 					*(pixelDst + (dst->pitch/sizeof(Uint32))*j) = dataDst;
-				} while(say[dsty + ++j] == 0); // fill in all relevant rows
+				} while (say[dsty + ++j] == 0); // fill in all relevant rows
 				
 				dataSrc >>= 16;
 				pixelDst++; // forward 4 bytes!
@@ -401,6 +413,7 @@ static int zoomSurface2X_XAxis_32bit(SDL_Surface *src, SDL_Surface *dst)
 	
 	return 0;
 }
+ */
 
 
 /**
@@ -413,6 +426,7 @@ static int zoomSurface2X_XAxis_32bit(SDL_Surface *src, SDL_Surface *dst)
  * @param dst The zoomed surface (output).
  * @return 0 for success or -1 for error.
  */
+/*
 static int zoomSurface4X_XAxis_32bit(SDL_Surface *src, SDL_Surface *dst)
 {
 	Uint32 dataSrc;
@@ -477,7 +491,7 @@ static int zoomSurface4X_XAxis_32bit(SDL_Surface *src, SDL_Surface *dst)
 					if (dsty + j >= dst->h) break;
 
 					*(pixelDst + (dst->pitch/sizeof(Uint32))*j) = dataDst;
-				} while(say[dsty + ++j] == 0); // fill in all relevant rows
+				} while (say[dsty + ++j] == 0); // fill in all relevant rows
 				
 				dataSrc >>= 8;
 				pixelDst++; // forward 4 bytes!
@@ -487,6 +501,7 @@ static int zoomSurface4X_XAxis_32bit(SDL_Surface *src, SDL_Surface *dst)
 	
 	return 0;
 }
+ */
 
 #ifdef __SSE2__
 /**
@@ -500,6 +515,7 @@ static int zoomSurface4X_XAxis_32bit(SDL_Surface *src, SDL_Surface *dst)
  * @param dst The zoomed surface (output).
  * @return 0 for success or -1 for error.
  */
+/*
 static int zoomSurface4X_SSE2(SDL_Surface *src, SDL_Surface *dst)
 {
 	__m128i dataSrc;
@@ -527,13 +543,14 @@ static int zoomSurface4X_SSE2(SDL_Surface *src, SDL_Surface *dst)
 
 			__m128i halfDone = _mm_unpacklo_epi8(dataSrc, dataSrc); 
 			dataDst = _mm_unpacklo_epi8(halfDone, halfDone);
-
+ */
 /* #define WRITE_DST if ((char*)pixelDst4 + 128 > (char*)dst->pixels+(dst->w*dst->pitch)) { Log(LOG_ERROR) << "HELL"; exit(0); } \ */
 #define WRITE_DST			*(pixelDst++) = dataDst; \
 			*(pixelDst2++) = dataDst; \
 			*(pixelDst3++) = dataDst; \
 			*(pixelDst4++) = dataDst; \
 			
+/*
 			WRITE_DST;
 			
 			dataDst = _mm_unpackhi_epi8(halfDone, halfDone);
@@ -553,6 +570,7 @@ static int zoomSurface4X_SSE2(SDL_Surface *src, SDL_Surface *dst)
 
 	return 0;
 }
+ */
 
 /**
  * Optimized 8-bit zoomer for resizing by a factor of 2. Doesn't flip.
@@ -565,6 +583,7 @@ static int zoomSurface4X_SSE2(SDL_Surface *src, SDL_Surface *dst)
  * @param dst The zoomed surface (output).
  * @return 0 for success or -1 for error.
  */
+/*
 static int zoomSurface2X_SSE2(SDL_Surface *src, SDL_Surface *dst)
 {
 	__m128i dataSrc;
@@ -605,6 +624,7 @@ static int zoomSurface2X_SSE2(SDL_Surface *src, SDL_Surface *dst)
 	
 	return 0;
 }
+ */
 
 /**
  * Checks the SSE2 feature bit returned by the CPUID instruction
@@ -613,7 +633,7 @@ static int zoomSurface2X_SSE2(SDL_Surface *src, SDL_Surface *dst)
 bool Zoom::haveSSE2()
 {
 #ifdef __GNUC__
-	unsigned int CPUInfo[4];
+	unsigned int CPUInfo[4] = {0, 0, 0, 0};
 	__get_cpuid(1, CPUInfo, CPUInfo+1, CPUInfo+2, CPUInfo+3);
 #elif _WIN32
 	int CPUInfo[4];
@@ -701,60 +721,64 @@ int Zoom::_zoomSurfaceY(SDL_Surface * src, SDL_Surface * dst, int flipx, int fli
 	int dgap;
 	static bool proclaimed = false;
 
-	if (Options::useHQXFilter)
+	if (Screen::is32bitEnabled())
 	{
-		static bool initDone = false;
-
-		if (!initDone)
+		if (Options::useXBRZFilter)
 		{
-			hqxInit();
-			initDone = true;
+			// check the resolution to see which scale we need
+			for (size_t factor = 2; factor <= 5; factor++)
+			{
+				if (dst->w == src->w * (int)factor && dst->h == src->h * (int)factor)
+				{
+					xbrz::scale(factor, (uint32_t*)src->pixels, (uint32_t*)dst->pixels, src->w, src->h);
+					return 0;
+				}
+			}
 		}
 
-		// HQX_API void HQX_CALLCONV hq2x_32_rb( uint32_t * src, uint32_t src_rowBytes, uint32_t * dest, uint32_t dest_rowBytes, int width, int height );
-
-		if (dst->w == src->w * 2 && dst->h == src->h * 2)
+		if (Options::useHQXFilter)
 		{
-			hq2x_32_rb((uint32_t*) src->pixels, src->pitch, (uint32_t*) dst->pixels, dst->pitch, src->w, src->h);
-			return 0;
-		}
+			static bool initDone = false;
 
-		if (dst->w == src->w * 3 && dst->h == src->h * 3)
-		{
-			hq3x_32_rb((uint32_t*) src->pixels, src->pitch, (uint32_t*) dst->pixels, dst->pitch, src->w, src->h);
-			return 0;
-		}
+			if (!initDone)
+			{
+				hqxInit();
+				initDone = true;
+			}
 
-		if (dst->w == src->w * 4 && dst->h == src->h * 4)
-		{
-			hq4x_32_rb((uint32_t*) src->pixels, src->pitch, (uint32_t*) dst->pixels, dst->pitch, src->w, src->h);
-			return 0;
-		}
+			// HQX_API void HQX_CALLCONV hq2x_32_rb( uint32_t * src, uint32_t src_rowBytes, uint32_t * dest, uint32_t dest_rowBytes, int width, int height );
 
+			if (dst->w == src->w * 2 && dst->h == src->h * 2)
+			{
+				hq2x_32_rb((uint32_t*)src->pixels, src->pitch, (uint32_t*)dst->pixels, dst->pitch, src->w, src->h);
+				return 0;
+			}
+
+			if (dst->w == src->w * 3 && dst->h == src->h * 3)
+			{
+				hq3x_32_rb((uint32_t*)src->pixels, src->pitch, (uint32_t*)dst->pixels, dst->pitch, src->w, src->h);
+				return 0;
+			}
+
+			if (dst->w == src->w * 4 && dst->h == src->h * 4)
+			{
+				hq4x_32_rb((uint32_t*)src->pixels, src->pitch, (uint32_t*)dst->pixels, dst->pitch, src->w, src->h);
+				return 0;
+			}
+		}
 	}
 
 	if (Options::useScaleFilter)
 	{
 		// check the resolution to see which of scale2x, scale3x, etc. we need
-
-		if (dst->w == src->w * 2 && dst->h == src->h *2 && !scale_precondition(2, src->format->BytesPerPixel, src->w, src->h))
+		for (size_t factor = 2; factor <= 4; factor++)
 		{
-			scale(2, dst->pixels, dst->pitch, src->pixels, src->pitch, src->format->BytesPerPixel, src->w, src->h);
-			return 0;
+			if (dst->w == src->w * (int)factor && dst->h == src->h * (int)factor && !scale_precondition(factor, src->format->BytesPerPixel, src->w, src->h))
+			{
+				scale(factor, dst->pixels, dst->pitch, src->pixels, src->pitch, src->format->BytesPerPixel, src->w, src->h);
+				return 0;
+			}
 		}
-
-		if (dst->w == src->w * 3 && dst->h == src->h *3 && !scale_precondition(3, src->format->BytesPerPixel, src->w, src->h))
-		{
-			scale(3, dst->pixels, dst->pitch, src->pixels, src->pitch, src->format->BytesPerPixel, src->w, src->h);
-			return 0;
-		}
-
-		if (dst->w == src->w * 4 && dst->h == src->h *4 && !scale_precondition(4, src->format->BytesPerPixel, src->w, src->h))
-		{
-			scale(4, dst->pixels, dst->pitch, src->pixels, src->pitch, src->format->BytesPerPixel, src->w, src->h);
-			return 0;
-		}
-
 	}
 
 	// if we're scaling by a factor of 2 or 4, try to use a more efficient function	

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -32,6 +32,7 @@ class WarningMessage;
 class BattleItem;
 class BattleUnit;
 class NumberText;
+class Timer;
 
 /**
  * Interactive view of an inventory.
@@ -47,10 +48,12 @@ private:
 	BattleItem *_selItem;
 	bool _tu, _base;
 	BattleItem *_mouseOverItem;
-	int _groundOffset;
+	int _groundOffset, _animFrame;
 	std::map<int, std::map<int, int> > _stackLevel;
+	std::vector<std::pair<int, int> > _grenadeIndicators;
 	NumberText *_stackNumber;
-
+	Timer *_animTimer;
+	int _depth;
 	/// Moves an item to a specified slot.
 	void moveItem(BattleItem *item, RuleInventory *slot, int x, int y);
 	/// Gets the slot in the specified position.
@@ -100,6 +103,8 @@ public:
 	static bool overlapItems(BattleUnit *unit, BattleItem *item, RuleInventory *slot, int x = 0, int y = 0);
 	/// Shows a warning message.
 	void showWarning(const std::wstring &msg);
+	/// Show priming warnings on grenades.
+	void drawPrimers();
 };
 
 }

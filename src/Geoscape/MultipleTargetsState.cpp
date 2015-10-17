@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,11 +17,9 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "MultipleTargetsState.h"
-#include <sstream>
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
 #include "../Savegame/Target.h"
@@ -61,22 +59,20 @@ MultipleTargetsState::MultipleTargetsState(std::vector<Target*> targets, Craft *
 		_window = new Window(this, 136, winHeight, 60, winY, POPUP_VERTICAL);
 
 		// Set palette
-		setPalette("PAL_GEOSCAPE", 7);
+		setInterface("UFOInfo");
 
-		add(_window);
+		add(_window, "window", "UFOInfo");
 
 		// Set up objects
-		_window->setColor(Palette::blockOffset(8) + 5);
-		_window->setBackground(_game->getResourcePack()->getSurface("BACK15.SCR"));
+		_window->setBackground(_game->getMod()->getSurface("BACK15.SCR"));
 
 		int y = btnY;
 		for (size_t i = 0; i < _targets.size(); ++i)
 		{
 			TextButton *button = new TextButton(116, BUTTON_HEIGHT, 70, y);
-			button->setColor(Palette::blockOffset(8) + 5);
 			button->setText(_targets[i]->getName(_game->getLanguage()));
 			button->onMouseClick((ActionHandler)&MultipleTargetsState::btnTargetClick);
-			add(button);
+			add(button, "button", "UFOInfo");
 
 			_btnTargets.push_back(button);
 

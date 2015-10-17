@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -22,6 +22,7 @@
 #include "MovingTarget.h"
 #include <vector>
 #include <string>
+#include "CraftId.h"
 
 namespace OpenXcom
 {
@@ -31,7 +32,7 @@ class Base;
 class Soldier;
 class CraftWeapon;
 class ItemContainer;
-class Ruleset;
+class Mod;
 class SavedGame;
 class Vehicle;
 
@@ -59,11 +60,13 @@ public:
 	/// Cleans up the craft.
 	~Craft();
 	/// Loads the craft from YAML.
-	void load(const YAML::Node& node, const Ruleset *rule, SavedGame *save);
+	void load(const YAML::Node& node, const Mod *mod, SavedGame *save);
 	/// Saves the craft to YAML.
 	YAML::Node save() const;
 	/// Saves the craft's ID to YAML.
 	YAML::Node saveId() const;
+	/// Loads a craft ID from YAML.
+	static CraftId loadId(const YAML::Node &node);
 	/// Gets the craft's ruleset.
 	RuleCraft *getRules() const;
 	/// Sets the craft's ruleset.
@@ -74,6 +77,8 @@ public:
 	std::wstring getName(Language *lang) const;
 	/// Sets the craft's name.
 	void setName(const std::wstring &newName);
+	/// Gets the craft's marker.
+	int getMarker() const;
 	/// Gets the craft's base.
 	Base *getBase() const;
 	/// Sets the craft's base.
@@ -143,7 +148,7 @@ public:
 	/// Refuels the craft.
 	void refuel();
 	/// Rearms the craft.
-	std::string rearm(Ruleset *rules);
+	std::string rearm(Mod *mod);
 	/// Sets the craft's battlescape status.
 	void setInBattlescape(bool inbattle);
 	/// Gets if the craft is in battlescape.
@@ -164,6 +169,8 @@ public:
 	void setInterceptionOrder(const int order);
 	/// Gets interception number.
 	int getInterceptionOrder() const;
+	/// Gets the craft's unique id.
+	CraftId getUniqueId() const;
 };
 
 }

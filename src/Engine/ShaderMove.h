@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -143,7 +143,7 @@ inline ShaderMove<Uint8> ShaderCrop(Surface* s, int x, int y)
 {
 	ShaderMove<Uint8> ret(s, x, y);
 	SDL_Rect* s_crop = s->getCrop();
-	if(s_crop->w && s_crop->h)
+	if (s_crop->w && s_crop->h)
 	{
 		GraphSubset crop(std::make_pair(s_crop->x, s_crop->x + s_crop->w), std::make_pair(s_crop->y, s_crop->y + s_crop->h));
 		ret.setDomain(crop);

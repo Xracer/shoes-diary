@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -51,7 +51,7 @@ public:
 	/// Handler for clicking the OK button.
 	void btnOKClick(Action *action);
 	/// Fills the ResearchProject list with possible ResearchProjects.
-	void fillProjectList ();
+	void fillProjectList();
 	/// Initializes the state.
 	void init();
 };

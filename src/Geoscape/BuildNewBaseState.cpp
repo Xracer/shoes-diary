@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -21,9 +21,8 @@
 #include "../fmath.h"
 #include "../Engine/Game.h"
 #include "../Engine/Action.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Surface.h"
 #include "../Engine/Timer.h"
 #include "../Engine/Screen.h"
@@ -36,6 +35,8 @@
 #include "BaseNameState.h"
 #include "ConfirmNewBaseState.h"
 #include "../Engine/Options.h"
+#include "../Menu/ErrorMessageState.h"
+#include "../Mod/RuleInterface.h"
 
 namespace OpenXcom
 {
@@ -75,7 +76,7 @@ BuildNewBaseState::BuildNewBaseState(Base *base, Globe *globe, bool first) : _ba
 	_hoverTimer->start();
 	
 	// Set palette
-	setPalette("PAL_GEOSCAPE");
+	setInterface("geoscape");
 
 	add(_btnRotateLeft);
 	add(_btnRotateRight);
@@ -84,9 +85,9 @@ BuildNewBaseState::BuildNewBaseState(Base *base, Globe *globe, bool first) : _ba
 	add(_btnZoomIn);
 	add(_btnZoomOut);
 
-	add(_window);
-	add(_btnCancel);
-	add(_txtTitle);
+	add(_window, "genericWindow", "geoscape");
+	add(_btnCancel, "genericButton2", "geoscape");
+	add(_txtTitle, "genericText", "geoscape");
 
 	// Set up objects
 	_globe->onMouseClick((ActionHandler)&BuildNewBaseState::globeClick);
@@ -118,22 +119,19 @@ BuildNewBaseState::BuildNewBaseState(Base *base, Globe *globe, bool first) : _ba
 	_btnZoomOut->onMouseClick((ActionHandler)&BuildNewBaseState::btnZoomOutLeftClick, SDL_BUTTON_LEFT);
 	_btnZoomOut->onMouseClick((ActionHandler)&BuildNewBaseState::btnZoomOutRightClick, SDL_BUTTON_RIGHT);
 	_btnZoomOut->onKeyboardPress((ActionHandler)&BuildNewBaseState::btnZoomOutLeftClick, Options::keyGeoZoomOut);
-	
+
 	// dirty hacks to get the rotate buttons to work in "classic" style
 	_btnRotateLeft->setListButton();
 	_btnRotateRight->setListButton();
 	_btnRotateUp->setListButton();
 	_btnRotateDown->setListButton();
 
-	_window->setColor(Palette::blockOffset(15)-1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK01.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK01.SCR"));
 
-	_btnCancel->setColor(Palette::blockOffset(15)-1);
 	_btnCancel->setText(tr("STR_CANCEL_UC"));
 	_btnCancel->onMouseClick((ActionHandler)&BuildNewBaseState::btnCancelClick);
 	_btnCancel->onKeyboardPress((ActionHandler)&BuildNewBaseState::btnCancelClick, Options::keyCancel);
 
-	_txtTitle->setColor(Palette::blockOffset(15)-1);
 	_txtTitle->setText(tr("STR_SELECT_SITE_FOR_NEW_BASE"));
 	_txtTitle->setVerticalAlign(ALIGN_MIDDLE);
 	_txtTitle->setWordWrap(true);
@@ -232,7 +230,7 @@ void BuildNewBaseState::globeClick(Action *action)
 		return;
 	}
 
-	// Clicking on land for a base location
+	// Clicking on a polygon for a base location
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
 	{
 		if (_globe->insideLand(lon, lat))
@@ -252,6 +250,10 @@ void BuildNewBaseState::globeClick(Action *action)
 			{
 				_game->pushState(new ConfirmNewBaseState(_base, _globe));
 			}
+		}
+		else
+		{
+			_game->pushState(new ErrorMessageState(tr("STR_XCOM_BASE_CANNOT_BE_BUILT"), _palette, _game->getMod()->getInterface("geoscape")->getElement("genericWindow")->color, "BACK01.SCR", _game->getMod()->getInterface("geoscape")->getElement("palette")->color));
 		}
 	}
 }

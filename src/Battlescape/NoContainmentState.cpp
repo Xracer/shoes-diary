@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,9 +18,8 @@
  */
 #include "NoContainmentState.h"
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
@@ -41,25 +40,22 @@ NoContainmentState::NoContainmentState()
 	_txtTitle = new Text(220, 64, 50, 8);
 
 	// Set palette
-	setPalette("PAL_GEOSCAPE", 0);
+	setInterface("noContainment");
 
-	add(_window);
-	add(_btnOk);
-	add(_txtTitle);
+	add(_window, "window", "noContainment");
+	add(_btnOk, "button", "noContainment");
+	add(_txtTitle, "text", "noContainment");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(15)-1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK01.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK01.SCR"));
 
-	_btnOk->setColor(Palette::blockOffset(8)+5);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&NoContainmentState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&NoContainmentState::btnOkClick, Options::keyOk);
 	_btnOk->onKeyboardPress((ActionHandler)&NoContainmentState::btnOkClick, Options::keyCancel);
 
-	_txtTitle->setColor(Palette::blockOffset(8)+5);
 	_txtTitle->setText(tr("STR_ALIEN_DIES_NO_ALIEN_CONTAINMENT_FACILITY"));
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setBig();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -16,11 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <sstream>
 #include "SackSoldierState.h"
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Options.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
@@ -28,8 +28,7 @@
 #include "../Savegame/Base.h"
 #include "../Savegame/ItemContainer.h"
 #include "../Savegame/Soldier.h"
-#include "../Savegame/SavedGame.h"
-#include "../Ruleset/Armor.h"
+#include "../Mod/Armor.h"
 
 namespace OpenXcom
 {
@@ -52,37 +51,35 @@ SackSoldierState::SackSoldierState(Base *base, size_t soldierId) : _base(base), 
 	_txtSoldier = new Text(142, 9, 89, 85);
 
 	// Set palette
-	setPalette("PAL_BASESCAPE", 6);
+	setInterface("sackSoldier");
 
-	add(_window);
-	add(_btnOk);
-	add(_btnCancel);
-	add(_txtTitle);
-	add(_txtSoldier);
+	add(_window, "window", "sackSoldier");
+	add(_btnOk, "button", "sackSoldier");
+	add(_btnCancel, "button", "sackSoldier");
+	add(_txtTitle, "text", "sackSoldier");
+	add(_txtSoldier, "text", "sackSoldier");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(15)+1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK13.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK13.SCR"));
 
-	_btnOk->setColor(Palette::blockOffset(15)+6);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&SackSoldierState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&SackSoldierState::btnOkClick, Options::keyOk);
 
-	_btnCancel->setColor(Palette::blockOffset(15)+6);
 	_btnCancel->setText(tr("STR_CANCEL_UC"));
 	_btnCancel->onMouseClick((ActionHandler)&SackSoldierState::btnCancelClick);
 	_btnCancel->onKeyboardPress((ActionHandler)&SackSoldierState::btnCancelClick, Options::keyCancel);
 
-	_txtTitle->setColor(Palette::blockOffset(13)+10);
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setText(tr("STR_SACK"));
 
-	_txtSoldier->setColor(Palette::blockOffset(13)+10);
+	std::wostringstream ss;
+	ss << _base->getSoldiers()->at(_soldierId)->getName(true) << "?";
+
 	_txtSoldier->setAlign(ALIGN_CENTER);
-	_txtSoldier->setText(_base->getSoldiers()->at(_soldierId)->getName(true));
+	_txtSoldier->setText(ss.str().c_str());
 }
 
 /**
@@ -103,7 +100,7 @@ void SackSoldierState::btnOkClick(Action *)
 	Soldier *soldier = _base->getSoldiers()->at(_soldierId);
 	if (soldier->getArmor()->getStoreItem() != "STR_NONE")
 	{
-		_base->getItems()->addItem(soldier->getArmor()->getStoreItem());
+		_base->getStorageItems()->addItem(soldier->getArmor()->getStoreItem());
 	}
 	_base->getSoldiers()->erase(_base->getSoldiers()->begin() + _soldierId);
 	delete soldier;

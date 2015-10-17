@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,9 +18,8 @@
  */
 #include "PauseState.h"
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
@@ -31,6 +30,7 @@
 #include "OptionsVideoState.h"
 #include "OptionsGeoscapeState.h"
 #include "OptionsBattlescapeState.h"
+#include "../Savegame/SavedGame.h"
 
 namespace OpenXcom
 {
@@ -64,46 +64,33 @@ PauseState::PauseState(OptionsOrigin origin) : _origin(origin)
 	_txtTitle = new Text(206, 17, x+5, 32);
 
 	// Set palette
-	if (_origin == OPT_BATTLESCAPE)
-	{
-		setPalette("PAL_BATTLESCAPE");
-	}
-	else
-	{
-		setPalette("PAL_GEOSCAPE", 0);
-	}
+	setInterface("pauseMenu", false, _game->getSavedGame() ? _game->getSavedGame()->getSavedBattle() : 0);
 
-	add(_window);
-	add(_btnLoad);
-	add(_btnSave);
-	add(_btnAbandon);
-	add(_btnOptions);
-	add(_btnCancel);
-	add(_txtTitle);
+	add(_window, "window", "pauseMenu");
+	add(_btnLoad, "button", "pauseMenu");
+	add(_btnSave, "button", "pauseMenu");
+	add(_btnAbandon, "button", "pauseMenu");
+	add(_btnOptions, "button", "pauseMenu");
+	add(_btnCancel, "button", "pauseMenu");
+	add(_txtTitle, "text", "pauseMenu");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(15)-1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK01.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK01.SCR"));
 
-	_btnLoad->setColor(Palette::blockOffset(15)-1);
 	_btnLoad->setText(tr("STR_LOAD_GAME"));
 	_btnLoad->onMouseClick((ActionHandler)&PauseState::btnLoadClick);
 
-	_btnSave->setColor(Palette::blockOffset(15)-1);
 	_btnSave->setText(tr("STR_SAVE_GAME"));
 	_btnSave->onMouseClick((ActionHandler)&PauseState::btnSaveClick);
 
-	_btnAbandon->setColor(Palette::blockOffset(15)-1);
 	_btnAbandon->setText(tr("STR_ABANDON_GAME"));
 	_btnAbandon->onMouseClick((ActionHandler)&PauseState::btnAbandonClick);
 
-	_btnOptions->setColor(Palette::blockOffset(15)-1);
 	_btnOptions->setText(tr("STR_GAME_OPTIONS"));
 	_btnOptions->onMouseClick((ActionHandler)&PauseState::btnOptionsClick);
 
-	_btnCancel->setColor(Palette::blockOffset(15)-1);
 	_btnCancel->setText(tr("STR_CANCEL_UC"));
 	_btnCancel->onMouseClick((ActionHandler)&PauseState::btnCancelClick);
 	_btnCancel->onKeyboardPress((ActionHandler)&PauseState::btnCancelClick, Options::keyCancel);
@@ -116,7 +103,6 @@ PauseState::PauseState(OptionsOrigin origin) : _origin(origin)
 		_btnCancel->onKeyboardPress((ActionHandler)&PauseState::btnCancelClick, Options::keyBattleOptions);
 	}
 
-	_txtTitle->setColor(Palette::blockOffset(15)-1);
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setBig();
 	_txtTitle->setText(tr("STR_OPTIONS_UC"));
@@ -161,9 +147,9 @@ void PauseState::btnSaveClick(Action *)
 }
 
 /**
-* Opens the Game Options screen.
-* @param action Pointer to an action.
-*/
+ * Opens the Game Options screen.
+ * @param action Pointer to an action.
+ */
 void PauseState::btnOptionsClick(Action *)
 {
 	Options::backupDisplay();

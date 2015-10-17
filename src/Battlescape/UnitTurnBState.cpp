@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -19,14 +19,11 @@
 
 #include "UnitTurnBState.h"
 #include "TileEngine.h"
-#include "BattlescapeState.h"
 #include "Map.h"
-#include "../Engine/Game.h"
 #include "../Savegame/BattleUnit.h"
 #include "../Savegame/SavedBattleGame.h"
-#include "../Resource/ResourcePack.h"
+#include "../Mod/Mod.h"
 #include "../Engine/Sound.h"
-#include "../Engine/RNG.h"
 #include "../Engine/Options.h"
 
 namespace OpenXcom
@@ -37,7 +34,7 @@ namespace OpenXcom
  * @param parent Pointer to the Battlescape.
  * @param action Pointer to an action.
  */
-UnitTurnBState::UnitTurnBState(BattlescapeGame *parent, BattleAction action) : BattleState(parent, action), _unit(0), _turret(false)
+UnitTurnBState::UnitTurnBState(BattlescapeGame *parent, BattleAction action, bool chargeTUs) : BattleState(parent, action), _unit(0), _turret(false), _chargeTUs(chargeTUs)
 {
 
 }
@@ -56,6 +53,11 @@ UnitTurnBState::~UnitTurnBState()
 void UnitTurnBState::init()
 {
 	_unit = _action.actor;
+	if (_unit->isOut())
+	{
+		_parent->popState();
+		return;
+	}
 	_action.TU = 0;
 	if (_unit->getFaction() == FACTION_PLAYER)
 		_parent->setStateInterval(Options::battleXcomSpeed);
@@ -67,7 +69,7 @@ void UnitTurnBState::init()
 
 	_unit->lookAt(_action.target, _turret);
 
-	if (_unit->getStatus() != STATUS_TURNING)
+	if (_chargeTUs && _unit->getStatus() != STATUS_TURNING)
 	{
 		if (_action.type == BA_NONE)
 		{
@@ -75,11 +77,11 @@ void UnitTurnBState::init()
 			int door = _parent->getTileEngine()->unitOpensDoor(_unit, true);
 			if (door == 0)
 			{
-				_parent->getResourcePack()->getSound("BATTLE.CAT", 3)->play(); // normal door
+				_parent->getMod()->getSoundByDepth(_parent->getDepth(), Mod::DOOR_OPEN)->play(-1, _parent->getMap()->getSoundAngle(_unit->getPosition())); // normal door
 			}
 			if (door == 1)
 			{
-				_parent->getResourcePack()->getSound("BATTLE.CAT", RNG::generate(20,21))->play(); // ufo door
+				_parent->getMod()->getSoundByDepth(_parent->getDepth(), Mod::SLIDING_DOOR_OPEN)->play(-1, _parent->getMap()->getSoundAngle(_unit->getPosition())); // ufo door
 			}
 			if (door == 4)
 			{
@@ -95,9 +97,9 @@ void UnitTurnBState::init()
  */
 void UnitTurnBState::think()
 {
-	const int tu = _unit->getFaction() == _parent->getSave()->getSide() ? 1 : 0; // one turn is 1 tu unless during reaction fire.
+	const int tu = _chargeTUs ? 1 : 0;
 
-	if (_unit->getFaction() == _parent->getSave()->getSide() && _parent->getPanicHandled() && !_action.targeting && !_parent->checkReservedTU(_unit, tu))
+	if (_chargeTUs && _unit->getFaction() == _parent->getSave()->getSide() && _parent->getPanicHandled() && !_action.targeting && !_parent->checkReservedTU(_unit, tu))
 	{
 		_unit->abortTurn();
 		_parent->popState();
@@ -111,7 +113,7 @@ void UnitTurnBState::think()
 		_parent->getTileEngine()->calculateFOV(_unit);
 		_unit->setCache(0);
 		_parent->getMap()->cacheUnit(_unit);
-		if (_unit->getFaction() == _parent->getSave()->getSide() && _parent->getPanicHandled() && _action.type == BA_NONE && _unit->getUnitsSpottedThisTurn().size() > unitSpotted)
+		if (_chargeTUs && _unit->getFaction() == _parent->getSave()->getSide() && _parent->getPanicHandled() && _action.type == BA_NONE && _unit->getUnitsSpottedThisTurn().size() > unitSpotted)
 		{
 			_unit->abortTurn();
 		}

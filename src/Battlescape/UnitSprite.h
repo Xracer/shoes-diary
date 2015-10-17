@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -39,6 +39,10 @@ private:
 	BattleItem *_itemA, *_itemB;
 	SurfaceSet *_unitSurface, *_itemSurfaceA, *_itemSurfaceB;
 	int _part, _animationFrame, _drawingRoutine;
+	bool _helmet;
+	const std::pair<Uint8, Uint8> *_color;
+	int _colorSize;
+
 	/// Drawing routine for XCom soldiers in overalls, sectoids (routine 0),
 	/// mutons (routine 10),
 	/// aquanauts (routine 13),
@@ -68,16 +72,18 @@ private:
 	/// Drawing routine for hallucinoids (routine 12) and biodrones (routine 15).
 	void drawRoutine12();
 	/// Drawing routine for tentaculats.
-	void drawRoutine18();
-	/// Drawing routine for triscenes.
 	void drawRoutine19();
-	/// Drawing routine for xarquids.
+	/// Drawing routine for triscenes.
 	void drawRoutine20();
+	/// Drawing routine for xarquids.
+	void drawRoutine21();
 	/// sort two handed sprites out.
 	void sortRifles();
+	/// Draw surface with changed colors.
+	void drawRecolored(Surface *src);
 public:
 	/// Creates a new UnitSprite at the specified position and size.
-	UnitSprite(int width, int height, int x, int y);
+	UnitSprite(int width, int height, int x, int y, bool helmet);
 	/// Cleans up the UnitSprite.
 	~UnitSprite();
 	/// Sets surfacesets for rendering.

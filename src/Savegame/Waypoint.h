@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -50,6 +50,8 @@ public:
 	void setId(int id);
 	/// Gets the waypoint's name.
 	std::wstring getName(Language *lang) const;
+	/// Gets the waypoint's marker.
+	int getMarker() const;
 };
 
 }

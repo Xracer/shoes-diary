@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,10 +17,9 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "CrossPlatform.h"
-#include <set>
 #include <algorithm>
-#include <iostream>
 #include <sstream>
+#include <fstream>
 #include <string>
 #include <locale>
 #include <stdint.h>
@@ -29,7 +28,6 @@
 #include "Logger.h"
 #include "Exception.h"
 #include "Options.h"
-#include "Language.h"
 #ifdef _WIN32
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -48,6 +46,9 @@
 #pragma comment(lib, "shlwapi.lib")
 #endif
 #else
+#include "Language.h"
+#include <iostream>
+#include <SDL_image.h>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
@@ -58,7 +59,6 @@
 #endif
 #include <SDL.h>
 #include <SDL_syswm.h>
-#include <SDL_image.h>
 
 namespace OpenXcom
 {
@@ -113,7 +113,7 @@ std::vector<std::string> findDataFolders()
 {
 	std::vector<std::string> list;
 #ifdef __MORPHOS__
-	list.push_back("PROGDIR:data/");
+	list.push_back("PROGDIR:");
 	return list;
 #endif
 	
@@ -123,7 +123,7 @@ std::vector<std::string> findDataFolders()
 	// Get Documents folder
 	if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, path)))
 	{
-		PathAppendA(path, "OpenXcom\\data\\");
+		PathAppendA(path, "OpenXcom\\");
 		list.push_back(path);
 	}
 
@@ -131,34 +131,32 @@ std::vector<std::string> findDataFolders()
 	if (GetModuleFileNameA(NULL, path, MAX_PATH) != 0)
 	{
 		PathRemoveFileSpecA(path);
-		PathAppendA(path, "data\\");
 		list.push_back(path);
 	}
 
 	// Get working directory
 	if (GetCurrentDirectoryA(MAX_PATH, path) != 0)
 	{
-		PathAppendA(path, "data\\");
 		list.push_back(path);
 	}
 #else
 	char const *home = getHome();
 #ifdef __HAIKU__
-	list.push_back("/boot/apps/OpenXcom/data/");
+	list.push_back("/boot/apps/OpenXcom/");
 #endif
 	char path[MAXPATHLEN];
 
 	// Get user-specific data folders
 	if (char const *const xdg_data_home = getenv("XDG_DATA_HOME"))
  	{
-		snprintf(path, MAXPATHLEN, "%s/openxcom/data/", xdg_data_home);
+		snprintf(path, MAXPATHLEN, "%s/openxcom/", xdg_data_home);
  	}
  	else
  	{
 #ifdef __APPLE__
-		snprintf(path, MAXPATHLEN, "%s/Library/Application Support/OpenXcom/data/", home);
+		snprintf(path, MAXPATHLEN, "%s/Library/Application Support/OpenXcom/", home);
 #else
-		snprintf(path, MAXPATHLEN, "%s/.local/share/openxcom/data/", home);
+		snprintf(path, MAXPATHLEN, "%s/.local/share/openxcom/", home);
 #endif
  	}
  	list.push_back(path);
@@ -169,28 +167,27 @@ std::vector<std::string> findDataFolders()
 		char *dir = strtok(xdg_data_dirs, ":");
 		while (dir != 0)
 		{
-			snprintf(path, MAXPATHLEN, "%s/openxcom/data/", dir);
+			snprintf(path, MAXPATHLEN, "%s/openxcom/", dir);
 			list.push_back(path);
 			dir = strtok(0, ":");
 		}
 	}
 #ifdef __APPLE__
-	snprintf(path, MAXPATHLEN, "%s/Users/Shared/OpenXcom/data/", home);
-	list.push_back(path);
+	list.push_back("/Users/Shared/OpenXcom/");
 #else
-	list.push_back("/usr/local/share/openxcom/data/");
+	list.push_back("/usr/local/share/openxcom/");
 #ifndef __FreeBSD__
-	list.push_back("/usr/share/openxcom/data/");
+	list.push_back("/usr/share/openxcom/");
 #endif
 #ifdef DATADIR
-	snprintf(path, MAXPATHLEN, "%s/data/", DATADIR);
+	snprintf(path, MAXPATHLEN, "%s/", DATADIR);
 	list.push_back(path);
 #endif
 
 #endif
 	
 	// Get working directory
-	list.push_back("./data/");
+	list.push_back("./");
 #endif
 
 	return list;
@@ -299,93 +296,7 @@ std::string findConfigFolder()
 #endif
 }
 
-/**
- * Takes a path and tries to find it based on the
- * system's case-sensitivity.
- * @param base Base unaltered path.
- * @param path Full path to check for casing.
- * @return Correct filename or "" if it doesn't exist.
- * @note There's no actual method for figuring out the correct
- * filename on case-sensitive systems, this is just a workaround.
- */
-std::string caseInsensitive(const std::string &base, const std::string &path)
-{
-	std::string fullPath = base + path, newPath = path;
-
-	// Try all various case mutations
-	// Normal unmangled
-	if (fileExists(fullPath.c_str()))
-	{
-		return fullPath;
-	}
-
-	// UPPERCASE
-	std::transform(newPath.begin(), newPath.end(), newPath.begin(), toupper);
-	fullPath = base + newPath;
-	if (fileExists(fullPath.c_str()))
-	{
-		return fullPath;
-	}
-
-	// lowercase
-	std::transform(newPath.begin(), newPath.end(), newPath.begin(), tolower);
-	fullPath = base + newPath;
-	if (fileExists(fullPath.c_str()))
-	{
-		return fullPath;
-	}
-
-	// If we got here nothing can help us
-	return "";
-}
-
-/**
- * Takes a path and tries to find it based on the
- * system's case-sensitivity.
- * @param base Base unaltered path.
- * @param path Full path to check for casing.
- * @return Correct foldername or "" if it doesn't exist.
- * @note There's no actual method for figuring out the correct
- * foldername on case-sensitive systems, this is just a workaround.
- */
-std::string caseInsensitiveFolder(const std::string &base, const std::string &path)
-{
-	std::string fullPath = base + path, newPath = path;
-
-	// Try all various case mutations
-	// Normal unmangled
-	if (folderExists(fullPath.c_str()))
-	{
-		return fullPath;
-	}
-
-	// UPPERCASE
-	std::transform(newPath.begin(), newPath.end(), newPath.begin(), toupper);
-	fullPath = base + newPath;
-	if (folderExists(fullPath.c_str()))
-	{
-		return fullPath;
-	}
-
-	// lowercase
-	std::transform(newPath.begin(), newPath.end(), newPath.begin(), tolower);
-	fullPath = base + newPath;
-	if (folderExists(fullPath.c_str()))
-	{
-		return fullPath;
-	}
-
-	// If we got here nothing can help us
-	return "";
-}
-
-/**
- * Takes a filename and tries to find it in the game's Data folders,
- * accounting for the system's case-sensitivity and path style.
- * @param filename Original filename.
- * @return Correct filename or "" if it doesn't exist.
- */
-std::string getDataFile(const std::string &filename)
+std::string searchDataFile(const std::string &filename)
 {
 	// Correct folder separator
 	std::string name = filename;
@@ -394,8 +305,8 @@ std::string getDataFile(const std::string &filename)
 #endif
 
 	// Check current data path
-	std::string path = caseInsensitive(Options::getDataFolder(), name);
-	if (path != "")
+	std::string path = Options::getDataFolder() + name;
+	if (fileExists(path))
 	{
 		return path;
 	}
@@ -403,8 +314,8 @@ std::string getDataFile(const std::string &filename)
 	// Check every other path
 	for (std::vector<std::string>::const_iterator i = Options::getDataList().begin(); i != Options::getDataList().end(); ++i)
 	{
-		std::string path = caseInsensitive(*i, name);
-		if (path != "")
+		path = *i + name;
+		if (fileExists(path))
 		{
 			Options::setDataFolder(*i);
 			return path;
@@ -415,13 +326,7 @@ std::string getDataFile(const std::string &filename)
 	return filename;
 }
 
-/**
- * Takes a foldername and tries to find it in the game's Data folders,
- * accounting for the system's case-sensitivity and path style.
- * @param foldername Original foldername.
- * @return Correct foldername or "" if it doesn't exist.
- */
-std::string getDataFolder(const std::string &foldername)
+std::string searchDataFolder(const std::string &foldername)
 {
 	// Correct folder separator
 	std::string name = foldername;
@@ -430,8 +335,8 @@ std::string getDataFolder(const std::string &foldername)
 #endif
 
 	// Check current data path
-	std::string path = caseInsensitiveFolder(Options::getDataFolder(), name);
-	if (path != "")
+	std::string path = Options::getDataFolder() + name;
+	if (folderExists(path))
 	{
 		return path;
 	}
@@ -439,8 +344,8 @@ std::string getDataFolder(const std::string &foldername)
 	// Check every other path
 	for (std::vector<std::string>::const_iterator i = Options::getDataList().begin(); i != Options::getDataList().end(); ++i)
 	{
-		std::string path = caseInsensitiveFolder(*i, name);
-		if (path != "")
+		path = *i + name;
+		if (folderExists(path))
 		{
 			Options::setDataFolder(*i);
 			return path;
@@ -541,52 +446,7 @@ std::vector<std::string> getFolderContents(const std::string &path, const std::s
 		files.push_back(file);
 	}
 	closedir(dp);
-	return files;
-}
-
-/**
- * Gets the name of all the files
- * contained in a Data subfolder.
- * Repeated files are ignored.
- * @param folder Path to the data folder.
- * @param ext Extension of files ("" if it doesn't matter).
- * @return Ordered list of all the files.
- */
-std::vector<std::string> getDataContents(const std::string &folder, const std::string &ext)
-{
-	std::set<std::string> unique;
-	std::vector<std::string> files;
-
-	// Check current data path
-	std::string current = caseInsensitiveFolder(Options::getDataFolder(), folder);
-	if (current != "")
-	{
-		std::vector<std::string> contents = getFolderContents(current, ext);
-		for (std::vector<std::string>::const_iterator file = contents.begin(); file != contents.end(); ++file)
-		{
-			unique.insert(*file);
-		}
-	}
-
-	// Check every other path
-	for (std::vector<std::string>::const_iterator i = Options::getDataList().begin(); i != Options::getDataList().end(); ++i)
-	{
-		std::string path = caseInsensitiveFolder(*i, folder);
-		if (path == current)
-		{
-			continue;
-		}
-		if (path != "")
-		{
-			std::vector<std::string> contents = getFolderContents(path, ext);
-			for (std::vector<std::string>::const_iterator file = contents.begin(); file != contents.end(); ++file)
-			{
-				unique.insert(*file);
-			}
-		}
-	}
-
-	files = std::vector<std::string>(unique.begin(), unique.end());
+	std::sort(files.begin(), files.end());
 	return files;
 }
 
@@ -601,7 +461,7 @@ bool folderExists(const std::string &path)
 	return (PathIsDirectoryA(path.c_str()) != FALSE);
 #elif __MORPHOS__
 	BPTR l = Lock( path.c_str(), SHARED_LOCK );
-	if( l != NULL )
+	if ( l != NULL )
 	{
 		UnLock( l );
 		return 1;
@@ -624,7 +484,7 @@ bool fileExists(const std::string &path)
 	return (PathFileExistsA(path.c_str()) != FALSE);
 #elif __MORPHOS__
 	BPTR l = Lock( path.c_str(), SHARED_LOCK );
-	if( l != NULL )
+	if ( l != NULL )
 	{
 		UnLock( l );
 		return 1;
@@ -650,27 +510,27 @@ bool deleteFile(const std::string &path)
 #endif
 }
 
-/**
- * Gets the base filename of a path.
- * @param path Full path to file.
- * @param transform Optional function to transform the filename.
- * @return Base filename.
- */
-std::string baseFilename(const std::string &path, int (*transform)(int))
+std::string baseFilename(const std::string &path)
 {
-	size_t sep = path.find_last_of(PATH_SEPARATOR);
+	size_t sep = path.find_last_of(
+#ifdef _WIN32
+		"/\\"
+#else
+		"/"
+#endif
+		);
 	std::string filename;
 	if (sep == std::string::npos)
 	{
 		filename = path;
 	}
+	else if (sep == path.size() - 1)
+	{
+		return baseFilename(path.substr(0, path.size() - 1));
+	}
 	else
 	{
-		filename = path.substr(0, sep + 1);
-	}
-	if (transform != 0)
-	{
-		std::transform(filename.begin(), filename.end(), filename.begin(), transform);
+		filename = path.substr(sep + 1);
 	}
 	return filename;
 }
@@ -699,11 +559,6 @@ std::string sanitizeFilename(const std::string &filename)
 	return newFilename;
 }
 
-/**
- * Removes the extension from a filename.
- * @param filename Original filename.
- * @return Filename without the extension.
- */
 std::string noExt(const std::string &filename)
 {
 	size_t dot = filename.find_last_of('.');
@@ -711,7 +566,7 @@ std::string noExt(const std::string &filename)
 	{
 		return filename;
 	}
-	return filename.substr(0, filename.find_last_of('.'));
+	return filename.substr(0, dot);
 }
 
 /**
@@ -872,7 +727,24 @@ bool moveFile(const std::string &src, const std::string &dest)
 #ifdef _WIN32
 	return (MoveFileExA(src.c_str(), dest.c_str(), MOVEFILE_REPLACE_EXISTING) != 0);
 #else
-	return (rename(src.c_str(), dest.c_str()) == 0);
+	//return (rename(src.c_str(), dest.c_str()) == 0);
+	std::ifstream srcStream;
+	std::ofstream destStream;
+	srcStream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+	destStream.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+	try
+	{
+		srcStream.open(src.c_str(), std::ios::binary);
+		destStream.open(dest.c_str(), std::ios::binary);
+		destStream << srcStream.rdbuf();
+		srcStream.close();
+		destStream.close();
+	}
+	catch (std::fstream::failure)
+	{
+		return false;
+	}
+	return deleteFile(src);
 #endif
 }
 
@@ -954,7 +826,7 @@ void setWindowIcon(int winResource, const std::string &unixPath)
 #else
 	// SDL only takes UTF-8 filenames
 	// so here's an ugly hack to match this ugly reasoning
-	std::string utf8 = Language::wstrToUtf8(Language::fsToWstr(CrossPlatform::getDataFile(unixPath)));
+	std::string utf8 = Language::wstrToUtf8(Language::fsToWstr(unixPath));
 	SDL_Surface *icon = IMG_Load(utf8.c_str());
 	if (icon != 0)
 	{

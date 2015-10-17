@@ -22,7 +22,7 @@
 #include "GameTime.h"
 #include "BattleUnit.h"
 #include "SavedGame.h"
-#include "../Ruleset/Ruleset.h"
+#include "../Mod/Mod.h"
 namespace OpenXcom
 {
 class GameTime;

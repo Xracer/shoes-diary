@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,12 +17,9 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "ConfirmDestinationState.h"
-#include <sstream>
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
-#include "../Engine/Surface.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextButton.h"
@@ -54,37 +51,26 @@ ConfirmDestinationState::ConfirmDestinationState(Craft *craft, Target *target) :
 	_txtTarget = new Text(212, 32, 22, 72);
 
 	// Set palette
-	if (w != 0 && w->getId() == 0)
-	{
-		setPalette("PAL_GEOSCAPE", 6);
-	}
-	else
-	{
-		setPalette("PAL_GEOSCAPE", 4);
-	}
+	setInterface("confirmDestination", w != 0 && w->getId() == 0);
 
-	add(_window);
-	add(_btnOk);
-	add(_btnCancel);
-	add(_txtTarget);
+	add(_window, "window", "confirmDestination");
+	add(_btnOk, "button", "confirmDestination");
+	add(_btnCancel, "button", "confirmDestination");
+	add(_txtTarget, "text", "confirmDestination");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(15)-1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK12.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK12.SCR"));
 
-	_btnOk->setColor(Palette::blockOffset(8)+5);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&ConfirmDestinationState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&ConfirmDestinationState::btnOkClick, Options::keyOk);
 
-	_btnCancel->setColor(Palette::blockOffset(8)+5);
 	_btnCancel->setText(tr("STR_CANCEL_UC"));
 	_btnCancel->onMouseClick((ActionHandler)&ConfirmDestinationState::btnCancelClick);
 	_btnCancel->onKeyboardPress((ActionHandler)&ConfirmDestinationState::btnCancelClick, Options::keyCancel);
 
-	_txtTarget->setColor(Palette::blockOffset(15)-1);
 	_txtTarget->setBig();
 	_txtTarget->setAlign(ALIGN_CENTER);
 	_txtTarget->setVerticalAlign(ALIGN_MIDDLE);
@@ -121,14 +107,14 @@ void ConfirmDestinationState::btnOkClick(Action *)
 	}
 	_craft->setDestination(_target);
 	_craft->setStatus("STR_OUT");
-	if(_craft->getInterceptionOrder() == 0)
+	if (_craft->getInterceptionOrder() == 0)
 	{
 		int maxInterceptionOrder = 0;
-		for(std::vector<Base*>::iterator baseIt = _game->getSavedGame()->getBases()->begin(); baseIt != _game->getSavedGame()->getBases()->end(); ++baseIt)
+		for (std::vector<Base*>::iterator baseIt = _game->getSavedGame()->getBases()->begin(); baseIt != _game->getSavedGame()->getBases()->end(); ++baseIt)
 		{
-			for(std::vector<Craft*>::iterator craftIt = (*baseIt)->getCrafts()->begin(); craftIt != (*baseIt)->getCrafts()->end(); ++craftIt)
+			for (std::vector<Craft*>::iterator craftIt = (*baseIt)->getCrafts()->begin(); craftIt != (*baseIt)->getCrafts()->end(); ++craftIt)
 			{
-				if((*craftIt)->getInterceptionOrder() > maxInterceptionOrder)
+				if ((*craftIt)->getInterceptionOrder() > maxInterceptionOrder)
 				{
 					maxInterceptionOrder = (*craftIt)->getInterceptionOrder();
 				}

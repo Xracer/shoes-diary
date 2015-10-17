@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,10 +17,7 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "OptionsNoAudioState.h"
-#include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/Text.h"
 
 namespace OpenXcom
@@ -38,12 +35,11 @@ OptionsNoAudioState::OptionsNoAudioState(OptionsOrigin origin) : OptionsBaseStat
 	// Create objects
 	_txtError = new Text(218, 136, 94, 8);
 
-	add(_txtError);
+	add(_txtError, "text", "audioMenu");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_txtError->setColor(Palette::blockOffset(8)+10);
 	_txtError->setAlign(ALIGN_CENTER);
 	_txtError->setVerticalAlign(ALIGN_MIDDLE);
 	_txtError->setBig();

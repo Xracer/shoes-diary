@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -93,6 +93,10 @@ public:
 	int getColumnX(size_t column) const;
 	/// Gets the Y position of a certain row.
 	int getRowY(size_t row) const;
+	/// Gets the height of the row text in pixels
+	int getTextHeight(size_t row) const;
+	/// Gets the number of lines in the wrapped text for the specified row
+	int getNumTextLines(size_t row) const;
 	/// Gets the amount of text in the list.
 	size_t getTexts() const;
 	/// Gets the amount of rows in the list.
@@ -136,7 +140,7 @@ public:
 	/// Sets the background for the selector.
 	void setBackground(Surface *bg);
 	/// Gets the selected row in the list.
-	int getSelectedRow() const;
+	unsigned int getSelectedRow() const;
 	/// Sets the margin of the text list.
 	void setMargin(int margin);
 	/// Gets the margin of the text list.
@@ -191,6 +195,8 @@ public:
 	void setComboBox(ComboBox *comboBox);
 	/// Check for a combobox.
 	ComboBox *getComboBox() const;
+	void setBorderColor(Uint8 color);
+	int getScrollbarColor();
 };
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -50,6 +50,8 @@ public:
 	static void pause();
 	/// Resumes all music.
 	static void resume();
+	/// Checks if music is playing.
+	static bool isPlaying();
 };
 
 }

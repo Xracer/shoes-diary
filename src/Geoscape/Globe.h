@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -34,6 +34,7 @@ class SurfaceSet;
 class Timer;
 class Target;
 class LocalizedText;
+class RuleGlobe;
 
 /**
  * Interactive globe view of the world.
@@ -44,25 +45,25 @@ class LocalizedText;
 class Globe : public InteractiveSurface
 {
 private:
-	static const int NUM_TEXTURES = 13;
 	static const int NUM_LANDSHADES = 48;
 	static const int NUM_SEASHADES = 72;
 	static const int NEAR_RADIUS = 25;
 	static const int DOGFIGHT_ZOOM = 3;
+	static const int CITY_MARKER = 8;
 	static const double ROTATE_LONGITUDE;
 	static const double ROTATE_LATITUDE;
 
+	RuleGlobe *_rules;
 	double _cenLon, _cenLat, _rotLon, _rotLat, _hoverLon, _hoverLat;
 	Sint16 _cenX, _cenY;
-	size_t _zoom, _zoomOld;
-	SurfaceSet *_texture;
+	size_t _zoom, _zoomOld, _zoomTexture;
+	SurfaceSet *_texture, *_markerSet;
 	Game *_game;
 	Surface *_markers, *_countries, *_radars;
-	bool _blink, _hover;
+	bool _hover;
+	int _blink;
 	Timer *_blinkTimer, *_rotTimer;
 	std::list<Polygon*> _cacheLand;
-	Surface *_mkXcomBase, *_mkAlienBase, *_mkCraft, *_mkWaypoint, *_mkCity;
-	Surface *_mkFlyingUfo, *_mkLandedUfo, *_mkCrashedUfo, *_mkAlienSite;
 	FastLineClip *_clipper;
 	double _radius, _radiusStep;
 	///normal of each pixel in earth globe per zoom level
@@ -101,21 +102,25 @@ private:
 	void drawVHLine(Surface *surface, double lon1, double lat1, double lon2, double lat2, Uint8 color);
 	/// Draw flight path.
 	void drawPath(Surface *surface, double lon1, double lat1, double lon2, double lat2);
+	/// Draw target marker.
+	void drawTarget(Target *target, Surface *surface);
 public:
+
+	static Uint8 COUNTRY_LABEL_COLOR;
+	static Uint8 LINE_COLOR;
+	static Uint8 CITY_LABEL_COLOR;
+	static Uint8 BASE_LABEL_COLOR;
+	static Uint8 OCEAN_COLOR;
 	/// Creates a new globe at the specified position and size.
 	Globe(Game* game, int cenX, int cenY, int width, int height, int x = 0, int y = 0);
 	/// Cleans up the globe.
 	~Globe();
-	/// Loads a set of polygons from a DAT file.
-	static void loadDat(const std::string &filename, std::list<Polygon*> *polygons);
 	/// Converts polar coordinates to cartesian coordinates.
 	void polarToCart(double lon, double lat, Sint16 *x, Sint16 *y) const;
 	/// Converts polar coordinates to cartesian coordinates.
 	void polarToCart(double lon, double lat, double *x, double *y) const;
 	/// Converts cartesian coordinates to polar coordinates.
 	void cartToPolar(Sint16 x, Sint16 y, double *lon, double *lat) const;
-	/// Sets the texture set for the globe's polygons.
-	void setTexture(SurfaceSet *texture);
 	/// Starts rotating the globe left.
 	void rotateLeft();
 	/// Starts rotating the globe right.
@@ -194,10 +199,6 @@ public:
 	void keyboardPress(Action *action, State *state);
 	/// Get the polygons texture and shade at the given point.
 	void getPolygonTextureAndShade(double lon, double lat, int *texture, int *shade) const;
-	/// Get the localized text.
-	const LocalizedText &tr(const std::string &id) const;
-	/// Get the localized text.
-	LocalizedText tr(const std::string &id, unsigned n) const;
 	/// Sets hover base position.
 	void setNewBaseHoverPos(double lon, double lat);
 	/// Turns on new base hover mode.
@@ -206,8 +207,6 @@ public:
 	void unsetNewBaseHover(void);
 	/// Gets state of base hover mode
 	bool getNewBaseHover(void);
-	/// Gets _detail variable
-	bool getShowRadar(void);
 	/// set the _radarLines variable
 	void toggleRadarLines();
 	/// Update the resolution settings, we just resized the window.

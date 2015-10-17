@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -42,7 +42,7 @@ private:
 	std::wstring _id;
 public:
 	/// Creates the Ufo Lost state.
-	UfoLostState(std::wstring id);
+	UfoLostState(const std::wstring &id);
 	/// Cleans up the Ufo Lost state.
 	~UfoLostState();
 	/// Handler for clicking the OK button.

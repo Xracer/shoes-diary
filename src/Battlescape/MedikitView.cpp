@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,14 +18,13 @@
  */
 #include "MedikitView.h"
 #include "../Engine/Game.h"
+#include "../Mod/Mod.h"
+#include "../Mod/RuleInterface.h"
 #include "../Engine/SurfaceSet.h"
-#include "../Resource/ResourcePack.h"
 #include "../Engine/Action.h"
 #include "../Engine/Language.h"
-#include "../Engine/Palette.h"
 #include "../Savegame/BattleUnit.h"
 #include "../Interface/Text.h"
-#include <iostream>
 
 namespace OpenXcom
 {
@@ -64,17 +63,22 @@ MedikitView::MedikitView (int w, int h, int x, int y, Game * game, BattleUnit *u
  */
 void MedikitView::draw()
 {
-	SurfaceSet *set = _game->getResourcePack()->getSurfaceSet("MEDIBITS.DAT");
+	SurfaceSet *set = _game->getMod()->getSurfaceSet("MEDIBITS.DAT");
 	int fatal_wound = _unit->getFatalWound(_selectedPart);
 	std::wostringstream ss, ss1;
+	int green = 0;
 	int red = 3;
-
+	if (_game->getMod()->getInterface("medikit") && _game->getMod()->getInterface("medikit")->getElement("body"))
+	{
+		green = _game->getMod()->getInterface("medikit")->getElement("body")->color;
+		red = _game->getMod()->getInterface("medikit")->getElement("body")->color2;
+	}
 	this->lock();
-	for (int i = 0; i < set->getTotalFrames(); i++)
+	for (unsigned int i = 0; i < set->getTotalFrames(); i++)
 	{
 		int wound = _unit->getFatalWound(i);
 		Surface * surface = set->getFrame (i);
-		int baseColor = wound ? red : 0;
+		int baseColor = wound ? red : green;
 		surface->blitNShade(this, Surface::getX(), Surface::getY(), 0, false, baseColor);
 	}
 	this->unlock();
@@ -97,10 +101,10 @@ void MedikitView::draw()
  */
 void MedikitView::mouseClick (Action *action, State *)
 {
-	SurfaceSet *set = _game->getResourcePack()->getSurfaceSet("MEDIBITS.DAT");
+	SurfaceSet *set = _game->getMod()->getSurfaceSet("MEDIBITS.DAT");
 	int x = action->getRelativeXMouse() / action->getXScale();
 	int y = action->getRelativeYMouse() / action->getYScale();
-	for (int i = 0; i < set->getTotalFrames(); i++)
+	for (unsigned int i = 0; i < set->getTotalFrames(); i++)
 	{
 		Surface * surface = set->getFrame (i);
 		if (surface->getPixel(x, y))

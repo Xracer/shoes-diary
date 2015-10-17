@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -103,7 +103,7 @@ namespace YAML
 
 		static bool decode(const Node& node, OpenXcom::Position& rhs)
 		{
-			if(!node.IsSequence() || node.size() != 3)
+			if (!node.IsSequence() || node.size() != 3)
 				return false;
 
 			rhs.x = node[0].as<int>();

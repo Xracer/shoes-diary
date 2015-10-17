@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -21,7 +21,6 @@
 #include "../Engine/Game.h"
 #include "../Engine/Action.h"
 #include "../Engine/Language.h"
-#include "../Engine/Palette.h"
 #include "../Engine/Options.h"
 #include "../Interface/TextList.h"
 #include "../Interface/TextEdit.h"
@@ -36,17 +35,16 @@ namespace OpenXcom
  * @param game Pointer to the core game.
  * @param origin Game section that originated this state.
  */
-ListSaveState::ListSaveState(OptionsOrigin origin) : ListGamesState(origin, 1, false), _selected(L""), _previousSelectedRow(-1), _selectedRow(-1)
+ListSaveState::ListSaveState(OptionsOrigin origin) : ListGamesState(origin, 1, false), _previousSelectedRow(-1), _selectedRow(-1)
 {
 	// Create objects
 	_edtSave = new TextEdit(this, 168, 9, 0, 0);
 	_btnSaveGame = new TextButton(_game->getSavedGame()->isIronman() ? 200 : 80, 16, 60, 172);
 
 	add(_edtSave);
-	add(_btnSaveGame);
+	add(_btnSaveGame, "button", "saveMenus");
 
 	// Set up objects
-
 	_txtTitle->setText(tr("STR_SELECT_SAVE_POSITION"));
 
 	if (_game->getSavedGame()->isIronman())
@@ -58,11 +56,10 @@ ListSaveState::ListSaveState(OptionsOrigin origin) : ListGamesState(origin, 1, f
 		_btnCancel->setX(180);
 	}
 
-	_btnSaveGame->setColor(Palette::blockOffset(8)+5);
 	_btnSaveGame->setText(tr("STR_SAVE_GAME"));
 	_btnSaveGame->onMouseClick((ActionHandler)&ListSaveState::btnSaveGameClick);
 
-	_edtSave->setColor(Palette::blockOffset(8)+10);
+	_edtSave->setColor(_lstSaves->getSecondaryColor());
 	_edtSave->setVisible(false);
 	_edtSave->onKeyboardPress((ActionHandler)&ListSaveState::edtSaveKeyPress);
 
@@ -85,7 +82,7 @@ void ListSaveState::updateList()
 {
 	_lstSaves->addRow(1, tr("STR_NEW_SAVED_GAME_SLOT").c_str());
 	if (_origin != OPT_BATTLESCAPE)
-		_lstSaves->setRowColor(0, Palette::blockOffset(8) + 5);
+		_lstSaves->setRowColor(0, _lstSaves->getSecondaryColor());
 	ListGamesState::updateList();
 }
 
@@ -95,6 +92,13 @@ void ListSaveState::updateList()
  */
 void ListSaveState::lstSavesPress(Action *action)
 {
+	if (action->getDetails()->button.button == SDL_BUTTON_RIGHT && _edtSave->isFocused())
+	{
+		_edtSave->setText(L"");
+		_edtSave->setVisible(false);
+		_edtSave->setFocus(false, false);
+		_lstSaves->setScrolling(true);
+	}
 	ListGamesState::lstSavesPress(action);
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
 	{
@@ -170,24 +174,24 @@ void ListSaveState::saveGame()
 		oldFilename = _saves[_selectedRow - 1].fileName;
 		if (oldFilename != newFilename + ".sav")
 		{
-			while (CrossPlatform::fileExists(Options::getUserFolder() + newFilename + ".sav"))
+			while (CrossPlatform::fileExists(Options::getMasterUserFolder() + newFilename + ".sav"))
 			{
 				newFilename += "_";
 			}
-			std::string oldPath = Options::getUserFolder() + oldFilename;
-			std::string newPath = Options::getUserFolder() + newFilename + ".sav";
+			std::string oldPath = Options::getMasterUserFolder() + oldFilename;
+			std::string newPath = Options::getMasterUserFolder() + newFilename + ".sav";
 			CrossPlatform::moveFile(oldPath, newPath);
 		}
 	}
 	else
 	{
-		while (CrossPlatform::fileExists(Options::getUserFolder() + newFilename + ".sav"))
+		while (CrossPlatform::fileExists(Options::getMasterUserFolder() + newFilename + ".sav"))
 		{
 			newFilename += "_";
 		}
 	}
 	newFilename += ".sav";
-	_game->pushState(new SaveGameState(_origin, newFilename));
+	_game->pushState(new SaveGameState(_origin, newFilename, _palette));
 }
 
 }

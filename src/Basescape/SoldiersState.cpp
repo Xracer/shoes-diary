@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,11 +17,9 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "SoldiersState.h"
-#include <string>
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Engine/Options.h"
 #include "../Geoscape/AllocatePsiTrainingState.h"
 #include "../Interface/TextButton.h"
@@ -30,8 +28,6 @@
 #include "../Interface/TextList.h"
 #include "../Savegame/Base.h"
 #include "../Savegame/Soldier.h"
-#include "../Savegame/Craft.h"
-#include "../Ruleset/RuleCraft.h"
 #include "SoldierInfoState.h"
 #include "SoldierMemorialState.h"
 
@@ -68,54 +64,44 @@ SoldiersState::SoldiersState(Base *base) : _base(base)
 	_lstSoldiers = new TextList(288, 128, 8, 40);
 
 	// Set palette
-	setPalette("PAL_BASESCAPE", 2);
+	setInterface("soldierList");
 
-	add(_window);
-	add(_btnOk);
-	add(_btnPsiTraining);
-	add(_btnMemorial);
-	add(_txtTitle);
-	add(_txtName);
-	add(_txtRank);
-	add(_txtCraft);
-	add(_lstSoldiers);
+	add(_window, "window", "soldierList");
+	add(_btnOk, "button", "soldierList");
+	add(_btnPsiTraining, "button", "soldierList");
+	add(_btnMemorial, "button", "soldierList");
+	add(_txtTitle, "text1", "soldierList");
+	add(_txtName, "text2", "soldierList");
+	add(_txtRank, "text2", "soldierList");
+	add(_txtCraft, "text2", "soldierList");
+	add(_lstSoldiers, "list", "soldierList");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(15)+1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK02.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK02.SCR"));
 
-	_btnOk->setColor(Palette::blockOffset(13)+10);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&SoldiersState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&SoldiersState::btnOkClick, Options::keyCancel);
 
-	_btnPsiTraining->setColor(Palette::blockOffset(13)+10);
-	_btnPsiTraining->setText(tr("STR_PSIONIC_TRAINING"));
+	_btnPsiTraining->setText(tr("STR_PSI_TRAINING"));
 	_btnPsiTraining->onMouseClick((ActionHandler)&SoldiersState::btnPsiTrainingClick);
 	_btnPsiTraining->setVisible(isPsiBtnVisible);
 
-	_btnMemorial->setColor(Palette::blockOffset(13)+10);
 	_btnMemorial->setText(tr("STR_MEMORIAL"));
 	_btnMemorial->onMouseClick((ActionHandler)&SoldiersState::btnMemorialClick);
 
-	_txtTitle->setColor(Palette::blockOffset(13)+10);
 	_txtTitle->setBig();
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setText(tr("STR_SOLDIER_LIST"));
 
-	_txtName->setColor(Palette::blockOffset(15)+1);
 	_txtName->setText(tr("STR_NAME_UC"));
 
-	_txtRank->setColor(Palette::blockOffset(15)+1);
 	_txtRank->setText(tr("STR_RANK"));
 
-	_txtCraft->setColor(Palette::blockOffset(15)+1);
 	_txtCraft->setText(tr("STR_CRAFT"));
 
-	_lstSoldiers->setColor(Palette::blockOffset(13)+10);
-	_lstSoldiers->setArrowColor(Palette::blockOffset(15)+1);
 	_lstSoldiers->setColumns(3, 114, 92, 74);
 	_lstSoldiers->setSelectable(true);
 	_lstSoldiers->setBackground(_window);
@@ -138,14 +124,14 @@ SoldiersState::~SoldiersState()
 void SoldiersState::init()
 {
 	State::init();
-	int row = 0;
+	unsigned int row = 0;
 	_lstSoldiers->clearList();
 	for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
 	{
 		_lstSoldiers->addRow(3, (*i)->getName(true).c_str(), tr((*i)->getRankString()).c_str(), (*i)->getCraftString(_game->getLanguage()).c_str());
 		if ((*i)->getCraft() == 0)
 		{
-			_lstSoldiers->setRowColor(row, Palette::blockOffset(15)+6);
+			_lstSoldiers->setRowColor(row, _lstSoldiers->getSecondaryColor());
 		}
 		row++;
 	}

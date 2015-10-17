@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,9 +18,8 @@
  */
 #include "CraftErrorState.h"
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
@@ -31,7 +30,7 @@ namespace OpenXcom
 {
 
 /**
- * Initializes all the elements in a Cannot Rearm window.
+ * Initializes all the elements in a Craft Error window.
  * @param game Pointer to the core game.
  * @param state Pointer to the Geoscape state.
  * @param msg Error message.
@@ -47,30 +46,26 @@ CraftErrorState::CraftErrorState(GeoscapeState *state, const std::wstring &msg) 
 	_txtMessage = new Text(246, 96, 37, 42);
 
 	// Set palette
-	setPalette("PAL_GEOSCAPE", 4);
+	setInterface("geoCraftScreens");
 
-	add(_window);
-	add(_btnOk);
-	add(_btnOk5Secs);
-	add(_txtMessage);
+	add(_window, "window", "geoCraftScreens");
+	add(_btnOk, "button", "geoCraftScreens");
+	add(_btnOk5Secs, "button", "geoCraftScreens");
+	add(_txtMessage, "text1", "geoCraftScreens");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(15)-1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK12.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK12.SCR"));
 
-	_btnOk->setColor(Palette::blockOffset(8)+5);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&CraftErrorState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&CraftErrorState::btnOkClick, Options::keyCancel);
 
-	_btnOk5Secs->setColor(Palette::blockOffset(8)+5);
 	_btnOk5Secs->setText(tr("STR_OK_5_SECONDS"));
 	_btnOk5Secs->onMouseClick((ActionHandler)&CraftErrorState::btnOk5SecsClick);
 	_btnOk5Secs->onKeyboardPress((ActionHandler)&CraftErrorState::btnOk5SecsClick, Options::keyOk);
 
-	_txtMessage->setColor(Palette::blockOffset(15)-1);
 	_txtMessage->setAlign(ALIGN_CENTER);
 	_txtMessage->setVerticalAlign(ALIGN_MIDDLE);
 	_txtMessage->setBig();

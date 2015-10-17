@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,20 +18,16 @@
  */
 #include "ConfirmCydoniaState.h"
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
-#include "../Engine/Surface.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextButton.h"
 #include "../Battlescape/BattlescapeGenerator.h"
-#include "../Battlescape/BattlescapeState.h"
 #include "../Battlescape/BriefingState.h"
 #include "../Savegame/SavedBattleGame.h"
 #include "../Savegame/SavedGame.h"
-#include "../Engine/RNG.h"
-#include "../Ruleset/Ruleset.h"
+#include "../Mod/AlienDeployment.h"
 #include "../Engine/Options.h"
 
 namespace OpenXcom
@@ -48,25 +44,22 @@ ConfirmCydoniaState::ConfirmCydoniaState(Craft *craft) : _craft(craft)
 	_txtMessage = new Text(224, 48, 48, 76);
 
 	// Set palette
-	setPalette("PAL_GEOSCAPE", 5);
+	setInterface("confirmCydonia");
 
-	add(_window);
-	add(_btnYes);
-	add(_btnNo);
-	add(_txtMessage);
+	add(_window, "window", "confirmCydonia");
+	add(_btnYes, "button", "confirmCydonia");
+	add(_btnNo, "button", "confirmCydonia");
+	add(_txtMessage, "text", "confirmCydonia");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(8)+5);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK12.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK12.SCR"));
 
-	_btnYes->setColor(Palette::blockOffset(8)+5);
 	_btnYes->setText(tr("STR_YES"));
 	_btnYes->onMouseClick((ActionHandler)&ConfirmCydoniaState::btnYesClick);
 	_btnYes->onKeyboardPress((ActionHandler)&ConfirmCydoniaState::btnYesClick, Options::keyOk);
 
-	_btnNo->setColor(Palette::blockOffset(8)+5);
 	_btnNo->setText(tr("STR_NO"));
 	_btnNo->onMouseClick((ActionHandler)&ConfirmCydoniaState::btnNoClick);
 	_btnNo->onKeyboardPress((ActionHandler)&ConfirmCydoniaState::btnNoClick, Options::keyCancel);
@@ -74,7 +67,6 @@ ConfirmCydoniaState::ConfirmCydoniaState(Craft *craft) : _craft(craft)
 	_txtMessage->setAlign(ALIGN_CENTER);
 	_txtMessage->setBig();
 	_txtMessage->setWordWrap(true);
-	_txtMessage->setColor(Palette::blockOffset(8)+10);
 	_txtMessage->setText(tr("STR_ARE_YOU_SURE_CYDONIA"));
 }
 
@@ -93,14 +85,21 @@ void ConfirmCydoniaState::btnYesClick(Action *)
 {
 	_game->popState();
 	_game->popState();
-	
+
 	SavedBattleGame *bgame = new SavedBattleGame();
 	_game->getSavedGame()->setBattleGame(bgame);
-	bgame->setMissionType("STR_MARS_CYDONIA_LANDING");
 	BattlescapeGenerator bgen = BattlescapeGenerator(_game);
+	for (std::vector<std::string>::const_iterator i = _game->getMod()->getDeploymentsList().begin(); i != _game->getMod()->getDeploymentsList().end(); ++i)
+	{
+		AlienDeployment *deployment = _game->getMod()->getDeployment(*i);
+		if (deployment->isFinalDestination())
+		{
+			bgame->setMissionType(*i);
+			bgen.setAlienRace(deployment->getRace());
+			break;
+		}
+	}
 	bgen.setCraft(_craft);
-	bgen.setAlienRace("STR_SECTOID");
-	bgen.setWorldShade(15);
 	bgen.run();
 
 	_game->pushState(new BriefingState(_craft));

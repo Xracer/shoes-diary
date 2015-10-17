@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -19,7 +19,6 @@
 #ifndef OPENXCOM_BATTLEITEM_H
 #define OPENXCOM_BATTLEITEM_H
 
-#include "../Battlescape/Position.h"
 #include <yaml-cpp/yaml.h>
 
 namespace OpenXcom
@@ -49,7 +48,7 @@ private:
 	BattleItem *_ammoItem;
 	int _fuseTimer, _ammoQuantity;
 	int _painKiller, _heal, _stimulant;
-	bool _XCOMProperty, _droppedOnAlienTurn;
+	bool _XCOMProperty, _droppedOnAlienTurn, _isAmmo;
 public:
 	/// Creates a item of the specified type.
 	BattleItem(RuleItem *rules, int *id);
@@ -77,6 +76,8 @@ public:
 	BattleUnit *getPreviousOwner() const;
 	/// Sets the owner.
 	void setOwner(BattleUnit *owner);
+	/// Sets the item's previous owner.
+	void setPreviousOwner(BattleUnit *owner);
 	/// Removes the item from previous owner and moves to new owner.
 	void moveToOwner(BattleUnit *owner);
 	/// Gets the item's inventory slot.
@@ -112,26 +113,29 @@ public:
 	/// Set medikit Heal quantity
 	void setHealQuantity (int heal);
 	/// Get medikit heal quantity
-	int getHealQuantity () const;
+	int getHealQuantity() const;
 	/// Set medikit pain killers quantity
 	void setPainKillerQuantity (int pk);
 	/// Get medikit pain killers quantity
-	int getPainKillerQuantity () const;
+	int getPainKillerQuantity() const;
 	/// Set medikit stimulant quantity
 	void setStimulantQuantity (int stimulant);
 	/// Get medikit stimulant quantity
-	int getStimulantQuantity () const;
+	int getStimulantQuantity() const;
 	/// Set xcom property flag
 	void setXCOMProperty (bool flag);
 	/// Get xcom property flag
-	bool getXCOMProperty () const;
+	bool getXCOMProperty() const;
 	/// get the flag representing "not dropped on player turn"
 	bool getTurnFlag() const;
 	/// set the flag representing "not dropped on player turn"
 	void setTurnFlag(bool flag);
 	/// Sets the item's ruleset.
 	void convertToCorpse(RuleItem *rules);
-
+	/// Sets a flag on the item indicating if this is a clip in a weapon or not.
+	void setIsAmmo(bool ammo);
+	/// Checks a flag on the item to see if it's a clip in a weapon or not.
+	bool isAmmo();
 };
 
 }

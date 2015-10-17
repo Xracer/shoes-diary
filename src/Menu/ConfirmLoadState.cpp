@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2014 OpenXcom Developers.
+ * Copyright 2010-2015 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,9 +18,8 @@
  */
 #include "ConfirmLoadState.h"
 #include "../Engine/Game.h"
-#include "../Resource/ResourcePack.h"
-#include "../Engine/Language.h"
-#include "../Engine/Palette.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
@@ -36,7 +35,7 @@ namespace OpenXcom
  * @param origin Game section that originated this state.
  * @param fileName Name of the save file without extension.
  */
-ConfirmLoadState::ConfirmLoadState(OptionsOrigin origin, std::string fileName) : _origin(origin), _fileName(fileName)
+ConfirmLoadState::ConfirmLoadState(OptionsOrigin origin, const std::string &fileName) : _origin(origin), _fileName(fileName)
 {
 	_screen = false;
 
@@ -47,42 +46,31 @@ ConfirmLoadState::ConfirmLoadState(OptionsOrigin origin, std::string fileName) :
 	_txtText = new Text(204, 58, 58, 60);
 
 	// Set palette
-	if (_origin == OPT_BATTLESCAPE)
-	{
-		setPalette("PAL_BATTLESCAPE");
-	}
-	else
-	{
-		setPalette("PAL_GEOSCAPE", 6);
-	}
+	setInterface("saveMenus", false, _game->getSavedGame() ? _game->getSavedGame()->getSavedBattle() : 0);
 
-	add(_window);
-	add(_btnYes);
-	add(_btnNo);
-	add(_txtText);
+	add(_window, "confirmLoad", "saveMenus");
+	add(_btnYes, "confirmLoad", "saveMenus");
+	add(_btnNo, "confirmLoad", "saveMenus");
+	add(_txtText, "confirmLoad", "saveMenus");
 
 	centerAllSurfaces();
 
 	// Set up objects
-	_window->setColor(Palette::blockOffset(15)-1);
-	_window->setBackground(_game->getResourcePack()->getSurface("BACK01.SCR"));
+	_window->setBackground(_game->getMod()->getSurface("BACK01.SCR"));
 
-	_btnYes->setColor(Palette::blockOffset(15)-1);
 	_btnYes->setText(tr("STR_YES"));
 	_btnYes->onMouseClick((ActionHandler)&ConfirmLoadState::btnYesClick);
 	_btnYes->onKeyboardPress((ActionHandler)&ConfirmLoadState::btnYesClick, Options::keyOk);
 
-	_btnNo->setColor(Palette::blockOffset(15)-1);
 	_btnNo->setText(tr("STR_NO"));
 	_btnNo->onMouseClick((ActionHandler)&ConfirmLoadState::btnNoClick);
 	_btnNo->onKeyboardPress((ActionHandler)&ConfirmLoadState::btnNoClick, Options::keyCancel);
 
-	_txtText->setColor(Palette::blockOffset(15)-1);
 	_txtText->setAlign(ALIGN_CENTER);
 	_txtText->setBig();
 	_txtText->setWordWrap(true);
 	_txtText->setText(tr("STR_MISSING_CONTENT_PROMPT"));
-	
+
 	if (_origin == OPT_BATTLESCAPE)
 	{
 		applyBattlescapeTheme();
@@ -101,7 +89,7 @@ ConfirmLoadState::~ConfirmLoadState()
 void ConfirmLoadState::btnYesClick(Action *)
 {
 	_game->popState();
-	_game->pushState(new LoadGameState(_origin, _fileName));
+	_game->pushState(new LoadGameState(_origin, _fileName, _palette));
 }
 
 /**
