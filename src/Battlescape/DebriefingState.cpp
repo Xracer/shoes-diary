@@ -26,6 +26,7 @@
 #include "../Interface/Window.h"
 #include "NoContainmentState.h"
 #include "PromotionsState.h"
+#include "CommendationLateState.h"
 #include "CommendationState.h"
 #include "../Mod/RuleCountry.h"
 #include "../Mod/RuleInventory.h"
@@ -418,12 +419,7 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(tru
 	}
     _game->getSavedGame()->getMissionStatistics()->push_back(_missionStatistics);
 
-	// Set music
-	_game->getMod()->playMusic("GMMARS");
-
-	// Restore system colors
-	_game->getCursor()->setColor(Palette::blockOffset(15) + 12);
-	_game->getFpsCounter()->setColor(Palette::blockOffset(15) + 12);
+	_positiveScore = (total > 0);
 }
 
 /**
@@ -482,11 +478,7 @@ void DebriefingState::btnOkClick(Action *)
 	}
 	else
 	{
-		if (!_soldiersCommended.empty())
-		{
-			_game->pushState(new CommendationState(_soldiersCommended));
-		}
-		if (_game->getSavedGame()->handlePromotions(participants))
+		if (!_destroyBase)
 		{
 			if (!_deadSoldiersCommended.empty())
 			{
@@ -641,20 +633,15 @@ void DebriefingState::prepareDebriefing()
 	_stats.push_back(new DebriefingStat("STR_TANKS_DESTROYED", false));
 	_stats.push_back(new DebriefingStat("STR_XCOM_CRAFT_LOST", false));
 
-	SavedGame *save = _game->getSavedGame();
-	SavedBattleGame *battle = save->getSavedBattle();
-	bool aborted = battle->isAborted();
-	bool success = !aborted;
-	Craft* craft = 0;
-	std::vector<Craft*>::iterator craftIterator;
-	Base* base = 0;
-	_missionStatistics->time = *save->getTime();
-	_missionStatistics->type = battle->getMissionType();
 	for (std::map<int, RecoveryItem*>::const_iterator i = _recoveryStats.begin(); i != _recoveryStats.end(); ++i)
 	{
 		_stats.push_back(new DebriefingStat((*i).second->name, true));
 	}
 
+	bool aborted = battle->isAborted(); 
+	bool success = !aborted;
+	_missionStatistics->time = *save->getTime();
+	_missionStatistics->type = battle->getMissionType();
 	_stats.push_back(new DebriefingStat(_game->getMod()->getAlienFuelName(), true));
 
 	for (std::vector<Base*>::iterator i = save->getBases()->begin(); i != save->getBases()->end(); ++i)

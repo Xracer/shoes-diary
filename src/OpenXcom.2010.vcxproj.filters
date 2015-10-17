@@ -760,22 +760,22 @@
     <ClCompile Include="Basescape\SoldierDiaryMissionState.cpp">
       <Filter>Basescape</Filter>
     </ClCompile>
-	  <ClCompile Include="Basescape\SoldierDiaryOverviewState.cpp">
+    <ClCompile Include="Basescape\SoldierDiaryOverviewState.cpp">
       <Filter>Basescape</Filter>
     </ClCompile>
-	  <ClCompile Include="Basescape\SoldierDiaryPerformanceState.cpp">
+    <ClCompile Include="Basescape\SoldierDiaryPerformanceState.cpp">
       <Filter>Basescape</Filter>
     </ClCompile>
-	  <ClCompile Include="Battlescape\CommendationState.cpp">
+    <ClCompile Include="Battlescape\CommendationState.cpp">
       <Filter>Battlescape</Filter>
     </ClCompile>
-	  <ClCompile Include="Mod\RuleCommendations.cpp">
+    <ClCompile Include="Mod\RuleCommendations.cpp">
       <Filter>Mod</Filter>
     </ClCompile>
-	  <ClCompile Include="Savegame\SoldierDiary.cpp">
+    <ClCompile Include="Savegame\SoldierDiary.cpp">
       <Filter>Savegame</Filter>
     </ClCompile>
-	  <ClCompile Include="Ufopaedia\ArticleStateTFTDFacility.cpp">
+    <ClCompile Include="Ufopaedia\ArticleStateTFTDFacility.cpp">
       <Filter>Ufopaedia</Filter>
     </ClCompile>
     <ClCompile Include="Ufopaedia\ArticleStateTFTDCraft.cpp">
@@ -943,6 +943,7 @@
     <ClCompile Include="Mod\Mod.cpp">
       <Filter>Mod</Filter>
     </ClCompile>
+    <ClCompile Include="Battlescape\CommendationLateState.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -1913,6 +1914,9 @@
     </ClInclude>
     <ClInclude Include="Mod\Mod.h">
       <Filter>Mod</Filter>
+    </ClInclude>
+    <ClInclude Include="Battlescape\CommendationLateState.h">
+      <Filter>Savegame</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
