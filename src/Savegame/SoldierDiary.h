@@ -26,7 +26,7 @@
 namespace OpenXcom
 {
 class GameTime;
-class Ruleset;
+class Mod;
 /**
  * Each entry will be its own commendation.
  */
@@ -122,7 +122,7 @@ public:
 	/// Get the solder's commendations.
 	std::vector<SoldierCommendations*> *getSoldierCommendations();
 	/// Manage commendations, return true if a medal is awarded.
-	bool manageCommendations(Ruleset *rules);
+	bool manageCommendations(Mod *rules);
 	/// Increment the soldier's service time.
 	void addMonthlyService();
     /// Get the mission id list.

@@ -226,7 +226,7 @@ std::vector<SoldierCommendations*> *SoldierDiary::getSoldierCommendations()
  * Award new ones, if deserved.
  * @return bool Has a commendation been awarded?
  */
-bool SoldierDiary::manageCommendations(Ruleset *rules)
+bool SoldierDiary::manageCommendations(Mod *rules)
 {
 	std::map<std::string, RuleCommendations *> commendationsList = rules->getCommendation();
 	bool awardedCommendation = false;
