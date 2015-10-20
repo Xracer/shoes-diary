@@ -90,7 +90,7 @@ public:
 	/// Save a diary.
 	YAML::Node save() const;
 	/// Update the diary statistics.
-	void updateDiary(BattleUnitStatistics *unitStatistics, MissionStatistics *missionStatistics);
+	void updateDiary(BattleUnitStatistics *unitStatistics, MissionStatistics *missionStatistics, Mod *mod);
 	/// Get the list of kills, mapped by rank.
 	std::map<std::string, int> getAlienRankTotal();
 	/// Get the list of kills, mapped by race.
@@ -117,6 +117,10 @@ public:
 	int getWinTotal() const;
 	/// Get the total number of stuns.
 	int getStunTotal() const;
+	/// Get the total number of psi panicks.
+	int getPanickTotal() const;
+	/// Get the total number of psi mind controls.
+	int getControlTotal() const;
 	/// Get the total number of days wounded.
 	int getDaysWoundedTotal() const;
 	/// Get the solder's commendations.
@@ -125,10 +129,18 @@ public:
 	bool manageCommendations(Mod *rules);
 	/// Increment the soldier's service time.
 	void addMonthlyService();
-    /// Get the mission id list.
-    std::vector<int> &getMissionIdList();
-    /// Get the kill list.
-    std::vector<BattleUnitKills*> &getKills();
+	/// Get the mission id list.
+	std::vector<int> &getMissionIdList();
+	/// Get the kill list.
+	std::vector<BattleUnitKills*> &getKills();
+	/// Award special commendation to the original 8 soldiers.
+	void awardOriginalEightCommendation();
+	/// Award post-humous best-of rank commendation.
+	void awardBestOfRank(SoldierRank rank);
+	/// Award post-humous best overall commendation.
+	void awardBestOverall();
+	/// Award post-humous kills commendation.
+	void awardPostMortemKill(int kills);
 };
 }
 #endif

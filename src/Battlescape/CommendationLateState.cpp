@@ -76,7 +76,7 @@ namespace OpenXcom
 		_lstSoldiers->setSelectable(true);
 		_lstSoldiers->setBackground(_window);
 		_lstSoldiers->setMargin(8);
-		_lstSoldiers->setFlooding(true);
+//		_lstSoldiers->setFlooding(true); // we may not need this anymore TextList.cpp
 
 		/***
 

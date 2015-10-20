@@ -1834,5 +1834,4 @@ Craft *SavedGame::findCraftByUniqueId(const CraftId& craftId) const
 }
 
 
->>>>>>> refs/remotes/origin/master
 }

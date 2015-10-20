@@ -943,7 +943,9 @@
     <ClCompile Include="Mod\Mod.cpp">
       <Filter>Mod</Filter>
     </ClCompile>
-    <ClCompile Include="Battlescape\CommendationLateState.cpp" />
+    <ClCompile Include="Battlescape\CommendationLateState.cpp">
+      <Filter>Battlescape</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -1916,7 +1918,7 @@
       <Filter>Mod</Filter>
     </ClInclude>
     <ClInclude Include="Battlescape\CommendationLateState.h">
-      <Filter>Savegame</Filter>
+      <Filter>Battlescape</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

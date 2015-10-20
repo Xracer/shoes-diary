@@ -54,7 +54,7 @@ BattleUnit::BattleUnit(Soldier *soldier, int depth) :
 	_dontReselect(false), _fire(0), _currentAIState(0), _visible(false), _cacheInvalid(true),
 	_expBravery(0), _expReactions(0), _expFiring(0), _expThrowing(0), _expPsiSkill(0), _expPsiStrength(0), _expMelee(0),
 	_motionPoints(0), _kills(0), _hitByFire(false), _moraleRestored(0), _coverReserve(0), _charging(0),
-	_turnsSinceSpotted(255), _geoscapeSoldier(soldier), _unitRules(0), _rankInt(-1), _turretType(-1), _hidingForTurn(false), _respawn(false)
+	_turnsSinceSpotted(255), _geoscapeSoldier(soldier), _unitRules(0), _rankInt(-1), _turretType(-1), _hidingForTurn(false), _respawn(false),
 	_statistics(), _murdererId(0), _fatalShotSide(SIDE_FRONT), _fatalShotBodyPart(BODYPART_HEAD)
 {
 	_name = soldier->getName(true);
@@ -1184,6 +1184,7 @@ int BattleUnit::damage(const Position &relative, int power, ItemDamageType type,
 		}
 	}
 
+   setFatalShotInfo(side, bodypart);
 	return power < 0 ? 0:power;
 }
 
@@ -1210,10 +1211,14 @@ int BattleUnit::getStunlevel() const
  */
 void BattleUnit::knockOut(BattlescapeGame *battle)
 {
-	if (!_spawnUnit.empty())
+	if (getArmor()->getSize() > 1) // large units die
+	{
+		_health = 0;
+	}
+	else if  (!_spawnUnit.empty())
 	{
 		setRespawn(false);
-		BattleUnit *newUnit = battle->convertUnit(this);
+		BattleUnit *newUnit = battle->convertUnit(this, _spawnUnit);
 		newUnit->knockOut(battle);
 	}
 	else
@@ -3103,5 +3108,60 @@ void BattleUnit::recoverTimeUnits()
 			_energy = getBaseStats()->stamina;
 	}
 }
->>>>>>> refs/remotes/origin/master
+
+/**
+ * Get the unit's statistics.
+ * @return BattleUnitStatistics statistics.
+ */
+BattleUnitStatistics* BattleUnit::getStatistics()
+{
+	return _statistics;
+}
+
+/**
+ * Sets the unit murderer's id.
+ * @param int murderer id.
+ */
+void BattleUnit::setMurdererId(int id)
+{
+	_murdererId = id;
+}
+
+/**
+ * Gets the unit murderer's id.
+ * @return int murderer id.
+ */
+int BattleUnit::getMurdererId() const
+{
+	return _murdererId;
+}
+
+/**
+ * Set information on the unit's fatal blow.
+ * @param UnitSide unit's side that was shot.
+ * @param UnitBodyPart unit's body part that was shot.
+ */
+void BattleUnit::setFatalShotInfo(UnitSide side, UnitBodyPart bodypart)
+{
+    _fatalShotSide = side;
+    _fatalShotBodyPart = bodypart;
+}
+
+/**
+ * Get information on the unit's fatal shot's side.
+ * @return UnitSide fatal shot's side.
+ */
+UnitSide BattleUnit::getFatalShotSide() const
+{
+    return _fatalShotSide;
+}
+
+/**
+ * Get information on the unit's fatal shot's body part.
+ * @return UnitBodyPart fatal shot's body part.
+ */
+UnitBodyPart BattleUnit::getFatalShotBodyPart() const
+{
+    return _fatalShotBodyPart;
+}
 }

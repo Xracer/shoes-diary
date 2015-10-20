@@ -403,8 +403,8 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(tru
 			// Set the UnitStats delta
 			(*j)->getStatistics()->delta = *(*j)->getGeoscapeSoldier()->getCurrentStats() - *(*j)->getGeoscapeSoldier()->getInitStats();
 
-            (*j)->getGeoscapeSoldier()->getDiary()->updateDiary((*j)->getStatistics(), _missionStatistics, _game->getRuleset());
-			if (!(*j)->getStatistics()->MIA && !(*j)->getStatistics()->KIA && (*j)->getGeoscapeSoldier()->getDiary()->manageCommendations(_game->getRuleset()))
+            (*j)->getGeoscapeSoldier()->getDiary()->updateDiary((*j)->getStatistics(), _missionStatistics, _game->getMod());
+			if (!(*j)->getStatistics()->MIA && !(*j)->getStatistics()->KIA && (*j)->getGeoscapeSoldier()->getDiary()->manageCommendations(_game->getMod()))
 			{
 				_soldiersCommended.push_back((*j)->getGeoscapeSoldier());
 			}
@@ -412,7 +412,7 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(tru
             else if ((*j)->getStatistics()->MIA || (*j)->getStatistics()->KIA)
             {
 
-                (*j)->getGeoscapeSoldier()->getDiary()->manageCommendations(_game->getRuleset());
+                (*j)->getGeoscapeSoldier()->getDiary()->manageCommendations(_game->getMod());
                 _deadSoldiersCommended.push_back((*j)->getGeoscapeSoldier());
             }
 		}
