@@ -49,7 +49,7 @@ private:
 	size_t _scroll, _visibleRows, _selRow;
 	Uint8 _color, _color2;
 	std::map<int, TextHAlign> _align;
-	bool _dot, _selectable, _condensed, _contrast, _wrap;
+	bool _dot, _selectable, _condensed, _contrast, _wrap, _flooding;
 	Surface *_bg, *_selector;
 	ArrowButton *_up, *_down;
 	ScrollBar *_scrollbar;
@@ -198,7 +198,7 @@ public:
 	void setBorderColor(Uint8 color);
 	int getScrollbarColor();
 	//I don't know why it needs it :)
-//	void TextList::setFlooding(bool flooding);
+	void TextList::setFlooding(bool flooding);
 };
 
 }
