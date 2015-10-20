@@ -655,11 +655,70 @@ void BattlescapeGame::checkForCasualties(BattleItem *murderweapon, BattleUnit *m
 		if ((*j)->getStatus() == STATUS_IGNORE_ME) continue;
 		if ((*j)->getHealth() == 0 && (*j)->getStatus() != STATUS_DEAD && (*j)->getStatus() != STATUS_COLLAPSING)
 		{
+			// Assume that, in absence of a murderer and an explosion, the laster unit to hit the victim is the murderer.
+            // Possible causes of death: bleed out, fire.
+			// Assume that the fire that killed victim was started by the unit who hit victim with DT_IN.
+			if (!murderer && !terrainExplosion)
+			{
+				for (std::vector<BattleUnit*>::const_iterator i = _save->getUnits()->begin(); i != _save->getUnits()->end(); ++i)
+				{
+					if ((*i)->getId() == victim->getMurdererId())
+					{
+						murderer = (*i);
+						// Now find a plausible weapon. First a gun loaded with IN ammo, then a gun that can use IN ammo found in the inventory,
+						// then simlpy the IN thing.
+						for (std::vector<BattleItem*>::iterator it = murderer->getInventory()->begin(); it != murderer->getInventory()->end(); ++it)
+						{
+							if ((*it)->getRules()->getBattleType() == BT_FIREARM && (*it)->getAmmoItem()->getRules()->getDamageType() == DT_IN)
+							{
+								killStatWeaponAmmo = (*it)->getAmmoItem()->getRules()->getName();
+								killStatWeapon = (*it)->getRules()->getName();
+								break;
+							}
+							else if ((*it)->getRules()->getDamageType() == DT_IN)
+							{
+								killStatWeaponAmmo = (*it)->getRules()->getName();
+								if ((*it)->getRules()->getBattleType() == BT_AMMO)
+								{
+									for (std::vector<std::string>::iterator c = (*it)->getRules()->getCompatibleAmmo()->begin(); c != (*it)->getRules()->getCompatibleAmmo()->end(); ++c)
+									{
+										if ((*c) == killStatWeaponAmmo)
+										{
+											killStatWeapon = (*it)->getRules()->getName();
+										}
+									}
+								}
+								else if ((*it)->getRules()->getBattleType() == BT_GRENADE || (*it)->getRules()->getBattleType() == BT_PROXIMITYGRENADE)
+								{
+									killStatWeapon = (*it)->getRules()->getName();
+								}
+							}
+						}
+					}
+				}
+			}
+
 			if (murderer)
 			{
-				if (murderer->getGeoscapeSoldier() && murderer->getFaction() == FACTION_PLAYER)
+				if (murderer->getFaction() == FACTION_PLAYER && murderer->getOriginalFaction() != FACTION_PLAYER)
 				{
-					murderer->getStatistics()->kills.push_back(new BattleUnitKills(killStatRank, killStatRace, killStatWeapon, killStatWeaponAmmo, victim->getFaction(), STATUS_DEAD, killStatMission, killStatTurn ));
+					// This must be a mind controlled unit. Find out who mind controlled him and award the kill to that unit.
+					for (std::vector<BattleUnit*>::iterator j = _save->getUnits()->begin(); j != _save->getUnits()->end(); ++j)
+					{
+						if ((*j)->getId() == murderer->getMurdererId() && (*j)->getGeoscapeSoldier())
+						{
+							(*j)->getStatistics()->kills.push_back(new BattleUnitKills(killStatRank, killStatRace, killStatWeapon, killStatWeaponAmmo, victim->getFaction(), STATUS_DEAD, killStatMission, killStatTurn, victim->getFatalShotSide(), victim->getFatalShotBodyPart(), victim->getId() ));
+							if (victim->getFaction() == FACTION_HOSTILE)
+							{
+								(*j)->getStatistics()->slaveKills++;
+							}							
+							victim->setMurdererId((*j)->getId());
+							break;
+						}
+					}
+				}
+				else if (!murderer->getStatistics()->duplicateEntry(STATUS_DEAD, victim->getId()))
+				{
 					victim->setMurdererId(murderer->getId());
 				}
 				murderer->addKillCount();
@@ -746,11 +805,26 @@ void BattlescapeGame::checkForCasualties(BattleItem *murderweapon, BattleUnit *m
 		}
 		else if ((*j)->getStunlevel() >= (*j)->getHealth() && (*j)->getStatus() != STATUS_DEAD && (*j)->getStatus() != STATUS_UNCONSCIOUS && (*j)->getStatus() != STATUS_COLLAPSING && (*j)->getStatus() != STATUS_TURNING)
 		{
-			if (murderer && murderer->getGeoscapeSoldier() && murderer->getFaction() == FACTION_PLAYER) 
+			if (murderer && murderer->getFaction() == FACTION_PLAYER && murderer->getOriginalFaction() != FACTION_PLAYER)
 			{
-                    murderer->getStatistics()->kills.push_back(new BattleUnitKills(killStatRank, killStatRace, killStatWeapon, killStatWeaponAmmo, victim->getFaction(), STATUS_UNCONSCIOUS, killStatMission, killStatTurn ));
+				// This must be a mind controlled unit. Find out who mind controlled him and award the stun to that unit.
+				for (std::vector<BattleUnit*>::iterator j = _save->getUnits()->begin(); j != _save->getUnits()->end(); ++j)
+				{
+					if ((*j)->getId() == murderer->getMurdererId() && (*j)->getGeoscapeSoldier())
+					{
+						(*j)->getStatistics()->kills.push_back(new BattleUnitKills(killStatRank, killStatRace, killStatWeapon, killStatWeaponAmmo, victim->getFaction(), STATUS_UNCONSCIOUS, killStatMission, killStatTurn, victim->getFatalShotSide(), victim->getFatalShotBodyPart(), victim->getId() ));
+						(*j)->getStatistics()->slaveKills++;
+						victim->setMurdererId((*j)->getId());
+						break;
+					}
+				}
 			}
-			if (victim && victim->getGeoscapeSoldier())
+
+			else if (murderer && !murderer->getStatistics()->duplicateEntry(STATUS_UNCONSCIOUS, victim->getId())) 
+			{
+                    murderer->getStatistics()->kills.push_back(new BattleUnitKills(killStatRank, killStatRace, killStatWeapon, killStatWeaponAmmo, victim->getFaction(), STATUS_UNCONSCIOUS, killStatMission, killStatTurn, victim->getFatalShotSide(), victim->getFatalShotBodyPart(), victim->getId() ));
+			}
+			if (victim->getGeoscapeSoldier())
 			{
 				victim->getStatistics()->wasUnconcious = true;
 			}
@@ -1258,42 +1332,111 @@ bool BattlescapeGame::handlePanickingUnit(BattleUnit *unit)
 	int flee = RNG::generate(0,100);
 	BattleAction ba;
 	ba.actor = unit;
-	if (status == STATUS_PANICKING && flee <= 50) // 1/2 chance to freeze and 1/2 chance try to flee, STATUS_BERSERK is handled in the panic state.
+	switch (status)
 	{
-		BattleItem *item = unit->getItem("STR_RIGHT_HAND");
-		if (item)
-		{
-			dropItem(unit->getPosition(), item, false, true);
-		}
-		item = unit->getItem("STR_LEFT_HAND");
-		if (item)
-		{
-			dropItem(unit->getPosition(), item, false, true);
-		}
-		unit->setCache(0);
-		// let's try a few times to get a tile to run to.
-		for (int i= 0; i < 20; i++)
-		{
-			ba.target = Position(unit->getPosition().x + RNG::generate(-5,5), unit->getPosition().y + RNG::generate(-5,5), unit->getPosition().z);
 
-			if (i >= 10 && ba.target.z > 0) // if we've had more than our fair share of failures, try going down.
+	case STATUS_PANICKING: // 1/2 chance to freeze and 1/2 chance try to flee
+		if (flee <= 50)
+		{
+			BattleItem *item = unit->getItem("STR_RIGHT_HAND");
+			if (item)
 			{
-				ba.target.z--;
-				if (i >= 15 && ba.target.z > 0) // still failing? try further down.
+				dropItem(unit->getPosition(), item, false, true);
+			}
+			item = unit->getItem("STR_LEFT_HAND");
+			if (item)
+			{
+				dropItem(unit->getPosition(), item, false, true);
+			}
+			unit->setCache(0);
+			// let's try a few times to get a tile to run to.
+			for (int i= 0; i < 20; i++)
+			{
+				ba.target = Position(unit->getPosition().x + RNG::generate(-5,5), unit->getPosition().y + RNG::generate(-5,5), unit->getPosition().z);
+
+				if (i >= 10 && ba.target.z > 0) // if we've had more than our fair share of failures, try going down.
 				{
 					ba.target.z--;
+					if (i >= 15 && ba.target.z > 0) // still failing? try further down.
+					{
+						ba.target.z--;
+					}
 				}
-			}
-			if (_save->getTile(ba.target)) // sanity check the tile.
-			{
-				_save->getPathfinding()->calculate(ba.actor, ba.target);
-				if (_save->getPathfinding()->getStartDirection() != -1) // sanity check the path.
+				if (_save->getTile(ba.target)) // sanity check the tile.
 				{
-					statePushBack(new UnitWalkBState(this, ba));
-					break;
+					_save->getPathfinding()->calculate(ba.actor, ba.target);
+					if (_save->getPathfinding()->getStartDirection() != -1) // sanity check the path.
+					{
+						statePushBack(new UnitWalkBState(this, ba));
+						break;
+					}
 				}
 			}
 		}
+
+
+		break;
+	case STATUS_BERSERK: // berserk - do some weird turning around and then aggro towards an enemy unit or shoot towards random place
+		ba.type = BA_TURN;
+		for (int i= 0; i < 4; i++)
+		{
+
+			ba.target = Position(unit->getPosition().x + RNG::generate(-5,5), unit->getPosition().y + RNG::generate(-5,5), unit->getPosition().z);
+			statePushBack(new UnitTurnBState(this, ba, false));
+		}
+
+
+
+		for (std::vector<BattleUnit*>::iterator j = unit->getVisibleUnits()->begin(); j != unit->getVisibleUnits()->end(); ++j)
+		{
+
+
+
+			ba.target = (*j)->getPosition();
+			statePushBack(new UnitTurnBState(this, ba, false));
+		}
+		if (_save->getTile(ba.target) != 0)
+		{
+			ba.weapon = unit->getMainHandWeapon();
+			if (ba.weapon && (_save->getDepth() != 0 || ba.weapon->getRules()->isWaterOnly() == false))
+			{
+
+
+				if (ba.weapon->getRules()->getBattleType() == BT_FIREARM)
+				{
+
+					ba.type = BA_SNAPSHOT;
+					int tu = ba.actor->getActionTUs(ba.type, ba.weapon);
+					for (int i= 0; i < 10; i++)
+					{
+						// fire shots until unit runs out of TUs
+						if (!ba.actor->spendTimeUnits(tu))
+							break;
+						statePushBack(new ProjectileFlyBState(this, ba));
+					}
+				}
+
+
+
+
+
+				else if (ba.weapon->getRules()->getBattleType() == BT_GRENADE)
+				{
+					if (ba.weapon->getFuseTimer() == -1)
+					{
+						ba.weapon->setFuseTimer(0);
+					}
+					ba.type = BA_THROW;
+					statePushBack(new ProjectileFlyBState(this, ba));
+
+				}
+			}
+		}
+		// replace the TUs from shooting
+		unit->setTimeUnits(unit->getBaseStats()->tu);
+		ba.type = BA_NONE;
+		break;
+	default: break;
 	}
 	// Time units can only be reset after everything else occurs
 	statePushBack(new UnitPanicBState(this, ba.actor));
@@ -1660,9 +1803,10 @@ void BattlescapeGame::dropItem(const Position &position, BattleItem *item, bool 
 /**
  * Converts a unit into a unit of another type.
  * @param unit The unit to convert.
+ * @param newType The type of unit to convert to.
  * @return Pointer to the new unit.
  */
-BattleUnit *BattlescapeGame::convertUnit(BattleUnit *unit)
+BattleUnit *BattlescapeGame::convertUnit(BattleUnit *unit, const std::string &newType)
 {
 	const std::string newType = unit->getSpawnUnit();
 	bool visible = unit->getVisible();
@@ -1759,6 +1903,15 @@ Pathfinding *BattlescapeGame::getPathfinding()
 Mod *BattlescapeGame::getMod()
 {
 	return _parentState->getGame()->getMod();
+}
+
+/**
+ * Gets the ruleset.
+ * @return ruleset.
+ */
+const Mod *BattlescapeGame::getMod() const
+{
+	return _parentState->getGame()->getRuleset();
 }
 
 
@@ -1944,6 +2097,7 @@ bool BattlescapeGame::worthTaking(BattleItem* item, BattleAction *action)
  */
 int BattlescapeGame::takeItemFromGround(BattleItem* item, BattleAction *action)
 {
+	const int unhandledError = -1;
 	const int success = 0;
 	const int notEnoughTimeUnits = 1;
 	const int notEnoughSpace = 2;
@@ -1981,6 +2135,8 @@ int BattlescapeGame::takeItemFromGround(BattleItem* item, BattleAction *action)
 			}
 		}
 	}
+	// shouldn't ever end up here
+	return unhandledError;
 }
 
 
