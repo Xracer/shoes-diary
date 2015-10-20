@@ -84,17 +84,7 @@ BattleUnit::BattleUnit(Soldier *soldier, int depth) :
 			_movementType = MT_WALK;
 		}
 	}
-	else if (_movementType == MT_SINK)
-	{
-		if (depth == 0)
-		{
-			_movementType = MT_FLY;
-		}
-		else
-		{
-			_movementType = MT_WALK;
-		}
-	}
+
 	_stats += *_armor->getStats();	// armors may modify effective stats
 	_loftempsSet = _armor->getLoftempsSet();
 	_gender = soldier->getGender();
@@ -196,17 +186,6 @@ BattleUnit::BattleUnit(Unit *unit, UnitFaction faction, int id, Armor *armor, in
 	if (_movementType == MT_FLOAT)
 	{
 		if (depth > 0)
-		{
-			_movementType = MT_FLY;
-		}
-		else
-		{
-			_movementType = MT_WALK;
-		}
-	}
-	else if (_movementType == MT_SINK)
-	{
-		if (depth == 0)
 		{
 			_movementType = MT_FLY;
 		}
@@ -1611,18 +1590,39 @@ void BattleUnit::prepareNewTurn(bool fullProcess)
 	}
 
 	// revert to original faction
-	// don't give it back its TUs or anything this round
-	// because it's no longer a unit of the team getting TUs back
-	if (_faction != _originalFaction)
-	{
 		_faction = _originalFaction;
-		return;
-	}
 
 	_unitsSpottedThisTurn.clear();
 
-	recoverTimeUnits();
+	// recover TUs
+	int TURecovery = getBaseStats()->tu;
+	float encumbrance = (float)getBaseStats()->strength / (float)getCarriedWeight();
+	if (encumbrance < 1)
+	{
+	  TURecovery = int(encumbrance * TURecovery);
+	}
+	// Each fatal wound to the left or right leg reduces the soldier's TUs by 10%.
+	TURecovery -= (TURecovery * (_fatalWounds[BODYPART_LEFTLEG]+_fatalWounds[BODYPART_RIGHTLEG] * 10))/100;
+	setTimeUnits(TURecovery);
 
+	// recover energy
+	if (!isOut())
+	{
+		int ENRecovery;
+		if (_geoscapeSoldier != 0)
+		{
+			ENRecovery = _geoscapeSoldier->getInitStats()->tu / 3;
+		}
+		else
+		{
+			ENRecovery = _unitRules->getEnergyRecovery();
+		}
+		// Each fatal wound to the body reduces the soldier's energy recovery by 10%.
+		ENRecovery -= (_energy * (_fatalWounds[BODYPART_TORSO] * 10))/100;
+		_energy += ENRecovery;
+		if (_energy > getBaseStats()->stamina)
+			_energy = getBaseStats()->stamina;
+	}
 	_dontReselect = false;
 	_motionPoints = 0;
 
@@ -2929,34 +2929,6 @@ void BattleUnit::breathe()
 }
 
 /**
- * Get the unit's statistics.
- * @return BattleUnitStatistics statistics.
- */
-BattleUnitStatistics* BattleUnit::getStatistics()
-{
-	return _statistics;
-}
-
-/**
- * Sets the unit murderer's id.
- * @param int murderer id.
- */
-void BattleUnit::setMurdererId(int id)
-{
-	_murdererId = id;
-}
-
-/**
- * Gets the unit murderer's id.
- * @return int murderer id.
- */
-int BattleUnit::getMurdererId() const
-{
-	return _murdererId;
-}
-
-
-/**
  * Sets the flag for "this unit is under cover" meaning don't draw bubbles.
  * @param floor is there a floor.
  */
@@ -3048,7 +3020,7 @@ void BattleUnit::setSpecialWeapon(SavedBattleGame *save, const Mod *mod)
 	{
 		_specWeapon[i++] = createItem(save, this, item);
 	}
-	if (getBaseStats()->psiSkill > 0 && getOriginalFaction() == FACTION_HOSTILE)
+	if (getBaseStats()->psiSkill > 0 && getFaction() == FACTION_HOSTILE)
 	{
 		item = mod->getItem("ALIEN_PSI_WEAPON");
 		if (item)
@@ -3071,42 +3043,6 @@ BattleItem *BattleUnit::getSpecialWeapon(BattleType type) const
 		}
 	}
 	return 0;
-}
-
-/**
- * Recovers a unit's TUs and energy, taking a number of factors into consideration.
- */
-void BattleUnit::recoverTimeUnits()
-{
-	// recover TUs
-	int TURecovery = getBaseStats()->tu;
-	float encumbrance = (float)getBaseStats()->strength / (float)getCarriedWeight();
-	if (encumbrance < 1)
-	{
-		TURecovery = int(encumbrance * TURecovery);
-	}
-	// Each fatal wound to the left or right leg reduces the soldier's TUs by 10%.
-	TURecovery -= (TURecovery * (_fatalWounds[BODYPART_LEFTLEG]+_fatalWounds[BODYPART_RIGHTLEG] * 10))/100;
-	setTimeUnits(TURecovery);
-
-	// recover energy
-	if (!isOut())
-	{
-		int ENRecovery;
-		if (_geoscapeSoldier != 0)
-		{
-			ENRecovery = _geoscapeSoldier->getInitStats()->tu / 3;
-		}
-		else
-		{
-			ENRecovery = _unitRules->getEnergyRecovery();
-		}
-		// Each fatal wound to the body reduces the soldier's energy recovery by 10%.
-		ENRecovery -= (_energy * (_fatalWounds[BODYPART_TORSO] * 10))/100;
-		_energy += ENRecovery;
-		if (_energy > getBaseStats()->stamina)
-			_energy = getBaseStats()->stamina;
-	}
 }
 
 /**

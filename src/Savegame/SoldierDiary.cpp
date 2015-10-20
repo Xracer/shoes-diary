@@ -224,7 +224,7 @@ void SoldierDiary::updateDiary(BattleUnitStatistics *unitStatistics, MissionStat
             }
             if ((*kill)->hostileTurn())
             {
-                if (rules->getItem((*kill)->weapon)->getBattleType() == BT_GRENADE || rules->getItem((*kill)->weapon)->getBattleType() == BT_PROXIMITYGRENADE)
+                if (mod->getItem((*kill)->weapon)->getBattleType() == BT_GRENADE || mod->getItem((*kill)->weapon)->getBattleType() == BT_PROXIMITYGRENADE)
                 {
                     _trapKillTotal++;
                 }
@@ -286,9 +286,9 @@ void SoldierDiary::updateDiary(BattleUnitStatistics *unitStatistics, MissionStat
     if (unitStatistics->MIA)
         _MIA++;
 	_woundsHealedTotal = unitStatistics->woundsHealed++;
-	if (_UFOTotal.size() >= rules->getUfosList().size())
+	if (_UFOTotal.size() >= mod->getUfosList().size())
 		_allUFOs = 1;
-	if ((_UFOTotal.size() + _typeTotal.size()) == (rules->getUfosList().size() + rules->getDeploymentsList().size() - 2))
+	if ((_UFOTotal.size() + _typeTotal.size()) == (mod->getUfosList().size() + mod->getDeploymentsList().size() - 2))
 		_allMissionTypes = 1;
 	_martyrKillsTotal += unitStatistics->martyr;
 	_slaveKillsTotal += unitStatistics->slaveKills;
@@ -313,7 +313,7 @@ void SoldierDiary::updateDiary(BattleUnitStatistics *unitStatistics, MissionStat
     _missionIdList.push_back(missionStatistics->id);
 
 
-	if (_countryTotal.size() == rules->getCountriesList().size())
+	if (_countryTotal.size() == mod->getCountriesList().size())
 	{
 		_globeTrotter = true;
 	}
@@ -343,6 +343,7 @@ bool SoldierDiary::manageCommendations(Mod *rules)
 	{	
 		awardCommendationBool = true;
         nextCommendationLevel.clear();
+        nextCommendationLevel["noNoun"] = 0;
         modularCommendations.clear();
         // Loop over all the soldier's commendations, see if we already have the commendation.
         // If so, get the level and noun.
@@ -465,6 +466,7 @@ bool SoldierDiary::manageCommendations(Mod *rules)
             else if ((*j).first == "killsWithCriteriaCareer" || (*j).first == "killsWithCriteriaMission" || (*j).first == "killsWithCriteriaTurn")
             {
                 // Looks to see how many kills the soldier has received over the course of his career
+                // Fetch the kill criteria list.
                 std::vector<std::map<int, std::vector<std::string> > > *_killCriteriaList = (*i).second->getKillCriteria();
                 
                 // Loop over the OR vectors
