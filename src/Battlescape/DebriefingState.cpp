@@ -828,7 +828,7 @@ void DebriefingState::prepareDebriefing()
 				break;
 			}
 			// if only one soldier survived AND none have died, means only one soldier went on the mission...
-			else if ((*j)->getStatus() != STATUS_DEAD && (*j)->getOriginalFaction() == FACTION_PLAYER && deadSoldiers != 0)
+			else if ((*j)->getStatus() != STATUS_DEAD && (*j)->getOriginalFaction() == FACTION_PLAYER && deadSoldiers == 0)
 			{
 				(*j)->getStatistics()->ironMan = true;
 			}
@@ -893,6 +893,11 @@ void DebriefingState::prepareDebriefing()
 		UnitFaction oldFaction = (*j)->getOriginalFaction();
 		int value = (*j)->getValue();
 		Soldier *soldier = save->getSoldier((*j)->getId());
+		std::string type = (*j)->getType();
+		if (!(*j)->getSpawnUnit().empty())
+		{
+			type = (*j)->getSpawnUnit();
+		}
 
 		if (!(*j)->getTile())
 		{
