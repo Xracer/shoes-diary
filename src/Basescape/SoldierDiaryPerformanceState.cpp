@@ -445,7 +445,6 @@ void SoldierDiaryPerformanceState::init()
 		ss2 << tr((*i)->getDecorationDescription().c_str());
 		_lstCommendations->addRow(2, ss1.str().c_str(), ss2.str().c_str());
 		
-
 		_commendationsListEntry.push_back(ss3.str().c_str());
 
 		drawSprites();
