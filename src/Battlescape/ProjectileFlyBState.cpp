@@ -276,7 +276,20 @@ void ProjectileFlyBState::init()
 bool ProjectileFlyBState::createNewProjectile()
 {
 	++_action.autoShotCounter;
-	
+
+	if (_action.type != BA_THROW || _action.type != BA_LAUNCH)
+		_unit->getStatistics()->shotsFiredCounter++;
+
+	int bulletSprite = -1;
+	if (_action.type != BA_THROW)
+	{
+		bulletSprite = _ammo->getRules()->getBulletSprite();
+		if (bulletSprite == -1)
+		{
+			bulletSprite = _action.weapon->getRules()->getBulletSprite();
+		}
+	}
+
 	// create a new projectile
 	Projectile *projectile = new Projectile(_parent->getMod(), _parent->getSave(), _action, _origin, _targetVoxel, _ammo);
 
@@ -527,6 +540,11 @@ void ProjectileFlyBState::think()
 			}
 			else
 			{
+				if (_parent->getSave()->getTile(_action.target)->getUnit())
+				{
+					_parent->getSave()->getTile(_action.target)->getUnit()->getStatistics()->shotAtCounter++; // Only counts for guns, not throws or launches
+				}
+
 				_parent->getMap()->resetCameraSmoothing();
 				if (_ammo && _action.type == BA_LAUNCH && _ammo->spendBullet() == false)
 				{
@@ -574,13 +592,35 @@ void ProjectileFlyBState::think()
 					if (_projectileImpact == 4)
 					{
 						BattleUnit *victim = _parent->getSave()->getTile(_parent->getMap()->getProjectile()->getPosition(offset) / Position(16,16,24))->getUnit();
-						if (victim && !victim->isOut() && victim->getFaction() == FACTION_HOSTILE)
+						BattleUnit *targetVictim = _parent->getSave()->getTile(_action.target)->getUnit(); // Who we were aiming at (not necessarily who we hit)
+						if (victim && !victim->isOut())
 						{
-							AlienBAIState *aggro = dynamic_cast<AlienBAIState*>(victim->getCurrentAIState());
-							if (aggro != 0)
+							victim->getStatistics()->hitCounter++;
+							if (_unit->getOriginalFaction() == FACTION_PLAYER && victim->getOriginalFaction() == FACTION_PLAYER) 
 							{
-								aggro->setWasHitBy(_unit);
-								_unit->setTurnsSinceSpotted(0);
+								victim->getStatistics()->shotByFriendlyCounter++;
+								_unit->getStatistics()->shotFriendlyCounter++;
+							}
+							if (victim == targetVictim) // Hit our target
+							{
+								_unit->getStatistics()->shotsLandedCounter++;
+								if (_parent->getTileEngine()->distance(_action.actor->getPosition(), victim->getPosition()) > 30)
+								{
+									_unit->getStatistics()->longDistanceHitCounter++;
+								}
+								if (_unit->getFiringAccuracy(_action.type, _action.weapon) < _parent->getTileEngine()->distance(_action.actor->getPosition(), victim->getPosition()))
+								{
+									_unit->getStatistics()->lowAccuracyHitCounter++;
+								}
+							}
+							if (victim->getFaction() == FACTION_HOSTILE)
+							{
+								AlienBAIState *aggro = dynamic_cast<AlienBAIState*>(victim->getCurrentAIState());
+								if (aggro != 0)
+								{
+									aggro->setWasHitBy(_unit);
+									_unit->setTurnsSinceSpotted(0);
+								}
 							}
 						}
 					}
