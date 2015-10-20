@@ -198,7 +198,7 @@ public:
 	void setBorderColor(Uint8 color);
 	int getScrollbarColor();
 	//I don't know why it needs it :)
-	void TextList::setFlooding(bool flooding);
+	void setFlooding(bool flooding);
 };
 
 }
