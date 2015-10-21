@@ -69,6 +69,7 @@
 #include "ExtraStrings.h"
 #include "RuleInterface.h"
 #include "RuleMissionScript.h"
+#include "RuleCommendations.h"
 #include "../Geoscape/Globe.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Region.h"
@@ -345,6 +346,10 @@ Mod::~Mod()
 	{
 		delete i->second;
 	}
+	for (std::map<std::string, RuleCommendations *>::const_iterator i = _commendations.begin(); i != _commendations.end(); ++i)
+	{
+		delete i->second;
+	}	
 	for (std::map<std::string, RuleMissionScript*>::const_iterator i = _missionScripts.begin(); i != _missionScripts.end(); ++i)
 	{
 		delete i->second;
@@ -1012,6 +1017,13 @@ void Mod::loadFile(const std::string &filename)
 			_extraStrings[type] = extraStrings.release();
 			_extraStringsIndex.push_back(type);
 		}
+	}
+	for (YAML::const_iterator i = doc["commendations"].begin(); i != doc["commendations"].end(); ++i)
+	{
+		std::string type = (*i)["type"].as<std::string>();
+		std::auto_ptr<RuleCommendations> commendations(new RuleCommendations());
+		commendations->load(*i);
+        _commendations[type] = commendations.release();
 	}
 
 	for (YAML::const_iterator i = doc["statStrings"].begin(); i != doc["statStrings"].end(); ++i)
