@@ -33,7 +33,7 @@
 #include "../Savegame/Base.h"
 #include "../Savegame/Soldier.h"
 #include "../Savegame/SoldierDiary.h"
-#include "../Mod/Mod.h"
+#include "../Mod/RuleCommendations.h"
 #include "../Engine/Action.h"
 
 
