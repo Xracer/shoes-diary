@@ -75,8 +75,9 @@
 #include "../Savegame/Region.h"
 #include "../Savegame/Base.h"
 #include "../Savegame/Country.h"
-#include "../Savegame/Soldier.h"
 #include "../Savegame/Craft.h"
+#include "../Savegame/Soldier.h"
+#include "../Savegame/SoldierDiary.h"
 #include "../Savegame/Transfer.h"
 #include "../Ufopaedia/Ufopaedia.h"
 #include "../Savegame/AlienStrategy.h"
@@ -345,10 +346,6 @@ Mod::~Mod()
 	for (std::map<std::string, RuleMusic *>::const_iterator i = _musicDefs.begin(); i != _musicDefs.end(); ++i)
 	{
 		delete i->second;
-	}
-	for (std::map<std::string, RuleCommendations *>::const_iterator i = _commendations.begin(); i != _commendations.end(); ++i)
-	{
-		delete i->second;
 	}	
 	for (std::map<std::string, RuleMissionScript*>::const_iterator i = _missionScripts.begin(); i != _missionScripts.end(); ++i)
 	{
@@ -361,6 +358,10 @@ Mod::~Mod()
 	for (std::vector<StatString*>::const_iterator i = _statStrings.begin(); i != _statStrings.end(); ++i)
 	{
 		delete (*i);
+	}
+	for (std::map<std::string, RuleCommendations *>::const_iterator i = _commendations.begin(); i != _commendations.end(); ++i)
+	{
+		delete i->second;
 	}
 }
 
@@ -1282,6 +1283,11 @@ SavedGame *Mod::newSave() const
 		Soldier *soldier = genSoldier(save);
 		soldier->setCraft(base->getCrafts()->front());
 		base->getSoldiers()->push_back(soldier);
+		soldier->getDiary()->awardOriginalEightCommendation();
+		for (std::vector<SoldierCommendations*>::iterator comm = soldier->getDiary()->getSoldierCommendations()->begin(); comm != soldier->getDiary()->getSoldierCommendations()->end(); ++comm)
+		{
+			(*comm)->makeOld(); // Soldier was already awarded these before arriving on base.
+		}
 	}
 
 	save->getBases()->push_back(base);
@@ -1500,6 +1506,15 @@ RuleSoldier *Mod::getSoldier(const std::string &name) const
 {
 	std::map<std::string, RuleSoldier*>::const_iterator i = _soldiers.find(name);
 	if (_soldiers.end() != i) return i->second; else return 0;
+}
+
+/**
+* Gets the list of commendations
+* @return The list of commendations.
+*/
+std::map<std::string, RuleCommendations *> Mod::getCommendation() const
+{
+	return _commendations;
 }
 
 /**

@@ -76,7 +76,6 @@ class RuleInterface;
 class RuleGlobe;
 class SoundDefinition;
 class MapScript;
-class RuleCommendations;
 class RuleVideo;
 class RuleMusic;
 class RuleMissionScript;
