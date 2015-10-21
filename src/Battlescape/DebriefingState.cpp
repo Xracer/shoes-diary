@@ -638,8 +638,6 @@ void DebriefingState::prepareDebriefing()
 		_stats.push_back(new DebriefingStat((*i).second->name, true));
 	}
 
-	bool aborted = battle->isAborted(); 
-	bool success = !aborted;
 	_missionStatistics->time = *save->getTime();
 	_missionStatistics->type = battle->getMissionType();
 	_stats.push_back(new DebriefingStat(_game->getMod()->getAlienFuelName(), true));
