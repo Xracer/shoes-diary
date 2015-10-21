@@ -1460,6 +1460,7 @@ void DebriefingState::recoverItems(std::vector<BattleItem*> *from, Base *base)
  */
 void DebriefingState::recoverAlien(BattleUnit *from, Base *base)
 {
+	/** this whole part is giving me trouble when compiling
 	// Zombie handling: don't recover a zombie.
 	if (!from->getSpawnUnit().empty())
 	{
@@ -1472,6 +1473,7 @@ void DebriefingState::recoverAlien(BattleUnit *from, Base *base)
 		// don't process the zombie itself, our new unit just got added to the end of the vector we're iterating, and will be handled later.
 		return;
 	}
+	**/
 	std::string type = from->getType();
 	if (base->getAvailableContainment() == 0)
 	{
@@ -1479,6 +1481,10 @@ void DebriefingState::recoverAlien(BattleUnit *from, Base *base)
 		addStat("STR_ALIEN_CORPSES_RECOVERED", 1, from->getValue());
 
 		std::string corpseItem = from->getArmor()->getCorpseGeoscape();
+		if (!from->getSpawnUnit().empty())
+		{
+			corpseItem = _game->getMod()->getArmor(_game->getMod()->getUnit(from->getSpawnUnit())->getArmor())->getCorpseGeoscape();
+		}
 		base->getStorageItems()->addItem(corpseItem, 1);
 	}
 	else

@@ -163,7 +163,7 @@ public:
 	/// Gets the pathfinding.
 	Pathfinding *getPathfinding();
 	/// Gets the mod.
-	Mod *getMod();
+	Mod *getMod() const;
 	/// Returns whether panic has been handled.
 	bool getPanicHandled() { return _playerPanicHandled; }
 	/// Tries to find an item and pick it up if possible.
@@ -190,7 +190,7 @@ public:
 	/// Cleans up all the deleted states.
 	void cleanupDeleted();
 	/// Get the depth of the saved game.
-	const int getDepth() const;
+	int getDepth() const;
 	/// Sets up a mission complete notification.
 	void missionComplete();
 };
