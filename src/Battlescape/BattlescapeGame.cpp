@@ -1184,7 +1184,6 @@ bool BattlescapeGame::noActionsPending(BattleUnit *bu)
 		if ((*i) != 0 && (*i)->getAction().actor == bu)
 			return false;
 	}
-
 	return true;
 }
 /**
@@ -1195,7 +1194,6 @@ void BattlescapeGame::setStateInterval(Uint32 interval)
 {
 	_parentState->setStateInterval(interval);
 }
-
 
 /**
  * Checks against reserved time units.
@@ -1286,8 +1284,6 @@ bool BattlescapeGame::checkReservedTU(BattleUnit *bu, int tu, bool justChecking)
 	return true;
 }
 
-
-
 /**
  * Picks the first soldier that is panicking.
  * @return True when all panicking is over.
@@ -1328,13 +1324,11 @@ bool BattlescapeGame::handlePanickingUnit(BattleUnit *unit)
 		}
 	}
 
-
 	int flee = RNG::generate(0,100);
 	BattleAction ba;
 	ba.actor = unit;
 	switch (status)
 	{
-
 	case STATUS_PANICKING: // 1/2 chance to freeze and 1/2 chance try to flee
 		if (flee <= 50)
 		{
@@ -1374,24 +1368,16 @@ bool BattlescapeGame::handlePanickingUnit(BattleUnit *unit)
 			}
 		}
 
-
 		break;
 	case STATUS_BERSERK: // berserk - do some weird turning around and then aggro towards an enemy unit or shoot towards random place
 		ba.type = BA_TURN;
 		for (int i= 0; i < 4; i++)
 		{
-
 			ba.target = Position(unit->getPosition().x + RNG::generate(-5,5), unit->getPosition().y + RNG::generate(-5,5), unit->getPosition().z);
 			statePushBack(new UnitTurnBState(this, ba, false));
 		}
-
-
-
 		for (std::vector<BattleUnit*>::iterator j = unit->getVisibleUnits()->begin(); j != unit->getVisibleUnits()->end(); ++j)
 		{
-
-
-
 			ba.target = (*j)->getPosition();
 			statePushBack(new UnitTurnBState(this, ba, false));
 		}
@@ -1400,11 +1386,8 @@ bool BattlescapeGame::handlePanickingUnit(BattleUnit *unit)
 			ba.weapon = unit->getMainHandWeapon();
 			if (ba.weapon && (_save->getDepth() != 0 || ba.weapon->getRules()->isWaterOnly() == false))
 			{
-
-
 				if (ba.weapon->getRules()->getBattleType() == BT_FIREARM)
 				{
-
 					ba.type = BA_SNAPSHOT;
 					int tu = ba.actor->getActionTUs(ba.type, ba.weapon);
 					for (int i= 0; i < 10; i++)
@@ -1415,11 +1398,6 @@ bool BattlescapeGame::handlePanickingUnit(BattleUnit *unit)
 						statePushBack(new ProjectileFlyBState(this, ba));
 					}
 				}
-
-
-
-
-
 				else if (ba.weapon->getRules()->getBattleType() == BT_GRENADE)
 				{
 					if (ba.weapon->getFuseTimer() == -1)
@@ -1428,7 +1406,6 @@ bool BattlescapeGame::handlePanickingUnit(BattleUnit *unit)
 					}
 					ba.type = BA_THROW;
 					statePushBack(new ProjectileFlyBState(this, ba));
-
 				}
 			}
 		}
@@ -1888,6 +1865,7 @@ TileEngine *BattlescapeGame::getTileEngine()
 {
 	return _save->getTileEngine();
 }
+
 /**
  * Gets the pathfinding.
  * @return pathfinding.
@@ -1896,24 +1874,15 @@ Pathfinding *BattlescapeGame::getPathfinding()
 {
 	return _save->getPathfinding();
 }
+
 /**
  * Gets the mod.
  * @return mod.
  */
-Mod *BattlescapeGame::getMod()
+Mod *BattlescapeGame::getMod() const
 {
 	return _parentState->getGame()->getMod();
 }
-
-/**
- * Gets the ruleset.
- * @return ruleset.
- */
-const Mod *BattlescapeGame::getMod() const
-{
-	return _parentState->getGame()->getRuleset();
-}
-
 
 /**
  * Tries to find an item and pick it up if possible.

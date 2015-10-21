@@ -120,6 +120,8 @@ public:
 	void setStateInterval(Uint32 interval);
 	/// Checks for casualties in battle.
 	void checkForCasualties(BattleItem *murderweapon, BattleUnit *murderer, bool hiddenExplosion = false, bool terrainExplosion = false);
+	/// Checks if a unit panics.
+	void checkForPanic(BattleUnit *unit);
 	/// Checks reserved tu.
 	bool checkReservedTU(BattleUnit *bu, int tu, bool justChecking = false);
 	/// Handles unit AI.
@@ -127,7 +129,7 @@ public:
 	/// Drops an item and affects it with gravity.
 	void dropItem(const Position &position, BattleItem *item, bool newItem = false, bool removeItem = false);
 	/// Converts a unit into a unit of another type.
-	BattleUnit *convertUnit(BattleUnit *unit);
+	BattleUnit *convertUnit(BattleUnit *unit, const std::string &newType);
 	/// Handles kneeling action.
 	bool kneel(BattleUnit *bu);
 	/// Cancels the current action.
@@ -188,7 +190,7 @@ public:
 	/// Cleans up all the deleted states.
 	void cleanupDeleted();
 	/// Get the depth of the saved game.
-	int getDepth() const;
+	const int getDepth() const;
 	/// Sets up a mission complete notification.
 	void missionComplete();
 };
