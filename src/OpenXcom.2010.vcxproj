@@ -453,6 +453,7 @@
     <ClCompile Include="Mod\MapData.cpp" />
     <ClCompile Include="Mod\AlienDeployment.cpp" />
     <ClCompile Include="Mod\AlienRace.cpp" />
+    <ClCompile Include="Mod\RuleCommendations.cpp" />
     <ClCompile Include="Mod\RuleGlobe.cpp" />
     <ClCompile Include="Mod\RuleMusic.cpp" />
     <ClCompile Include="Mod\RuleVideo.cpp" />
@@ -463,7 +464,6 @@
     <ClCompile Include="Mod\Unit.cpp" />
     <ClCompile Include="Mod\Armor.cpp" />
     <ClCompile Include="Mod\RuleBaseFacility.cpp" />
-    <ClCompile Include="Mod\RuleCommendations.cpp" />
     <ClCompile Include="Mod\RuleCountry.cpp" />
     <ClCompile Include="Mod\RuleCraft.cpp" />
     <ClCompile Include="Mod\RuleCraftWeapon.cpp" />
@@ -774,6 +774,7 @@
     <ClInclude Include="Mod\MapData.h" />
     <ClInclude Include="Mod\AlienDeployment.h" />
     <ClInclude Include="Mod\AlienRace.h" />
+    <ClInclude Include="Mod\RuleCommendations.h" />
     <ClInclude Include="Mod\MapScript.h" />
     <ClInclude Include="Mod\MCDPatch.h" />
     <ClInclude Include="Mod\Polygon.h" />
@@ -789,7 +790,6 @@
     <ClInclude Include="Mod\Armor.h" />
     <ClInclude Include="Mod\RuleAlienMission.h" />
     <ClInclude Include="Mod\RuleBaseFacility.h" />
-    <ClInclude Include="Mod\RuleCommendations.h" />
     <ClInclude Include="Mod\RuleCountry.h" />
     <ClInclude Include="Mod\RuleCraft.h" />
     <ClInclude Include="Mod\RuleCraftWeapon.h" />

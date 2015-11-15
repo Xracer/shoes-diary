@@ -109,7 +109,7 @@ struct BattleUnitKills
         node["id"] = id;
         return node;
     }
-    // Convert victim State to string
+    // Convert victim State to string.
     std::string getUnitStatusString() const
     {
         switch (status)
@@ -121,7 +121,7 @@ struct BattleUnitKills
         default:                    return "status error";
         }
     }
-    // Convert victim Faction to string
+    // Convert victim Faction to string.
     std::string getUnitFactionString() const
     {
         switch (faction)
@@ -160,7 +160,7 @@ struct BattleUnitKills
         }
     }
     BattleUnitKills(const YAML::Node& node) { load(node); }
-    BattleUnitKills(std::string Rank, std::string Race, std::string Weapon, std::string WeaponAmmo, UnitFaction Faction, UnitStatus Status, int Mission, int Turn, UnitSide Side, UnitBodyPart BodyPart, int Id) :
+    BattleUnitKills(std::string Rank, std::string Race, std::string Weapon, std::string WeaponAmmo, UnitFaction Faction, UnitStatus Status, int Mission, int Turn, UnitSide Side, UnitBodyPart BodyPart, int Id) : 
 						rank(Rank), race(Race), weapon(Weapon), weaponAmmo(WeaponAmmo), faction(Faction), status(Status), mission(Mission), turn(Turn), side(Side), bodypart(BodyPart), id(Id) { }
     ~BattleUnitKills() { }
 };
@@ -195,6 +195,7 @@ struct BattleUnitStatistics
 	bool MIA;								// Tracks if the soldier was left behind :(
 	int martyr;								// Tracks how many kills the soldier landed on the turn of his death
     int slaveKills;                         // Tracks how many kills the soldier landed thanks to a mind controlled unit.
+
 	/// Functions
 	// Duplicate entry check
 	bool duplicateEntry(UnitStatus status, int id)
@@ -339,7 +340,8 @@ private:
 	std::wstring _name;
 	UnitStats _stats;
 	int _standHeight, _kneelHeight, _floatHeight;
-	int _value, _deathSound, _aggroSound, _moveSound;
+	std::vector<int> _deathSound;
+	int _value, _aggroSound, _moveSound;
 	int _intelligence, _aggression;
 	SpecialAbility _specab;
 	Armor *_armor;
@@ -582,8 +584,8 @@ public:
 	int getLoftemps(int entry = 0) const;
 	/// Get the unit's value.
 	int getValue() const;
-	/// Get the unit's death sound.
-	int getDeathSound() const;
+	/// Get the unit's death sounds.
+	const std::vector<int> &getDeathSounds() const;
 	/// Get the unit's move sound.
 	int getMoveSound() const;
 	/// Get whether the unit is affected by fatal wounds.

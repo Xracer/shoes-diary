@@ -34,10 +34,10 @@
 #include "../Mod/RuleCountry.h"
 #include "Globe.h"
 #include "../Engine/Options.h"
+#include "../Menu/CutsceneState.h"
 #include "../Savegame/Base.h"
 #include "../Battlescape/CommendationState.h"
 #include "../Savegame/SoldierDiary.h"
-#include "../Menu/CutsceneState.h"
 #include "../Menu/SaveGameState.h"
 #include "../Mod/RuleInterface.h"
 
@@ -64,6 +64,7 @@ MonthlyReportState::MonthlyReportState(bool psi, Globe *globe) : _psi(psi), _gam
 	_txtBalance = new Text(160, 9, 146, 40);
 	_txtDesc = new Text(280, 132, 16, 48);
 	_txtFailure = new Text(290, 160, 15, 10);
+
 	// Set palette
 	setInterface("monthlyReport");
 
@@ -80,6 +81,7 @@ MonthlyReportState::MonthlyReportState(bool psi, Globe *globe) : _psi(psi), _gam
 	add(_txtFailure, "text2", "monthlyReport");
 
 	centerAllSurfaces();
+
 	// Set up objects
 	_window->setBackground(_game->getMod()->getSurface("BACK13.SCR"));
 
@@ -103,7 +105,9 @@ MonthlyReportState::MonthlyReportState(bool psi, Globe *globe) : _psi(psi), _gam
 	_txtFailure->setWordWrap(true);
 	_txtFailure->setText(tr("STR_YOU_HAVE_FAILED"));
 	_txtFailure->setVisible(false);
+
 	calculateChanges();
+
 	int month = _game->getSavedGame()->getTime()->getMonth() - 1, year = _game->getSavedGame()->getTime()->getYear();
 	if (month == 0)
 	{
@@ -130,6 +134,7 @@ MonthlyReportState::MonthlyReportState(bool psi, Globe *globe) : _psi(psi), _gam
 	int difficulty_threshold = 100*(_game->getSavedGame()->getDifficultyCoefficient()-9);
 
 	_txtMonth->setText(tr("STR_MONTH").arg(tr(m)).arg(year));
+
 	// Calculate rating
 	std::wstring rating = tr("STR_RATING_TERRIBLE");
 	if (_ratingTotal > difficulty_threshold-300)

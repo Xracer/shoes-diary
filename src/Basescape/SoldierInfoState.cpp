@@ -34,7 +34,6 @@
 #include "../Savegame/Craft.h"
 #include "../Savegame/Soldier.h"
 #include "../Savegame/SoldierDiary.h"
-#include "../Savegame/ItemContainer.h"
 #include "../Engine/SurfaceSet.h"
 #include "../Mod/Armor.h"
 #include "../Menu/ErrorMessageState.h"
@@ -151,7 +150,6 @@ SoldierInfoState::SoldierInfoState(Base *base, size_t soldierId) : _base(base), 
 
 	add(_bg);
 	add(_rank);
-
 	add(_btnOk, "button", "soldierInfo");
 	add(_btnPrev, "button", "soldierInfo");
 	add(_btnNext, "button", "soldierInfo");
@@ -256,23 +254,6 @@ SoldierInfoState::SoldierInfoState(Base *base, size_t soldierId) : _base(base), 
 	_btnDiary->setText(tr("STR_DIARY"));
 	_btnDiary->onMouseClick((ActionHandler)&SoldierInfoState::btnDiaryClick);
 
-/*	_txtRank->setColor(Palette::blockOffset(13)+10);
-	_txtRank->setSecondaryColor(Palette::blockOffset(13));
-
-	_txtMissions->setColor(Palette::blockOffset(13)+10);
-	_txtMissions->setSecondaryColor(Palette::blockOffset(13));
-
-	_txtKills->setColor(Palette::blockOffset(13)+10);
-	_txtKills->setSecondaryColor(Palette::blockOffset(13));
-
-	_txtCraft->setColor(Palette::blockOffset(13)+10);
-	_txtCraft->setSecondaryColor(Palette::blockOffset(13));
-
-	_txtRecovery->setColor(Palette::blockOffset(13)+10);
-	_txtRecovery->setSecondaryColor(Palette::blockOffset(13));
-
-	_txtPsionic->setColor(Palette::blockOffset(15)+1);
-*/
 	_txtPsionic->setText(tr("STR_IN_PSIONIC_TRAINING"));
 
 	_txtTimeUnits->setText(tr("STR_TIME_UNITS"));

@@ -280,16 +280,6 @@ bool ProjectileFlyBState::createNewProjectile()
 	if (_action.type != BA_THROW || _action.type != BA_LAUNCH)
 		_unit->getStatistics()->shotsFiredCounter++;
 
-	int bulletSprite = -1;
-	if (_action.type != BA_THROW)
-	{
-		bulletSprite = _ammo->getRules()->getBulletSprite();
-		if (bulletSprite == -1)
-		{
-			bulletSprite = _action.weapon->getRules()->getBulletSprite();
-		}
-	}
-
 	// create a new projectile
 	Projectile *projectile = new Projectile(_parent->getMod(), _parent->getSave(), _action, _origin, _targetVoxel, _ammo);
 
@@ -621,6 +611,11 @@ void ProjectileFlyBState::think()
 									aggro->setWasHitBy(_unit);
 									_unit->setTurnsSinceSpotted(0);
 								}
+							}
+							// If our victim was hit by DT_IN, assume that _unit is his murderer until someone else kills victim.
+							if (_action.weapon->getRules()->getDamageType() == DT_IN)
+							{
+								victim->setMurdererId(_unit->getId());
 							}
 						}
 					}

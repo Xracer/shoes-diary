@@ -26,17 +26,14 @@
 #include "../Interface/Window.h"
 #include "NoContainmentState.h"
 #include "PromotionsState.h"
-#include "CommendationLateState.h"
 #include "CommendationState.h"
-#include "../Mod/RuleCountry.h"
-#include "../Mod/RuleInventory.h"
-#include "../Mod/RuleRegion.h"
-#include "../Mod/RuleUfo.h"
+#include "CommendationLateState.h"
 #include "../Mod/Mod.h"
 #include "../Mod/RuleCountry.h"
 #include "../Mod/RuleCraft.h"
 #include "../Mod/RuleItem.h"
 #include "../Mod/RuleRegion.h"
+#include "../Mod/RuleUfo.h"
 #include "../Mod/Armor.h"
 #include "../Savegame/AlienBase.h"
 #include "../Savegame/AlienMission.h"
@@ -342,6 +339,7 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(tru
 			(*deadUnit)->getGeoscapeSoldier()->getDiary()->awardBestOverall();
 		}
 	}
+
 	for (std::vector<BattleUnit*>::iterator j = battle->getUnits()->begin(); j != battle->getUnits()->end(); ++j)
 	{
 		if ((*j)->getGeoscapeSoldier())
@@ -408,10 +406,8 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(tru
 			{
 				_soldiersCommended.push_back((*j)->getGeoscapeSoldier());
 			}
-
             else if ((*j)->getStatistics()->MIA || (*j)->getStatistics()->KIA)
             {
-
                 (*j)->getGeoscapeSoldier()->getDiary()->manageCommendations(_game->getMod());
                 _deadSoldiersCommended.push_back((*j)->getGeoscapeSoldier());
             }
@@ -639,7 +635,7 @@ void DebriefingState::prepareDebriefing()
 	}
 
 	_missionStatistics->time = *save->getTime();
-	_missionStatistics->type = battle->getMissionType();
+	_missionStatistics->type = battle->getMissionType();	
 	_stats.push_back(new DebriefingStat(_game->getMod()->getAlienFuelName(), true));
 
 	for (std::vector<Base*>::iterator i = save->getBases()->begin(); i != save->getBases()->end(); ++i)
@@ -826,7 +822,7 @@ void DebriefingState::prepareDebriefing()
 				break;
 			}
 			// if only one soldier survived AND none have died, means only one soldier went on the mission...
-			else if ((*j)->getStatus() != STATUS_DEAD && (*j)->getOriginalFaction() == FACTION_PLAYER && deadSoldiers == 0)
+			if ((*j)->getStatus() != STATUS_DEAD && (*j)->getOriginalFaction() == FACTION_PLAYER && deadSoldiers == 0)
 			{
 				(*j)->getStatistics()->ironMan = true;
 			}
@@ -845,13 +841,13 @@ void DebriefingState::prepareDebriefing()
 				if (!battle->allObjectivesDestroyed())
 					destroyAlienBase = false;
 			}
-
 			
 			if (deployment && !deployment->getNextStage().empty())
 			{
 				_missionStatistics->alienRace = (*i)->getAlienRace();
 				destroyAlienBase = false;
 			}
+
 			success = destroyAlienBase;
 			if (destroyAlienBase)
 			{
@@ -891,11 +887,6 @@ void DebriefingState::prepareDebriefing()
 		UnitFaction oldFaction = (*j)->getOriginalFaction();
 		int value = (*j)->getValue();
 		Soldier *soldier = save->getSoldier((*j)->getId());
-		std::string type = (*j)->getType();
-		if (!(*j)->getSpawnUnit().empty())
-		{
-			type = (*j)->getSpawnUnit();
-		}
 
 		if (!(*j)->getTile())
 		{
@@ -1458,7 +1449,6 @@ void DebriefingState::recoverItems(std::vector<BattleItem*> *from, Base *base)
  */
 void DebriefingState::recoverAlien(BattleUnit *from, Base *base)
 {
-	/** this whole part is giving me trouble when compiling
 	// Zombie handling: don't recover a zombie.
 	if (!from->getSpawnUnit().empty())
 	{
@@ -1471,7 +1461,6 @@ void DebriefingState::recoverAlien(BattleUnit *from, Base *base)
 		// don't process the zombie itself, our new unit just got added to the end of the vector we're iterating, and will be handled later.
 		return;
 	}
-	**/
 	std::string type = from->getType();
 	if (base->getAvailableContainment() == 0)
 	{
@@ -1479,10 +1468,6 @@ void DebriefingState::recoverAlien(BattleUnit *from, Base *base)
 		addStat("STR_ALIEN_CORPSES_RECOVERED", 1, from->getValue());
 
 		std::string corpseItem = from->getArmor()->getCorpseGeoscape();
-		if (!from->getSpawnUnit().empty())
-		{
-			corpseItem = _game->getMod()->getArmor(_game->getMod()->getUnit(from->getSpawnUnit())->getArmor())->getCorpseGeoscape();
-		}
 		base->getStorageItems()->addItem(corpseItem, 1);
 	}
 	else

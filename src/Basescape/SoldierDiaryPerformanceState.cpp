@@ -33,7 +33,7 @@
 #include "../Savegame/Base.h"
 #include "../Savegame/Soldier.h"
 #include "../Savegame/SoldierDiary.h"
-#include "../Mod/RuleCommendations.h"
+#include "../Ruleset/RuleCommendations.h"
 #include "../Engine/Action.h"
 
 
@@ -102,7 +102,7 @@ SoldierDiaryPerformanceState::SoldierDiaryPerformanceState(Base *base, size_t so
     // Commendation stats
     _txtMedalName = new Text(90, 18, 16, 36);
     _txtMedalLevel = new Text(90, 18, 206, 36);
-	_txtMedalInfo = new Text(280, 32, 20, 150);
+	_txtMedalInfo = new Text(280, 32, 20, 135);
     _lstCommendations = new TextList(240, 80, 48, 52);
 	// Commendation sprites
 	_commendationSprite = _game->getMod()->getSurfaceSet("Commendations");
@@ -307,7 +307,6 @@ SoldierDiaryPerformanceState::~SoldierDiaryPerformanceState()
 
 /**
  *  Clears all the variables and reinitializes the list of kills or missions for the soldier.
- *
  */
 void SoldierDiaryPerformanceState::init()
 {
@@ -445,6 +444,7 @@ void SoldierDiaryPerformanceState::init()
 		ss2 << tr((*i)->getDecorationDescription().c_str());
 		_lstCommendations->addRow(2, ss1.str().c_str(), ss2.str().c_str());
 		
+
 		_commendationsListEntry.push_back(ss3.str().c_str());
 
 		drawSprites();

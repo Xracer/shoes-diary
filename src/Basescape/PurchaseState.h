@@ -23,6 +23,7 @@
 #include "../Savegame/Transfer.h"
 #include <vector>
 #include <string>
+#include <set>
 
 namespace OpenXcom
 {
@@ -31,6 +32,7 @@ class TextButton;
 class Window;
 class Text;
 class TextList;
+class ComboBox;
 class Timer;
 class Base;
 
@@ -45,25 +47,22 @@ private:
 
 	TextButton *_btnOk, *_btnCancel;
 	Window *_window;
-	Text *_txtTitle, *_txtFunds, *_txtPurchases, *_txtItem, *_txtCost, *_txtQuantity, *_txtSpaceUsed;
+	Text *_txtTitle, *_txtFunds, *_txtPurchases, *_txtCost, *_txtQuantity, *_txtSpaceUsed;
+	ComboBox *_cbxCategory;
 	TextList *_lstItems;
-	std::vector<std::string> _soldiers, _crafts, _items;
-	std::vector<int> _qtys;
+	std::vector<TransferRow> _items;
+	std::vector<int> _rows;
+	std::vector<std::string> _cats;
+	std::set<std::string> _craftWeapons, _armors;
 	size_t _sel;
 	int _total, _pQty, _cQty;
 	double _iQty;
 	Uint8 _ammoColor;
 	Timer *_timerInc, *_timerDec;
-	/// Gets selected price.
-	int getPrice();
-	/// Gets the Type of the selected item.
-	TransferType getType(size_t selected) const;
-	/// Gets the index of selected item.
-	size_t getItemIndex(size_t selected) const;
-	/// Gets the index of the selected craft.
-	size_t getCraftIndex(size_t selected) const;
-	/// Is it excluded in the options file?
-	bool isExcluded(const std::string &item);
+	/// Gets the category of the current selection.
+	std::string getCategory(int sel) const;
+	/// Gets the row of the current selection.
+	TransferRow &getRow() { return _items[_rows[_sel]]; }
 public:
 	/// Creates the Purchase state.
 	PurchaseState(Base *base);
@@ -71,6 +70,8 @@ public:
 	~PurchaseState();
 	/// Runs the timers.
 	void think();
+	/// Updates the item list.
+	void updateList();
 	/// Handler for clicking the OK button.
 	void btnOkClick(Action *action);
 	/// Handler for clicking the Cancel button.
@@ -99,6 +100,8 @@ public:
 	void decreaseByValue(int change);
 	/// Updates the quantity-strings of the selected item.
 	void updateItemStrings();
+	/// Handler for changing the category filter.
+	void cbxCategoryChange(Action *action);
 };
 
 }

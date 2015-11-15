@@ -56,17 +56,17 @@ SoldierDiaryMissionState::SoldierDiaryMissionState(Base *base, size_t soldierId,
 	_screen = false;
 
 	// Create objects
-	_window = new Window(this, 232, 128, 44, 36, POPUP_BOTH);
-	_btnOk = new TextButton(180, 16, 70, 140);
+	_window = new Window(this, 272, 128, 24, 36, POPUP_BOTH);
+	_btnOk = new TextButton(220, 16, 50, 140);
 	_txtTitle = new Text(222, 9, 49, 44);
-	_txtScore = new Text(222, 9, 49, 62);
-	_txtMissionType= new Text(222, 9, 49, 71);
-	_txtUFO = new Text(222, 9, 49, 80);
-	_txtKills = new Text(130, 9, 187, 62);
-	_txtRace = new Text(130, 9, 187, 71);
-	_txtDaylight = new Text(130, 9, 187, 80);
-	_txtDaysWounded = new Text(130, 9, 187, 89);
-	_lstKills = new TextList(200, 32, 49, 102);
+	_txtScore = new Text(222, 9, 29, 62);
+	_txtMissionType= new Text(222, 9, 29, 71);
+	_txtUFO = new Text(222, 9, 29, 80);
+	_txtKills = new Text(130, 9, 207, 62);
+	_txtRace = new Text(130, 9, 207, 71);
+	_txtDaylight = new Text(130, 9, 207, 80);
+	_txtDaysWounded = new Text(130, 9, 207, 89);
+	_lstKills = new TextList(240, 32, 29, 102);
 
 	// Set palette
 	setPalette("PAL_BASESCAPE");
@@ -104,41 +104,41 @@ SoldierDiaryMissionState::SoldierDiaryMissionState(Base *base, size_t soldierId,
 	}
 	int daysWounded = missionStatistics->at(missionId)->injuryList[_soldier->getId()];
     
-//	_window->setColor(Palette::blockOffset(13)+10);
+	_window->setColor(Palette::blockOffset(13)+10);
 	_window->setBackground(_game->getMod()->getSurface("BACK14.SCR"));
 
-//	_btnOk->setColor(Palette::blockOffset(13)+5);
+	_btnOk->setColor(Palette::blockOffset(13)+5);
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&SoldierDiaryMissionState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&SoldierDiaryMissionState::btnOkClick, Options::keyCancel);
 
-//	_txtTitle->setColor(Palette::blockOffset(13)+5);
+	_txtTitle->setColor(Palette::blockOffset(13)+5);
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setText(tr("STR_MISSION_DETAILS"));
 
-//	_txtScore->setColor(Palette::blockOffset(13)+5);
-//	_txtScore->setSecondaryColor(Palette::blockOffset(13));
+	_txtScore->setColor(Palette::blockOffset(13)+5);
+	_txtScore->setSecondaryColor(Palette::blockOffset(13));
 	_txtScore->setAlign(ALIGN_LEFT);
 	_txtScore->setText(tr("STR_SCORE_VALUE").arg(missionStatistics->at(missionId)->score));
 
-//	_txtMissionType->setColor(Palette::blockOffset(13)+5);
-//	_txtMissionType->setSecondaryColor(Palette::blockOffset(13));
+	_txtMissionType->setColor(Palette::blockOffset(13)+5);
+	_txtMissionType->setSecondaryColor(Palette::blockOffset(13));
 	_txtMissionType->setText(tr("STR_MISSION_TYPE").arg(tr(missionStatistics->at(missionId)->getMissionTypeLowerCase())));
 
-//	_txtUFO->setColor(Palette::blockOffset(13)+5);
-//	_txtUFO->setSecondaryColor(Palette::blockOffset(13));
+	_txtUFO->setColor(Palette::blockOffset(13)+5);
+	_txtUFO->setSecondaryColor(Palette::blockOffset(13));
 	_txtUFO->setText(tr("STR_UFO_TYPE").arg(tr(missionStatistics->at(missionId)->ufo)));
 	_txtUFO->setVisible(true);
 	if (missionStatistics->at(missionId)->ufo == "NO_UFO") _txtUFO->setVisible(false);
 
-//	_txtRace->setColor(Palette::blockOffset(13)+5);
-//	_txtRace->setSecondaryColor(Palette::blockOffset(13));
+	_txtRace->setColor(Palette::blockOffset(13)+5);
+	_txtRace->setSecondaryColor(Palette::blockOffset(13));
 	_txtRace->setText(tr("STR_RACE_TYPE").arg(tr(missionStatistics->at(missionId)->alienRace)));
 	_txtRace->setVisible(true);
 	if (missionStatistics->at(missionId)->alienRace == "STR_UNKNOWN") _txtUFO->setVisible(false);
 
-//	_txtDaylight->setColor(Palette::blockOffset(13)+5);
-//	_txtDaylight->setSecondaryColor(Palette::blockOffset(13));
+	_txtDaylight->setColor(Palette::blockOffset(13)+5);
+	_txtDaylight->setSecondaryColor(Palette::blockOffset(13));
 	if (missionStatistics->at(missionId)->daylight <= 5)
 	{
 		_txtDaylight->setText(tr("STR_DAYLIGHT_TYPE").arg(tr("STR_DAY")));
@@ -148,14 +148,14 @@ SoldierDiaryMissionState::SoldierDiaryMissionState(Base *base, size_t soldierId,
 		_txtDaylight->setText(tr("STR_DAYLIGHT_TYPE").arg(tr("STR_NIGHT")));
 	}
 
-//	_txtDaysWounded->setColor(Palette::blockOffset(13)+5);
-//	_txtDaysWounded->setSecondaryColor(Palette::blockOffset(13));
+	_txtDaysWounded->setColor(Palette::blockOffset(13)+5);
+	_txtDaysWounded->setSecondaryColor(Palette::blockOffset(13));
 	_txtDaysWounded->setText(tr("STR_DAYS_WOUNDED").arg(daysWounded));
 	if (daysWounded == 0) _txtDaysWounded->setVisible(false);
 
-//	_lstKills->setColor(Palette::blockOffset(13));
-//	_lstKills->setArrowColor(Palette::blockOffset(13)+5);
-	_lstKills->setColumns(3, 40, 90, 80);
+	_lstKills->setColor(Palette::blockOffset(13));
+	_lstKills->setArrowColor(Palette::blockOffset(13)+5);
+	_lstKills->setColumns(3, 60, 90, 90);
 	_lstKills->setSelectable(false);
 	_lstKills->setBackground(_window);
 	_lstKills->setMargin(8);
@@ -182,11 +182,21 @@ SoldierDiaryMissionState::SoldierDiaryMissionState(Base *base, size_t soldierId,
             count++;
             stunOrKill = true;
 		}
-		else
+		else if ((*j)->getUnitStatusString() == "STATUS_UNCONSCIOUS")
 		{
 			wssStatus << tr("STR_STUNNED").c_str();
             stunOrKill = true;
 		}
+        else if ((*j)->getUnitStatusString() == "STATUS_PANICKED")
+		{
+            wssStatus << tr("STR_PANICKED").c_str();
+            stunOrKill = true;
+        }
+        else if ((*j)->getUnitStatusString() == "STATUS_TURNING")
+        {
+            wssStatus << tr("STR_MINDCONTROLLED").c_str();
+            stunOrKill = true;
+        }
 
 		_lstKills->addRow(3, wssStatus.str().c_str(), wssUnit.str().c_str(), wssWeapon.str().c_str());
 	}

@@ -43,7 +43,6 @@ class GMCatFile;
 class Music;
 class Palette;
 class SavedGame;
-class SoldierNamePool;
 class Soldier;
 class RuleCountry;
 class RuleRegion;
@@ -100,8 +99,6 @@ private:
 	std::vector<Uint16> _voxelData;
 	std::vector<std::vector<Uint8> > _transparencyLUTs;
 
-	std::vector<std::string> _soldierNames;
-	std::vector<SoldierNamePool*> _names;
 	std::map<std::string, RuleCountry*> _countries;
 	std::map<std::string, RuleRegion*> _regions;
 	std::map<std::string, RuleBaseFacility*> _facilities;
@@ -126,8 +123,8 @@ private:
 	std::map<std::string, SoundDefinition *> _soundDefs;
 	std::map<std::string, RuleVideo *>_videos;
 	std::map<std::string, MCDPatch *> _MCDPatches;
-	std::map<std::string, RuleCommendations *> _commendations;
 	std::map<std::string, std::vector<MapScript *> > _mapScripts;
+	std::map<std::string, RuleCommendations *> _commendations;
 	std::map<std::string, RuleMissionScript*> _missionScripts;
 	std::vector<std::pair<std::string, ExtraSprites *> > _extraSprites;
 	std::vector<std::pair<std::string, ExtraSounds *> > _extraSounds;
@@ -191,8 +188,6 @@ public:
 	static int ITEM_RELOAD;
 	static int WALK_OFFSET;
 	static int FLYING_SOUND;
-	static int MALE_SCREAM[3];
-	static int FEMALE_SCREAM[3];
 	static int BUTTON_PRESS;
 	static int WINDOW_POPUP[3];
 	static int UFO_FIRE;
@@ -249,8 +244,6 @@ public:
 	void loadAll(const std::vector< std::pair< std::string, std::vector<std::string> > > &mods);
 	/// Generates the starting saved game.
 	SavedGame *newSave() const;
-	/// Gets the pool list for soldier names.
-	const std::vector<SoldierNamePool*> &getPools() const;
 	/// Gets the ruleset for a country type.
 	RuleCountry *getCountry(const std::string &id) const;
 	/// Gets the available countries.
@@ -287,10 +280,10 @@ public:
 	MapDataSet *getMapDataSet(const std::string &name);
 	/// Gets soldier unit rules.
 	RuleSoldier *getSoldier(const std::string &name) const;
-	/// Gets commendation rules.
-	std::map<std::string, RuleCommendations *> getCommendation() const;
 	/// Gets the available soldiers.
 	const std::vector<std::string> &getSoldiersList() const;
+	/// Gets commendation rules.
+	std::map<std::string, RuleCommendations *> getCommendation() const;
 	/// Gets generated unit rules.
 	Unit *getUnit(const std::string &name) const;
 	/// Gets alien race rules.
